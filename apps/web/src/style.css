@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+:root {
+  --color-canvas: #f9fafb; /* gray-50 */
+  --color-surface: #ffffff; /* white */
+  --color-surface-hover: #f3f4f6; /* gray-100 */
+  --color-hairline: #e5e7eb; /* gray-200 */
+  
+  --color-brand-primary: #5e6ad2;
+  --color-brand-hover: #828fff;
+  
+  --color-ink: #111827; /* gray-900 */
+  --color-ink-muted: #6b7280; /* gray-500 */
+}
+
+.dark {
+  --color-canvas: #09090b; /* zinc-950 */
+  --color-surface: #18181b; /* zinc-900 */
+  --color-surface-hover: #27272a; /* zinc-800 */
+  --color-hairline: #27272a; /* zinc-800 */
+  
+  --color-brand-primary: #5e6ad2;
+  --color-brand-hover: #828fff;
+  
+  --color-ink: #fafafa; /* zinc-50 */
+  --color-ink-muted: #a1a1aa; /* zinc-400 */
+}
+
+@theme {
+  --color-canvas: var(--color-canvas);
+  --color-surface: var(--color-surface);
+  --color-surface-hover: var(--color-surface-hover);
+  --color-hairline: var(--color-hairline);
+  
+  --color-brand-primary: var(--color-brand-primary);
+  --color-brand-hover: var(--color-brand-hover);
+  
+  --color-ink: var(--color-ink);
+  --color-ink-muted: var(--color-ink-muted);
+
+  --color-brand-secure: #7a7fad;
+  --color-semantic-success: #27a644;
+  --color-semantic-overlay: #000000;
+
+  --font-linear-display: "Inter", "SF Pro Display", -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-linear-text: "Inter", "SF Pro Text", -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-linear-mono: "JetBrains Mono", "SF Mono", Menlo, ui-monospace, monospace;
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-xxl: 24px;
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  body {
+    font-family: var(--font-linear-text);
+  }
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Global Interactive Elements */
+button,
+.cursor-pointer,
+[role="button"] {
+  cursor: pointer;
+}
+
+.hover-lift {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}

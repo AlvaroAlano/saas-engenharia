@@ -1,0 +1,36 @@
+# === Node / Frontend ===
+node_modules/
+dist/
+dist-ssr/
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# === Python / Backend ===
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+*.egg-info/
+.pytest_cache/
+
+# === Variáveis de ambiente ===
+.env
+.env.*
+!.env.example
+
+# === IDEs ===
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# === Temporários ===
+temp/
