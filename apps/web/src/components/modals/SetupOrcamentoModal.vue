@@ -12,11 +12,19 @@ const emit = defineEmits(['close', 'salvar'])
 const mesesDisponiveis = ref(['03/2026', '02/2026'])
 const isSaving = ref(false)
 
+const PADROES = [
+  { id: 'popular', label: 'Popular' },
+  { id: 'medio',   label: 'Médio' },
+  { id: 'alto',    label: 'Alto Padrão' },
+]
+
 const form = ref({
   uf_obra: '',
   sinapi_desonerado: false,
   sinapi_mes_ano: '',
-  bdi_padrao: null
+  bdi_padrao: null,
+  padrao: '',
+  area_m2: null,
 })
 
 const ufs = [
@@ -41,10 +49,29 @@ const carregarReferencias = async () => {
 
 const syncForm = () => {
   if (props.project) {
-    form.value.uf_obra = props.project.uf_obra || 'SC'
+    form.value.uf_obra = props.project.uf_obra || ''
     form.value.sinapi_desonerado = props.project.sinapi_desonerado ?? false
     form.value.sinapi_mes_ano = props.project.sinapi_mes_ano || (mesesDisponiveis.value[0] || '')
     form.value.bdi_padrao = props.project.bdi_padrao ?? null
+    
+    // Normalize padrao from wizard string/name to ID
+    let padraoObra = props.project.padrao || ''
+    if (typeof padraoObra === 'string') {
+      const p = padraoObra.toLowerCase()
+      if (p.includes('popular')) {
+        padraoObra = 'popular'
+      } else if (p.includes('med') || p.includes('mdio') || p.includes('médio')) {
+        padraoObra = 'medio'
+      } else if (p.includes('alto')) {
+        padraoObra = 'alto'
+      }
+    }
+    form.value.padrao = padraoObra
+
+    // Normalize area/size from string (e.g. "125m²") to number
+    form.value.area_m2 = props.project.tamanho
+      ? parseFloat(String(props.project.tamanho).replace(/[^0-9.,]/g, '').replace(',', '.')) || null
+      : null
   }
 }
 
@@ -70,7 +97,9 @@ const handleSubmit = async () => {
       uf_obra: form.value.uf_obra,
       sinapi_desonerado: form.value.sinapi_desonerado,
       sinapi_mes_ano: form.value.sinapi_mes_ano,
-      bdi_padrao: form.value.bdi_padrao
+      bdi_padrao: form.value.bdi_padrao,
+      padrao: form.value.padrao || null,
+      tamanho: form.value.area_m2 ? `${form.value.area_m2}m²` : null,
     }
     
     await axios.patch(`/projetos/${props.project.id}`, payload)
@@ -85,7 +114,7 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div v-if="isOpen" class="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-zinc-950/40 dark:bg-zinc-950/60 backdrop-blur-sm" @click.self="emit('close')">
+  <div v-if="isOpen" class="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-zinc-950/40 dark:bg-zinc-950/60 backdrop-blur-sm" style="z-index: 120;" @click.self="emit('close')">
     <div class="bg-surface border border-hairline w-full max-w-md overflow-hidden animate-in zoom-in duration-200 shadow-sm">
       <!-- Header -->
       <div class="px-6 py-5 border-b border-hairline flex items-center justify-between bg-canvas">
@@ -161,6 +190,32 @@ const handleSubmit = async () => {
               step="0.1"
               placeholder="Ex: 25.0"
               @keypress="(e) => { if (!/[\d,.]/.test(e.key)) e.preventDefault() }"
+              class="w-full bg-canvas border border-hairline rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-brand-primary focus:border-brand-primary font-mono font-bold text-ink"
+            />
+          </div>
+        </div>
+
+        <!-- Padrão da Obra + Área -->
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold text-ink-muted uppercase tracking-wider">Padrão da Obra</label>
+            <div class="relative">
+              <select v-model="form.padrao" class="w-full bg-canvas border border-hairline rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-brand-primary focus:border-brand-primary appearance-none cursor-pointer text-ink">
+                <option value="" disabled>Selecione...</option>
+                <option v-for="p in PADROES" :key="p.id" :value="p.id">{{ p.label }}</option>
+              </select>
+              <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none">expand_more</span>
+            </div>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold text-ink-muted uppercase tracking-wider">Área Total (m²)</label>
+            <input
+              v-model.number="form.area_m2"
+              type="number"
+              min="1"
+              step="0.01"
+              placeholder="Ex: 150"
               class="w-full bg-canvas border border-hairline rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-brand-primary focus:border-brand-primary font-mono font-bold text-ink"
             />
           </div>

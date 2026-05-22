@@ -87,8 +87,24 @@ const deleteTemplate = async (id) => {
   }
 }
 
-const copyTag = (tag) => {
-  navigator.clipboard.writeText(tag)
+const textareaRef = ref(null)
+
+const insertTag = (tag) => {
+  const el = textareaRef.value
+  if (!el) return
+
+  const start = el.selectionStart
+  const end = el.selectionEnd
+  const text = activeTemplate.value.conteudo
+
+  activeTemplate.value.conteudo = text.slice(0, start) + tag + text.slice(end)
+
+  // Reposiciona o cursor logo após a tag inserida
+  const newPos = start + tag.length
+  el.focus()
+  requestAnimationFrame(() => {
+    el.setSelectionRange(newPos, newPos)
+  })
 }
 
 onMounted(() => {
@@ -97,14 +113,15 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex h-full min-h-[600px] flex-col font-sans text-ink">
+  <div class="flex h-full flex-col font-sans text-ink">
     <div class="flex flex-1 overflow-hidden">
       <!-- Sidebar -->
       <aside class="w-72 bg-surface border-r border-hairline flex flex-col shrink-0">
         <div class="p-4 border-b border-hairline bg-canvas flex justify-between items-center">
           <h2 class="text-xs font-bold text-ink-muted uppercase tracking-wider">Templates Salvos</h2>
-          <button @click="() => selectTemplate('new')" class="text-brand-primary hover:text-brand-hover hover:bg-brand-primary/10 p-1 rounded transition-colors cursor-pointer" title="Novo Template">
-            <span class="material-symbols-outlined text-[18px]">add</span>
+          <button @click="() => selectTemplate('new')" class="flex items-center gap-1 text-xs font-semibold text-brand-primary hover:bg-brand-primary/10 px-2 py-1 rounded-lg transition-colors cursor-pointer">
+            <span class="material-symbols-outlined text-[16px]">add</span>
+            Novo
           </button>
         </div>
         <div class="flex-1 overflow-y-auto p-3 space-y-1">
@@ -128,11 +145,11 @@ onMounted(() => {
       </aside>
 
       <!-- Main Editor -->
-      <main class="flex-1 flex flex-col bg-canvas relative overflow-hidden" v-if="activeTemplate">
-        <div class="flex-1 overflow-y-auto p-8 max-w-5xl w-full mx-auto">
-          
-          <div class="bg-surface rounded-xl border border-hairline overflow-hidden mb-6">
-            <div class="px-6 py-4 border-b border-hairline bg-canvas flex justify-between items-center">
+      <main class="flex-1 flex flex-col bg-canvas overflow-hidden" v-if="activeTemplate">
+        <div class="flex-1 flex flex-col min-h-0 p-5">
+
+          <div class="flex-1 flex flex-col min-h-0 bg-surface rounded-xl border border-hairline overflow-hidden">
+            <div class="px-5 py-3.5 border-b border-hairline bg-canvas flex justify-between items-center shrink-0">
               <input 
                 v-model="activeTemplate.titulo" 
                 class="text-lg font-bold text-ink bg-transparent border-b-2 border-transparent focus:border-brand-primary focus:outline-none transition-colors w-1/2 px-1 py-0.5"
@@ -154,27 +171,23 @@ onMounted(() => {
               </div>
             </div>
 
-            <!-- Informational Banner -->
-            <div class="px-6 pt-5 bg-brand-primary/5 dark:bg-brand-primary/10">
-              <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 rounded-lg p-4 flex gap-3 text-blue-800 dark:text-blue-200 text-sm">
-                <span class="material-symbols-outlined shrink-0 text-blue-500 dark:text-blue-400">info</span>
+            <!-- Informational Banner + Variables Panel -->
+            <div class="px-5 py-4 border-b border-hairline bg-brand-primary/5 dark:bg-brand-primary/10 shrink-0">
+              <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 rounded-lg p-3.5 flex gap-3 text-blue-800 dark:text-blue-200 text-xs mb-4">
+                <span class="material-symbols-outlined shrink-0 text-blue-500 dark:text-blue-400 text-base">info</span>
                 <p>
-                  <strong>Como funciona:</strong> Crie seus modelos padrão de contrato abaixo. Clique nas variáveis dinâmicas para inseri-las no seu texto. Na hora de gerar o documento no painel, o sistema substituirá automaticamente essas tags pelos dados reais do cliente, metragem e valor.
+                  <strong>Como funciona:</strong> Crie seus modelos padrão de contrato abaixo. Clique nas variáveis para copiar e cole no texto. Na geração do documento, o sistema substituirá as tags pelos dados reais do cliente.
                 </p>
               </div>
-            </div>
-
-            <!-- Variables Panel -->
-            <div class="px-6 py-4 border-b border-hairline bg-brand-primary/5 dark:bg-brand-primary/10">
               <p class="text-xs font-bold text-brand-primary mb-2 uppercase tracking-wider flex items-center gap-1">
                 <span class="material-symbols-outlined text-[14px]">data_object</span> Variáveis Dinâmicas
               </p>
               <p class="text-xs text-ink-muted mb-3">Clique em uma tag para copiar e cole no corpo do texto.</p>
               <div class="flex flex-wrap gap-2">
-                <button 
-                  v-for="variavel in variaveis" 
+                <button
+                  v-for="variavel in variaveis"
                   :key="variavel.tag"
-                  @click="copyTag(variavel.tag)"
+                  @click="insertTag(variavel.tag)"
                   class="bg-surface border border-brand-primary/30 text-brand-primary hover:bg-brand-primary hover:text-white px-2.5 py-1.5 rounded-md text-xs font-mono transition-colors flex items-center gap-1.5 group cursor-pointer"
                   title="Copiar tag"
                 >
@@ -184,10 +197,12 @@ onMounted(() => {
               </div>
             </div>
 
-            <div class="p-6 h-[500px]">
-              <textarea 
+            <!-- Textarea: preenche o espaço restante do card -->
+            <div class="flex-1 flex flex-col min-h-0 p-5">
+              <textarea
+                ref="textareaRef"
                 v-model="activeTemplate.conteudo"
-                class="w-full h-full p-4 bg-canvas border border-hairline text-ink rounded-lg focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none resize-none font-serif leading-relaxed"
+                class="flex-1 min-h-0 w-full p-4 bg-canvas border border-hairline text-ink rounded-lg focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none resize-none font-serif leading-relaxed"
                 placeholder="Escreva o corpo do contrato aqui..."
               ></textarea>
             </div>

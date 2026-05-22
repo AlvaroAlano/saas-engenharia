@@ -1,11 +1,15 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import axios from 'axios'
+import { supabase } from '../supabase'
+import { useToast } from '../composables/useToast'
 import Sidebar from './Sidebar.vue'
 import TopHeader from './TopHeader.vue'
 import ProjectCard from './ProjectCard.vue'
 import NovoClienteModal from './NovoClienteModal.vue'
 import ArchivedProjectsDrawer from './ArchivedProjectsDrawer.vue'
+
+const { showToast } = useToast()
 
 const kanbanData = ref({
   estimativa_enviada: [],
@@ -28,20 +32,20 @@ const fetchProjetos = async () => {
   isLoading.value = true
   try {
     const response = await axios.get('/projetos')
-    
+
     const grouped = {
       estimativa_enviada: [],
       contrato_pendente: [],
       engenharia_caixa: [],
       obra_liberada: []
     }
-    
+
     response.data.forEach(p => {
       if (grouped[p.coluna]) {
         grouped[p.coluna].push(p)
       }
     })
-    
+
     kanbanData.value = grouped
   } catch (error) {
     console.error('Erro ao buscar projetos:', error)
@@ -50,8 +54,86 @@ const fetchProjetos = async () => {
   }
 }
 
-onMounted(() => {
-  fetchProjetos()
+// --- Supabase Realtime ---
+
+const handleRealtimeEvent = ({ eventType, new: novo, old: antigo }) => {
+  if (eventType === 'INSERT') {
+    const col = novo.coluna
+    if (kanbanData.value[col]) {
+      kanbanData.value[col].unshift(novo)
+      showToast(`Novo lead: ${novo.cliente_nome}`, 'success')
+    }
+    return
+  }
+
+  if (eventType === 'UPDATE') {
+    // Encontra o projeto em qualquer coluna pelo id
+    let colunaAtual = null
+    let idxAtual = -1
+    for (const col in kanbanData.value) {
+      const idx = kanbanData.value[col].findIndex(p => p.id === novo.id)
+      if (idx !== -1) {
+        colunaAtual = col
+        idxAtual = idx
+        break
+      }
+    }
+
+    const colunaDestino = novo.coluna
+    const colunaValida = !!kanbanData.value[colunaDestino]
+
+    if (colunaAtual === colunaDestino) {
+      // Mesma coluna: atualiza o card no lugar
+      if (idxAtual !== -1) {
+        kanbanData.value[colunaAtual][idxAtual] = novo
+      }
+    } else {
+      // Mudou de coluna: remove da atual e insere na nova
+      if (colunaAtual && idxAtual !== -1) {
+        kanbanData.value[colunaAtual].splice(idxAtual, 1)
+      }
+      if (colunaValida) {
+        kanbanData.value[colunaDestino].unshift(novo)
+      }
+
+      // Notificações para eventos relevantes
+      if (novo.status === 'docs_completos') {
+        showToast(`${novo.cliente_nome} enviou os documentos!`, 'success')
+      } else if (colunaValida) {
+        const label = columns.find(c => c.id === colunaDestino)?.title
+        showToast(`${novo.cliente_nome} → ${label}`, 'success')
+      }
+    }
+    return
+  }
+
+  if (eventType === 'DELETE') {
+    for (const col in kanbanData.value) {
+      const idx = kanbanData.value[col].findIndex(p => p.id === antigo.id)
+      if (idx !== -1) {
+        kanbanData.value[col].splice(idx, 1)
+        break
+      }
+    }
+  }
+}
+
+let realtimeChannel = null
+
+const setupRealtime = () => {
+  realtimeChannel = supabase
+    .channel('kanban-projetos')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'projetos_clientes' }, handleRealtimeEvent)
+    .subscribe()
+}
+
+onMounted(async () => {
+  await fetchProjetos()
+  setupRealtime()
+})
+
+onUnmounted(() => {
+  if (realtimeChannel) supabase.removeChannel(realtimeChannel)
 })
 
 const handleClientCreated = () => {
@@ -139,23 +221,43 @@ const handleClientCreated = () => {
               </span>
             </div>
             
-            <div class="flex flex-col gap-3 min-h-[200px]">
-              <ProjectCard 
-                v-for="project in kanbanData[col.id]" 
-                :key="project.id" 
-                :project="project" 
+            <TransitionGroup name="kanban-card" tag="div" class="flex flex-col gap-3 min-h-[200px]">
+              <ProjectCard
+                v-for="project in kanbanData[col.id]"
+                :key="project.id"
+                :project="project"
                 @update="fetchProjetos"
                 @projeto-arquivado="fetchProjetos"
               />
-              
-              <div v-if="kanbanData[col.id].length === 0" class="flex flex-col items-center justify-center py-10 px-4 text-center border-2 border-dashed border-hairline/30 rounded-lg bg-canvas/30 text-ink-muted">
+
+              <div v-if="kanbanData[col.id].length === 0" key="__empty__" class="flex flex-col items-center justify-center py-10 px-4 text-center border-2 border-dashed border-hairline/30 rounded-lg bg-canvas/30 text-ink-muted">
                 <span class="material-symbols-outlined text-2xl mb-2 text-ink-muted">inbox</span>
                 <p class="text-xs font-medium">Nenhum projeto nesta fase</p>
               </div>
-            </div>
+            </TransitionGroup>
           </div>
         </div>
       </div>
     </main>
   </div>
 </template>
+
+<style scoped>
+.kanban-card-enter-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.kanban-card-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.kanban-card-enter-from {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.97);
+}
+.kanban-card-leave-to {
+  opacity: 0;
+  transform: scale(0.97);
+}
+.kanban-card-move {
+  transition: transform 0.3s ease;
+}
+</style>

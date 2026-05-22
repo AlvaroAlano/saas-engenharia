@@ -4,11 +4,125 @@ import { useRoute } from 'vue-router'
 import axios from 'axios'
 import { useToast } from '../composables/useToast'
 import { forceLightMode } from '../composables/useTheme'
+import { supabase } from '../supabase'
 import Caixometro from './Caixometro.vue'
 
 const route = useRoute()
 const token = route.params.token
 const { showToast } = useToast()
+
+const arquivosCorrigidos = ref({
+  identidade: null,
+  residencia: null,
+  estado_civil: null
+})
+const isEnviandoCorrecoes = ref(false)
+
+const categoriasDocsB2C = [
+  { id: 'identidade', label: 'Identidade (RG/CNH)', icon: 'badge', description: 'RG ou CNH legível (frente e verso)' },
+  { id: 'residencia', label: 'Comprovante de Residência', icon: 'home_work', description: 'Conta de água, luz ou gás recente' },
+  { id: 'estado_civil', label: 'Certidão de Estado Civil', icon: 'family_restroom', description: 'Certidão de Nascimento ou Casamento' }
+]
+
+const getDocumentStatusInfo = (categoria) => {
+  if (!projetoData.value || !projetoData.value.documentos) {
+    return { status: 'pendente', label: 'Pendente', icon: 'pending', badgeClass: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300' }
+  }
+  const doc = projetoData.value.documentos.find(d => d.categoria === categoria)
+  if (!doc) {
+    return { status: 'pendente', label: 'Pendente', icon: 'pending', badgeClass: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300' }
+  }
+  if (doc.status === 'rejeitado') {
+    return { status: 'rejeitado', label: 'Recusado', icon: 'cancel', badgeClass: 'bg-red-50 text-red-600 border border-red-100 dark:bg-red-950/20 dark:text-red-400 dark:border-red-900/30', motivo: doc.motivo }
+  }
+  if (doc.url) {
+    return { status: 'aprovado', label: 'Aprovado', icon: 'check_circle', badgeClass: 'bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/30', filename: doc.name }
+  }
+  return { status: 'pendente', label: 'Pendente', icon: 'pending', badgeClass: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300' }
+}
+
+const handleFileSelect = (event, categoria) => {
+  const file = event.target.files[0]
+  if (file) {
+    arquivosCorrigidos.value[categoria] = file
+  }
+}
+
+const removerArquivoSelecionado = (categoria) => {
+  arquivosCorrigidos.value[categoria] = null
+  const input = document.getElementById(`file-input-${categoria}`)
+  if (input) input.value = ''
+}
+
+const temArquivosSelecionados = computed(() => {
+  return Object.values(arquivosCorrigidos.value).some(f => f !== null)
+})
+
+const enviarDocumentosCorrigidos = async () => {
+  if (!temArquivosSelecionados.value) return
+  isEnviandoCorrecoes.value = true
+  
+  try {
+    const novosDocumentos = [...(projetoData.value.documentos || [])]
+    
+    for (const cat of ['identidade', 'residencia', 'estado_civil']) {
+      const file = arquivosCorrigidos.value[cat]
+      if (file) {
+        const cleanFileName = file.name.replace(/[^\w.-]/g, '_')
+        const filePath = `${projetoData.value.id}/${cat}/${cleanFileName}`
+        
+        const { error } = await supabase.storage
+          .from('documentos_clientes')
+          .upload(filePath, file, { upsert: true })
+          
+        if (error) throw new Error(`Falha no armazenamento do documento (${cat}): ${error.message}`)
+        
+        const { data: urlData } = supabase.storage
+          .from('documentos_clientes')
+          .getPublicUrl(filePath)
+          
+        const index = novosDocumentos.findIndex(d => d.categoria === cat)
+        const novoDoc = {
+          categoria: cat,
+          name: file.name,
+          url: urlData.publicUrl,
+          done: true
+        }
+        if (index !== -1) {
+          novosDocumentos[index] = novoDoc
+        } else {
+          novosDocumentos.push(novoDoc)
+        }
+      }
+    }
+    
+    const todosValidos = ['identidade', 'residencia', 'estado_civil'].every(cat => {
+      const doc = novosDocumentos.find(d => d.categoria === cat)
+      return doc && doc.url && doc.status !== 'rejeitado'
+    })
+    
+    const novoStatus = todosValidos ? 'docs_completos' : 'docs_pendentes'
+    
+    const apiResponse = await axios.patch(`/matchmaking/projetos/${projetoData.value.id}`, {
+      documentos: novosDocumentos,
+      status: novoStatus
+    })
+    
+    if (apiResponse.data.success || apiResponse.status === 200) {
+      showToast('Documentos enviados com sucesso!', 'success')
+      arquivosCorrigidos.value = { identidade: null, residencia: null, estado_civil: null }
+      projetoData.value.documentos = novosDocumentos
+      projetoData.value.status = novoStatus
+    } else {
+      throw new Error('Servidor não confirmou o envio dos documentos.')
+    }
+  } catch (error) {
+    console.error('Erro no reenvio de documentos:', error)
+    showToast(error.message || 'Erro ao enviar documentos. Tente novamente.', 'error')
+  } finally {
+    isEnviandoCorrecoes.value = false
+  }
+}
 
 onMounted(() => {
   forceLightMode()
@@ -82,8 +196,8 @@ const carregarDadosPortal = async () => {
       axios.get(`/portal/projetos/${token}/caixa`)
     ])
 
-    if (feedRes.data.success) documentosData.value = docsRes.data.data
-    if (docsRes.data.success) feedData.value = feedRes.data.data
+    if (feedRes.data.success) feedData.value = feedRes.data.data
+    if (docsRes.data.success) documentosData.value = docsRes.data.data
     if (caixaRes.data.success) caixaData.value = caixaRes.data.data
   } catch (err) {
     console.error("Erro ao carregar dados do portal do cliente:", err)
@@ -263,7 +377,7 @@ const getDocIcon = (categoria) => {
       <div v-else-if="currentState === 'success' && projetoData" class="pb-8">
         
         <!-- Banner de Sucesso -->
-        <div class="bg-brand-primary px-6 py-5">
+        <div v-if="projetoData.status !== 'docs_pendentes' && projetoData.status !== 'docs_completos'" class="bg-brand-primary px-6 py-5">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
               <span class="material-symbols-outlined text-white text-xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
@@ -275,8 +389,34 @@ const getDocIcon = (categoria) => {
           </div>
         </div>
 
-        <!-- Navegação por Abas -->
-        <div class="px-6 border-b border-hairline bg-surface sticky top-0 z-20 flex gap-4 overflow-x-auto scrollbar-none">
+        <!-- Banner de Pendência de Documentos (docs_pendentes) -->
+        <div v-else-if="projetoData.status === 'docs_pendentes'" class="bg-amber-500 px-6 py-5">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+              <span class="material-symbols-outlined text-white text-xl" style="font-variation-settings: 'FILL' 1;">warning</span>
+            </div>
+            <div>
+              <h2 class="text-white font-bold text-base">Ação Necessária</h2>
+              <p class="text-white/80 text-xs">Algum documento foi recusado. Envie a correção abaixo.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Banner de Documentos em Análise (docs_completos) -->
+        <div v-else-if="projetoData.status === 'docs_completos'" class="bg-blue-600 px-6 py-5">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+              <span class="material-symbols-outlined text-white text-xl" style="font-variation-settings: 'FILL' 1;">schedule</span>
+            </div>
+            <div>
+              <h2 class="text-white font-bold text-base">Documentos em Análise</h2>
+              <p class="text-white/80 text-xs">Estamos revisando suas informações. Aguarde contato.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navegação por Abas (ocultar se estiver em docs_pendentes ou docs_completos) -->
+        <div v-if="projetoData.status !== 'docs_pendentes' && projetoData.status !== 'docs_completos'" class="px-6 border-b border-hairline bg-surface sticky top-0 z-20 flex gap-4 overflow-x-auto scrollbar-none">
           <button 
             v-for="tab in tabs" 
             :key="tab.id"
@@ -294,8 +434,109 @@ const getDocIcon = (categoria) => {
 
         <main class="px-6 pt-6">
           
-          <!-- Aba 1: Diário de Obra (Timeline/Feed) -->
-          <div v-if="activeTab === 'feed'">
+          <!-- Seção de Documentos Pendentes (docs_pendentes) -->
+          <div v-if="projetoData.status === 'docs_pendentes'" class="space-y-6">
+            <div class="mb-5">
+              <h3 class="text-sm font-bold text-ink mb-1 uppercase tracking-wider">Correção de Documentos</h3>
+              <p class="text-xs text-ink-muted">Abaixo estão listados os documentos exigidos. Envie a versão corrigida dos itens recusados.</p>
+            </div>
+
+            <div class="space-y-4">
+              <div v-for="cat in categoriasDocsB2C" :key="cat.id" class="border border-hairline rounded-xl bg-surface p-4 flex flex-col gap-3 shadow-sm">
+                <!-- Status Header -->
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-ink-muted text-lg">{{ cat.icon }}</span>
+                    <span class="text-xs font-bold text-ink">{{ cat.label }}</span>
+                  </div>
+                  
+                  <!-- Badges reativas baseadas no status real do documento -->
+                  <div class="flex items-center gap-1">
+                    <span 
+                      class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full flex items-center gap-1"
+                      :class="getDocumentStatusInfo(cat.id).badgeClass"
+                    >
+                      <span class="material-symbols-outlined text-[12px]">{{ getDocumentStatusInfo(cat.id).icon }}</span>
+                      {{ getDocumentStatusInfo(cat.id).label }}
+                    </span>
+                  </div>
+                </div>
+
+                <p class="text-[11px] text-ink-muted">{{ cat.description }}</p>
+
+                <!-- Motivo de Rejeição -->
+                <div v-if="getDocumentStatusInfo(cat.id).status === 'rejeitado'" class="bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 text-red-700 dark:text-red-400 text-xs p-3 rounded-lg flex flex-col gap-1">
+                  <span class="font-bold flex items-center gap-1">
+                    <span class="material-symbols-outlined text-sm">error</span>
+                    Motivo da Recusa:
+                  </span>
+                  <span>{{ getDocumentStatusInfo(cat.id).motivo }}</span>
+                </div>
+
+                <!-- Se o documento já foi enviado e aprovado (tem URL e não está rejeitado) -->
+                <div v-if="getDocumentStatusInfo(cat.id).status === 'aprovado'" class="text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 p-3 rounded-lg flex items-center justify-between">
+                  <span class="truncate max-w-[80%] font-medium">✓ {{ getDocumentStatusInfo(cat.id).filename }}</span>
+                  <span class="text-[10px] uppercase font-bold shrink-0">Preservado</span>
+                </div>
+
+                <!-- Se pendente ou recusado, liberar input -->
+                <div v-else class="space-y-2">
+                  <!-- Se um arquivo local foi selecionado -->
+                  <div v-if="arquivosCorrigidos[cat.id]" class="bg-zinc-50 dark:bg-zinc-900 border border-hairline p-3 rounded-lg flex items-center justify-between text-xs">
+                    <span class="truncate font-semibold text-ink max-w-[80%]">{{ arquivosCorrigidos[cat.id].name }}</span>
+                    <button @click="removerArquivoSelecionado(cat.id)" class="text-red-500 hover:text-red-700 flex items-center">
+                      <span class="material-symbols-outlined text-lg">delete</span>
+                    </button>
+                  </div>
+                  
+                  <div v-else>
+                    <label 
+                      :for="`file-input-${cat.id}`"
+                      class="flex items-center justify-center gap-2 border border-dashed border-hairline hover:border-brand-primary hover:bg-brand-primary/5 transition-all py-3 rounded-xl cursor-pointer text-xs font-semibold text-ink-muted hover:text-brand-primary"
+                    >
+                      <span class="material-symbols-outlined text-lg">upload_file</span>
+                      Selecionar Arquivo
+                    </label>
+                    <input 
+                      :id="`file-input-${cat.id}`" 
+                      type="file" 
+                      accept=".pdf,.png,.jpg,.jpeg" 
+                      class="hidden" 
+                      @change="handleFileSelect($event, cat.id)"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Botão geral de envio de correções -->
+            <button
+              @click="enviarDocumentosCorrigidos"
+              :disabled="!temArquivosSelecionados || isEnviandoCorrecoes"
+              class="w-full py-4 bg-brand-primary hover:bg-brand-hover text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 border border-transparent shadow-sm mt-6"
+            >
+              <span v-if="isEnviandoCorrecoes" class="material-symbols-outlined animate-spin text-lg">progress_activity</span>
+              <span v-else class="material-symbols-outlined text-lg">send</span>
+              {{ isEnviandoCorrecoes ? 'Enviando Documentos...' : 'Enviar Documentos Corrigidos' }}
+            </button>
+          </div>
+
+          <!-- Seção de Documentos em Análise (docs_completos / Lead) -->
+          <div v-else-if="projetoData.status === 'docs_completos'" class="space-y-6 text-center py-10 flex flex-col items-center">
+            <div class="w-20 h-20 bg-blue-50 dark:bg-blue-950/20 rounded-2xl flex items-center justify-center border border-blue-100 dark:border-blue-900/30 mb-4 animate-pulse">
+              <span class="material-symbols-outlined text-4xl text-blue-500">hourglass_top</span>
+            </div>
+            <h3 class="text-base font-bold text-ink">Seus documentos estão em análise</h3>
+            <p class="text-xs text-ink-muted leading-relaxed max-w-sm">
+              Já recebemos os novos arquivos e eles estão em processo de validação pela nossa equipe de engenharia. 
+              Por favor, aguarde! Você será contatado em breve para assinar o contrato da obra.
+            </p>
+          </div>
+
+          <!-- Abas padrão do portal se NOT docs_pendentes e NOT docs_completos -->
+          <div v-else>
+            <!-- Aba 1: Diário de Obra (Timeline/Feed) -->
+            <div v-if="activeTab === 'feed'">
             <div class="mb-5">
               <h3 class="text-sm font-bold text-ink mb-1 uppercase tracking-wider">Diário de Obra</h3>
               <p class="text-xs text-ink-muted">Acompanhe as atualizações e fotos enviadas do canteiro de obras.</p>
@@ -427,6 +668,7 @@ const getDocIcon = (categoria) => {
               </div>
             </div>
           </div>
+        </div>
 
           <!-- Rodapé de segurança -->
           <div class="flex items-center justify-center gap-1.5 pt-8 pb-2">

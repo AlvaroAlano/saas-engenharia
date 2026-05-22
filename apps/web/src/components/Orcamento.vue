@@ -246,40 +246,7 @@ const handleAddManualItem = async (form) => {
   }
 }
 
-const handleGenerateTemplate = async () => {
-  const projectId = route.params.id
-  if (!projectId) return
-  
-  if (!confirm("Isso irá importar os itens básicos para uma obra residencial padrão. Deseja continuar?")) return
 
-  isSaving.value = true
-  try {
-    const templateItems = [
-      { codigo_sinapi: '98544', descricao: 'Tapume em chapa de madeira compensada', unidade: 'M²', quantidade: 20, valor_unitario: 45.50, etapa_obra: 'servicos_preliminares' },
-      { codigo_sinapi: '98459', descricao: 'Instalação provisória de água', unidade: 'UN', quantidade: 1, valor_unitario: 350.00, etapa_obra: 'servicos_preliminares' },
-      { codigo_sinapi: '93358', descricao: 'Escavação manual de vala', unidade: 'M³', quantidade: 15, valor_unitario: 65.00, etapa_obra: 'infraestrutura' },
-      { codigo_sinapi: '94970', descricao: 'Concreto fck=25mpa usinado', unidade: 'M³', quantidade: 8, valor_unitario: 420.00, etapa_obra: 'infraestrutura' },
-      { codigo_sinapi: '92767', descricao: 'Armação de aço CA-50 10.0mm', unidade: 'KG', quantidade: 120, valor_unitario: 12.50, etapa_obra: 'infraestrutura' },
-      { codigo_sinapi: '87503', descricao: 'Alvenaria de vedação bloco cerâmico 9x19x19', unidade: 'M²', quantidade: 85, valor_unitario: 55.00, etapa_obra: 'superestrutura' },
-      { codigo_sinapi: '92414', descricao: 'Laje pré-moldada para piso', unidade: 'M²', quantidade: 40, valor_unitario: 95.00, etapa_obra: 'superestrutura' },
-      { codigo_sinapi: '89707', descricao: 'Tubo PVC esgoto 100mm', unidade: 'M', quantidade: 12, valor_unitario: 28.00, etapa_obra: 'instalacoes' },
-      { codigo_sinapi: '91926', descricao: 'Cabo de cobre flexível 2,5mm²', unidade: 'M', quantidade: 100, valor_unitario: 4.50, etapa_obra: 'instalacoes' },
-      { codigo_sinapi: '88489', descricao: 'Revestimento cerâmico para paredes', unidade: 'M²', quantidade: 45, valor_unitario: 65.00, etapa_obra: 'acabamentos' },
-      { codigo_sinapi: '88411', descricao: 'Pintura látex acrílica em paredes', unidade: 'M²', quantidade: 150, valor_unitario: 22.00, etapa_obra: 'acabamentos' }
-    ]
-
-    const res = await axios.post(`/projetos/${projectId}/itens/bulk`, templateItems)
-    if (res.data.success) {
-      await fetchCart()
-      showToast('Modelo base gerado!')
-    }
-  } catch (e) {
-    console.error('Erro ao gerar template:', e)
-    showToast('Erro ao gerar modelo base.', 'error')
-  } finally {
-    isSaving.value = false
-  }
-}
 
 const handleRemoveFromCart = async (id) => {
   const projectId = route.params.id
@@ -519,13 +486,13 @@ onUnmounted(() => {
               </button>
             </div>
             <div class="p-4 lg:p-0 flex-1 overflow-y-auto lg:overflow-visible">
-              <ArvoreCustos 
-                :items="cartItems" 
-                :bdi="currentProject?.bdi_padrao || 0" 
-                @remove-item="handleRemoveFromCart" 
-                @update-quantity="handleUpdateQuantity" 
+              <ArvoreCustos
+                :items="cartItems"
+                :bdi="currentProject?.bdi_padrao || 0"
+                @remove-item="handleRemoveFromCart"
+                @update-quantity="handleUpdateQuantity"
                 @add-manual-item="isManualModalOpen = true"
-                @generate-template="handleGenerateTemplate"
+                @import-template="abrirImportTemplateModal"
               />
             </div>
           </div>

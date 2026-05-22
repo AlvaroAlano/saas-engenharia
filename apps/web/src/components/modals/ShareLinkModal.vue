@@ -86,7 +86,7 @@ const enviarWhatsApp = () => {
 
 <template>
   <Teleport to="body">
-    <div v-if="isOpen" class="fixed inset-0 bg-zinc-950/40 dark:bg-zinc-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="emit('close')">
+    <div v-if="isOpen" class="fixed inset-0 bg-zinc-950/40 dark:bg-zinc-950/60 backdrop-blur-sm z-[120] flex items-center justify-center p-4" style="z-index: 120;" @click.self="emit('close')">
       <div class="bg-surface border border-hairline w-full max-w-md overflow-hidden animate-in zoom-in duration-200 shadow-sm rounded-xl">
         <div class="flex items-center justify-between px-6 py-4 border-b border-hairline bg-canvas">
           <div class="flex items-center gap-2">

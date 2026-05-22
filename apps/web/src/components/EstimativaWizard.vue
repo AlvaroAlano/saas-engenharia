@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { formatCurrency } from '../utils/formatters'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
@@ -37,6 +37,19 @@ const loadProjectStatus = async () => {
       dadosContato.value.nome = res.data.cliente_nome || ''
       dadosContato.value.telefone = res.data.telefone || ''
       
+      // Preenche os slots com documentos existentes
+      if (res.data.documentos && Array.isArray(res.data.documentos)) {
+        res.data.documentos.forEach(doc => {
+          const cat = doc.categoria
+          if (docSlots[cat]) {
+            docSlots[cat].existingUrl = doc.url
+            docSlots[cat].existingName = doc.name
+            docSlots[cat].status = doc.status
+            docSlots[cat].motivo = doc.motivo
+          }
+        })
+      }
+      
       // Preenche os dados da simulação caso já existam
       if (res.data.padrao) {
         const found = padroes.find(p => p.nome === res.data.padrao)
@@ -59,7 +72,7 @@ const loadProjectStatus = async () => {
         isSuccess.value = true
         isUploadComplete.value = true
         isWaitingRoom.value = true
-      } else if (res.data.status === 'docs_incompletos' || res.data.coluna === 'contrato_pendente') {
+      } else if (res.data.status === 'docs_incompletos' || res.data.status === 'docs_pendentes' || res.data.coluna === 'contrato_pendente') {
         // Se já concluiu simulação e está em documentos pendentes, vai direto para tela de upload
         isSuccess.value = true
         isUploadComplete.value = false
@@ -103,9 +116,26 @@ onMounted(() => {
 const isLoading = ref(false)
 const isSuccess = ref(false)
 const isUploading = ref(false)
-const isDragging = ref(false)
-const filesToUpload = ref([])
 const isUploadComplete = ref(false)
+
+const docSlots = reactive({
+  identidade:   { file: null, isDragging: false, existingUrl: null, existingName: null, status: null, motivo: null },
+  residencia:   { file: null, isDragging: false, existingUrl: null, existingName: null, status: null, motivo: null },
+  estado_civil: { file: null, isDragging: false, existingUrl: null, existingName: null, status: null, motivo: null }
+})
+
+const docMeta = {
+  identidade:   { label: 'Documento de Identidade',    sublabel: 'RG ou CNH',                            icon: 'badge' },
+  residencia:   { label: 'Comprovante de Residência',  sublabel: 'Atualizado (máx. 3 meses)',             icon: 'home_work' },
+  estado_civil: { label: 'Certidão de Estado Civil',   sublabel: 'Nascimento, casamento ou divórcio',     icon: 'family_restroom' }
+}
+
+const allDocsReady = computed(() =>
+  ['identidade', 'residencia', 'estado_civil'].every(cat => {
+    const slot = docSlots[cat]
+    return !!(slot.file || (slot.existingUrl && slot.status !== 'rejeitado'))
+  })
+)
 const padraoSelecionado = ref(null)
 const simulacaoCaixaConcluida = ref(false)
 
@@ -267,80 +297,72 @@ const finishWizard = async () => {
 }
 
 
-const handleFileSelect = (event) => {
-  const selected = Array.from(event.target.files)
-  addFiles(selected)
+const handleDocFileSelect = (categoria, event) => {
+  const file = event.target.files[0]
+  if (file) docSlots[categoria].file = file
 }
 
-const handleDrop = (event) => {
-  isDragging.value = false
-  const dropped = Array.from(event.dataTransfer.files)
-  addFiles(dropped)
+const handleDocDrop = (categoria, event) => {
+  docSlots[categoria].isDragging = false
+  const file = event.dataTransfer.files[0]
+  if (file) docSlots[categoria].file = file
 }
 
-const addFiles = (newFiles) => {
-  newFiles.forEach(file => {
-    if (!filesToUpload.value.find(f => f.name === file.name)) {
-      filesToUpload.value.push(file)
-    }
-  })
-}
-
-const removeFile = (index) => {
-  filesToUpload.value.splice(index, 1)
+const removeDoc = (categoria) => {
+  docSlots[categoria].file = null
 }
 
 const uploadFiles = async () => {
-  if (filesToUpload.value.length === 0) return
+  if (!allDocsReady.value) return
   isUploading.value = true
-  
+
   try {
     const uploadedDocs = []
-    
-    for (const file of filesToUpload.value) {
-      // Limpa o nome do arquivo para evitar erros de caracteres especiais/espaços
-      const cleanFileName = file.name.replace(/[^\w.-]/g, '_')
-      const filePath = `${projetoId.value}/${cleanFileName}`
-      
-      console.log('Tentando upload para:', filePath)
-      
-      const { data, error } = await supabase.storage
-        .from('documentos_clientes')
-        .upload(filePath, file, {
-          upsert: true
+
+    for (const [categoria, slot] of Object.entries(docSlots)) {
+      const file = slot.file
+      if (file) {
+        const cleanFileName = file.name.replace(/[^\w.-]/g, '_')
+        const filePath = `${projetoId.value}/${categoria}/${cleanFileName}`
+
+        const { error } = await supabase.storage
+          .from('documentos_clientes')
+          .upload(filePath, file, { upsert: true })
+
+        if (error) throw new Error(`Falha no armazenamento: ${error.message}`)
+
+        const { data: urlData } = supabase.storage
+          .from('documentos_clientes')
+          .getPublicUrl(filePath)
+
+        uploadedDocs.push({
+          name: file.name,
+          url: urlData.publicUrl,
+          categoria,
+          done: true
         })
-        
-      if (error) {
-        console.error('Erro no Supabase Storage:', error)
-        throw new Error(`Falha no armazenamento: ${error.message}`)
+      } else if (slot.existingUrl && slot.status !== 'rejeitado') {
+        uploadedDocs.push({
+          name: slot.existingName || `${categoria}.pdf`,
+          url: slot.existingUrl,
+          categoria,
+          status: slot.status,
+          done: true
+        })
       }
-      
-      const { data: urlData } = supabase.storage
-        .from('documentos_clientes')
-        .getPublicUrl(filePath)
-        
-      uploadedDocs.push({
-        name: file.name,
-        url: urlData.publicUrl,
-        done: true
-      })
     }
-    
-    const payload = {
+
+    const apiResponse = await axios.patch(`/matchmaking/projetos/${projetoId.value}`, {
       documentos: uploadedDocs,
       status: 'docs_completos'
-    }
-    
-    // Tenta atualizar o status no backend público
-    const apiResponse = await axios.patch(`/matchmaking/projetos/${projetoId.value}`, payload)
-    
+    })
+
     if (apiResponse.data.success || apiResponse.status === 200) {
       isUploadComplete.value = true
       isWaitingRoom.value = true
     } else {
       throw new Error('O servidor não confirmou o recebimento dos documentos.')
     }
-    
   } catch (error) {
     console.error('Erro detalhado no upload:', error)
     alert(`Erro ao enviar: ${error.message || 'Verifique sua conexão e tente novamente.'}`)
@@ -711,69 +733,83 @@ const uploadFiles = async () => {
             O engenheiro responsável foi notificado. O próximo passo é o envio dos documentos para seguirmos com o seu contrato.
           </p>
 
-          <!-- Checklist de Documentos -->
-          <div class="w-full max-w-md bg-canvas border border-hairline rounded-xl p-5 mb-8 text-left shadow-sm">
-            <h3 class="text-sm font-bold text-ink uppercase tracking-wide mb-3">Checklist Obrigatório</h3>
-            <ul class="space-y-2">
-              <li class="flex items-start gap-2 text-sm text-ink-muted">
-                <span class="material-symbols-outlined text-brand-primary text-lg">fact_check</span>
-                <span>Documento de Identidade (RG ou CNH)</span>
-              </li>
-              <li class="flex items-start gap-2 text-sm text-ink-muted">
-                <span class="material-symbols-outlined text-brand-primary text-lg">fact_check</span>
-                <span>Comprovante de Residência atualizado</span>
-              </li>
-              <li class="flex items-start gap-2 text-sm text-ink-muted">
-                <span class="material-symbols-outlined text-brand-primary text-lg">fact_check</span>
-                <span>Certidão de Estado Civil</span>
-              </li>
-            </ul>
-          </div>
+          <!-- Dropzones por Documento -->
+          <div class="w-full max-w-md space-y-3 mb-6">
+            <h3 class="text-sm font-bold text-ink uppercase tracking-wide mb-1">Documentos Obrigatórios</h3>
 
-          <!-- Drag and Drop Area -->
-          <div 
-            class="w-full max-w-md border border-dashed rounded-2xl p-8 flex flex-col items-center justify-center transition-colors relative"
-            :class="isDragging ? 'border-brand-primary bg-brand-primary/10' : 'border-hairline bg-canvas hover:bg-surface-hover'"
-            @dragover.prevent="isDragging = true"
-            @dragleave.prevent="isDragging = false"
-            @drop.prevent="handleDrop"
-          >
-            <input type="file" multiple class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" @change="handleFileSelect">
-            
-            <span class="material-symbols-outlined text-4xl text-ink-muted mb-3" :class="isDragging ? 'text-brand-primary' : ''">cloud_upload</span>
-            <p class="text-ink-muted font-medium text-center">
-              Arraste e solte seus arquivos aqui ou <span class="text-brand-primary hover:text-brand-hover font-bold">clique para buscar</span>
-            </p>
-            <p class="text-xs text-ink-muted mt-2">Formatos aceitos: PDF, JPG, PNG</p>
-          </div>
-
-          <!-- Lista de Arquivos -->
-          <div v-if="filesToUpload.length > 0" class="w-full max-w-md mt-6">
-            <h4 class="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">Arquivos Selecionados</h4>
-            <div class="space-y-2">
-              <div v-for="(file, index) in filesToUpload" :key="index" class="flex items-center justify-between bg-surface border border-hairline rounded-lg p-3 shadow-sm">
-                <div class="flex items-center gap-3 overflow-hidden">
-                  <span class="material-symbols-outlined text-ink-muted text-lg shrink-0">description</span>
-                  <span class="text-sm font-medium text-ink truncate">{{ file.name }}</span>
+            <div
+              v-for="(slot, categoria) in docSlots"
+              :key="categoria"
+              class="bg-canvas border rounded-xl p-4 transition-all"
+              :class="slot.isDragging ? 'border-brand-primary bg-brand-primary/5' : 'border-hairline'"
+            >
+              <!-- Cabeçalho do slot -->
+              <div class="flex items-center gap-3 mb-3">
+                <span class="material-symbols-outlined text-brand-primary text-xl">{{ docMeta[categoria].icon }}</span>
+                <div class="flex-1">
+                  <p class="text-sm font-semibold text-ink">{{ docMeta[categoria].label }}</p>
+                  <p class="text-xs text-ink-muted">{{ docMeta[categoria].sublabel }}</p>
                 </div>
-                <button @click="removeFile(index)" class="text-ink-muted hover:text-red-500 transition-colors shrink-0 p-1 cursor-pointer">
-                  <span class="material-symbols-outlined text-sm">close</span>
-                </button>
+                <span v-if="slot.file || (slot.existingUrl && slot.status !== 'rejeitado')" class="material-symbols-outlined text-emerald-500 text-xl" style="font-variation-settings: 'FILL' 1">check_circle</span>
+              </div>
+
+              <!-- Motivo de Rejeição -->
+              <div v-if="slot.status === 'rejeitado'" class="bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 text-red-700 dark:text-red-400 text-xs p-3 rounded-lg flex flex-col gap-1 mb-3">
+                <span class="font-bold flex items-center gap-1">
+                  <span class="material-symbols-outlined text-sm">error</span>
+                  Motivo da Recusa:
+                </span>
+                <span>{{ slot.motivo }}</span>
+              </div>
+
+              <!-- Se o documento já foi enviado e aprovado (tem URL e não está rejeitado) -->
+              <div v-if="slot.existingUrl && slot.status !== 'rejeitado'" class="text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 p-3 rounded-lg flex items-center justify-between">
+                <span class="truncate max-w-[80%] font-medium">✓ {{ slot.existingName || 'Documento enviado' }}</span>
+                <span class="text-[10px] uppercase font-bold shrink-0">Preservado</span>
+              </div>
+
+              <!-- Se pendente ou recusado, liberar input ou exibir arquivo local -->
+              <div v-else class="space-y-2">
+                <!-- Arquivo selecionado -->
+                <div v-if="slot.file" class="flex items-center justify-between bg-surface border border-hairline rounded-lg px-3 py-2">
+                  <div class="flex items-center gap-2 overflow-hidden">
+                    <span class="material-symbols-outlined text-ink-muted text-base shrink-0">description</span>
+                    <span class="text-sm text-ink truncate">{{ slot.file.name }}</span>
+                  </div>
+                  <button @click="removeDoc(categoria)" class="text-ink-muted hover:text-red-500 transition-colors p-1 cursor-pointer shrink-0">
+                    <span class="material-symbols-outlined text-sm">close</span>
+                  </button>
+                </div>
+
+                <!-- Dropzone vazia -->
+                <div
+                  v-else
+                  class="relative border border-dashed rounded-lg p-4 flex items-center gap-3 hover:bg-surface-hover transition-colors cursor-pointer text-ink-muted"
+                  :class="slot.isDragging ? 'border-brand-primary bg-brand-primary/5' : 'border-hairline'"
+                  @dragover.prevent="slot.isDragging = true"
+                  @dragleave.prevent="slot.isDragging = false"
+                  @drop.prevent="handleDocDrop(categoria, $event)"
+                >
+                  <input type="file" accept=".pdf,.jpg,.jpeg,.png" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" @change="handleDocFileSelect(categoria, $event)">
+                  <span class="material-symbols-outlined text-xl">upload_file</span>
+                  <p class="text-xs">Arraste ou <span class="text-brand-primary font-semibold">clique para buscar</span></p>
+                  <span class="text-[10px] text-ink-muted ml-auto">PDF, JPG, PNG</span>
+                </div>
               </div>
             </div>
- 
-            <!-- Botão de Upload -->
-            <button 
-              @click="uploadFiles"
-              :disabled="isUploading"
-              class="w-full mt-6 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed border border-transparent cursor-pointer"
-              :class="isUploading ? 'bg-canvas text-ink-muted' : 'bg-brand-primary text-white hover:bg-brand-hover'"
-            >
-              <span v-if="isUploading" class="material-symbols-outlined animate-spin text-[20px]">sync</span>
-              <span v-else class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1">upload</span>
-              {{ isUploading ? 'Enviando documentos...' : 'Finalizar Envio' }}
-            </button>
           </div>
+
+          <!-- Botão de Envio -->
+          <button
+            @click="uploadFiles"
+            :disabled="isUploading || !allDocsReady"
+            class="w-full max-w-md py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed border border-transparent cursor-pointer"
+            :class="isUploading ? 'bg-canvas text-ink-muted' : 'bg-brand-primary text-white hover:bg-brand-hover'"
+          >
+            <span v-if="isUploading" class="material-symbols-outlined animate-spin text-[20px]">sync</span>
+            <span v-else class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1">upload</span>
+            {{ isUploading ? 'Enviando documentos...' : 'Finalizar Envio' }}
+          </button>
         </div>
 
         <!-- Tela de Finalização Absoluta -->

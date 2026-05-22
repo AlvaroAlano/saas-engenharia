@@ -7,9 +7,6 @@ import AdminSync from './components/AdminSync.vue'
 import Auth from './components/Auth.vue'
 import EstimativaWizard from './components/EstimativaWizard.vue'
 import LandingSimulador from './components/LandingSimulador.vue'
-import ConfiguracoesContratos from './components/ConfiguracoesContratos.vue'
-import ConfiguracoesGeral from './components/ConfiguracoesGeral.vue'
-import ConfiguracoesEmpresa from './components/ConfiguracoesEmpresa.vue'
 import { supabase } from './supabase'
 
 const routes = [
@@ -21,31 +18,15 @@ const routes = [
   { path: '/orcamento', redirect: '/engenharia' },
   { path: '/orcamento/:id', component: Orcamento, meta: { requiresAuth: true } },
   { path: '/portal/:token', component: PortalCliente },
+  { path: '/p/:slug', component: () => import('./components/VitrinePublica.vue') },
   { path: '/estimativa/:id', component: EstimativaWizard },
   { path: '/admin', component: AdminSync, meta: { requiresAuth: true } },
   {
     path: '/configuracoes',
     component: () => import('./components/Configuracoes.vue'),
-    meta: { requiresAuth: true },
-    children: [
-      {
-        path: '',
-        redirect: '/configuracoes/geral'
-      },
-      {
-        path: 'geral',
-        component: ConfiguracoesGeral
-      },
-      {
-        path: 'empresa',
-        component: ConfiguracoesEmpresa
-      },
-      {
-        path: 'contratos',
-        component: ConfiguracoesContratos
-      }
-    ]
-  }
+    meta: { requiresAuth: true }
+  },
+  { path: '/configuracoes/:tab', redirect: '/configuracoes' }
 ]
 
 const router = createRouter({

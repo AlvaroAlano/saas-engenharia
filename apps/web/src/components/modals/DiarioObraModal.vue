@@ -188,7 +188,7 @@ const formatDate = (isoDate) => {
 
 <template>
   <Teleport to="body">
-    <div v-if="isOpen" class="fixed inset-0 z-[130] flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-sm" @click.self="emit('close')">
+    <div v-if="isOpen" class="fixed inset-0 z-[130] flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-sm" style="z-index: 130;" @click.self="emit('close')">
       
       <!-- Container Mobile-First: Sobe do fundo no mobile, centralizado no desktop -->
       <div class="bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[85vh] overflow-hidden animate-in slide-in-from-bottom duration-300">

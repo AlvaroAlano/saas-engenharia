@@ -3,13 +3,29 @@ import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { useProfile } from '../composables/useProfile'
-import SetupOrcamentoModal from './SetupOrcamentoModal.vue'
+import SetupOrcamentoModal from './modals/SetupOrcamentoModal.vue'
 import EditProjectModal from './EditProjectModal.vue'
 import DiarioObraModal from './modals/DiarioObraModal.vue'
+import RejeicaoDocumentoModal from './modals/RejeicaoDocumentoModal.vue'
+import DrawerDetalheProjeto from './DrawerDetalheProjeto.vue'
 import { formatCurrency } from '../utils/formatters'
 
 const { empresa } = useProfile()
 const router = useRouter()
+
+const isDrawerOpen = ref(false)
+const isRejeicaoModalOpen = ref(false)
+const selectedDocParaRejeicao = ref(null)
+
+const abrirModalRejeicao = (doc) => {
+  selectedDocParaRejeicao.value = doc
+  isRejeicaoModalOpen.value = true
+}
+
+const onDocRejeitado = () => {
+  emit('update')
+}
+
 
 const props = defineProps({
   project: {
@@ -23,6 +39,12 @@ const emit = defineEmits(['update', 'projeto-arquivado'])
 const isMenuOpen = ref(false)
 const isCopied = ref(false)
 
+const temDocumentosPendentesRevisao = computed(() => {
+  if (props.project.coluna !== 'contrato_pendente') return false
+  if (props.project.status === 'docs_validados') return false
+  return Array.isArray(props.project.documentos) && props.project.documentos.some(doc => !!doc.url)
+})
+
 // Estado do Modal de Contrato
 const isContractModalOpen = ref(false)
 const isGeneratingContract = ref(false)
@@ -32,6 +54,12 @@ const templates = ref([])
 const isLoadingTemplates = ref(false)
 
 const isDocsExpanded = ref(false)
+
+const docCategoriaLabels = {
+  identidade:   { label: 'Identidade',   badge: 'RG/CNH',      icon: 'badge' },
+  residencia:   { label: 'Residência',   badge: 'Comprovante', icon: 'home_work' },
+  estado_civil: { label: 'Estado Civil', badge: 'Certidão',    icon: 'family_restroom' }
+}
 const isAdvancing = ref(false)
 const isSendingToZapSign = ref(false)
 const isApprovingContract = ref(false)
@@ -92,6 +120,9 @@ const leftBorderClass = computed(() => {
 })
 
 const ctaInfo = computed(() => {
+  if (props.project.status === 'docs_pendentes') {
+    return { text: 'Aguardando Reenvio', class: 'bg-white border border-amber-200 text-amber-700 cursor-not-allowed opacity-75' }
+  }
   if (props.project.coluna === 'estimativa_enviada' && props.project.status === 'aguardando_cliente') {
     return {
       text: isCopied.value ? 'Copiado!' : 'Copiar Link',
@@ -213,7 +244,11 @@ const handleAbrirSinapi = () => {
 
 const onSetupSuccess = (projectId) => {
   isSetupModalOpen.value = false
-  router.push(`/orcamento/${projectId}`)
+  if (props.project.coluna === 'engenharia_caixa' || props.project.coluna === 'obra_liberada') {
+    router.push(`/orcamento/${projectId}`)
+  } else {
+    emit('update')
+  }
 }
 
 const openContractModal = async () => {
@@ -301,9 +336,22 @@ const openInNewTab = () => {
 
 const validarDocumentos = async () => {
   try {
-    await axios.patch(`/projetos/${props.project.id}`, {
-      status: 'docs_validados'
+    const docsAtualizados = (props.project.documentos || []).map(doc => {
+      if (doc.url) {
+        return { ...doc, status: 'aprovado', done: true }
+      }
+      return doc
     })
+
+    await axios.patch(`/projetos/${props.project.id}`, {
+      status: 'docs_validados',
+      documentos: docsAtualizados
+    })
+    
+    // Atualiza localmente para refletir sem precisar de reload completo
+    props.project.status = 'docs_validados'
+    props.project.documentos = docsAtualizados
+    
     emit('update')
   } catch (error) {
     console.error('Erro ao validar documentos:', error)
@@ -572,21 +620,73 @@ const arquivarProjeto = () => {
 const isModalHistoricoAberto = ref(false)
 const projetoAtualHistorico = ref(null)
 const novaNota = ref('')
-const notasHistorico = ref([
-  { id: 1, data: '15/10/2023 10:30', autor: 'Eng. Marcos', texto: 'Cliente confirmou o recebimento da estimativa e solicitou um tempo para analisar.' },
-  { id: 2, data: '10/10/2023 14:00', autor: 'Sistema', texto: 'Estimativa gerada e movida para a coluna correspondente.' }
-])
+const notasHistorico = ref([])
+
+const formatarData = (dataStr) => {
+  if (!dataStr) return ''
+  try {
+    const dateObj = new Date(dataStr.includes('T') ? dataStr : dataStr.replace(' ', 'T') + 'Z')
+    if (isNaN(dateObj.getTime())) {
+      const partes = dataStr.split(' ')
+      if (partes.length < 2) return dataStr
+      const dataPart = partes[0]
+      const horaPart = partes[1].slice(0, 5)
+      const dataSplit = dataPart.split('-')
+      if (dataSplit.length < 3) return dataStr
+      const [ano, mes, dia] = dataSplit
+      return `${dia}/${mes}/${ano} ${horaPart}`
+    }
+    const dia = String(dateObj.getDate()).padStart(2, '0')
+    const mes = String(dateObj.getMonth() + 1).padStart(2, '0')
+    const ano = dateObj.getFullYear()
+    const hora = String(dateObj.getHours()).padStart(2, '0')
+    const minuto = String(dateObj.getMinutes()).padStart(2, '0')
+    return `${dia}/${mes}/${ano} ${hora}:${minuto}`
+  } catch (e) {
+    const partes = dataStr.split(' ')
+    if (partes.length < 2) return dataStr
+    const dataPart = partes[0]
+    const horaPart = partes[1].slice(0, 5)
+    const dataSplit = dataPart.split('-')
+    if (dataSplit.length < 3) return dataStr
+    const [ano, mes, dia] = dataSplit
+    return `${dia}/${mes}/${ano} ${horaPart}`
+  }
+}
+
+const fetchHistorico = async () => {
+  if (!props.project?.id) return
+  try {
+    const res = await axios.get(`/projetos/${props.project.id}/historico`)
+    if (res.data && res.data.success) {
+      notasHistorico.value = res.data.data
+    }
+  } catch (error) {
+    console.error('Erro ao buscar histórico do projeto:', error)
+  }
+}
 
 const abrirModalHistorico = (projeto) => {
   projetoAtualHistorico.value = projeto
   isModalHistoricoAberto.value = true
+  fetchHistorico()
   closeMenu()
 }
 
-const salvarNovaNota = () => {
-  console.log(`Nova nota digitada para o projeto [${projetoAtualHistorico.value?.id}]:`, novaNota.value)
-  // Limpa o campo após o log para simular o sucesso
-  novaNota.value = ''
+const salvarNovaNota = async () => {
+  if (!novaNota.value.trim() || !props.project?.id) return
+  try {
+    const res = await axios.post(`/projetos/${props.project.id}/historico`, {
+      texto: novaNota.value
+    })
+    if (res.data && res.data.success) {
+      notasHistorico.value.unshift(res.data.data)
+      novaNota.value = ''
+    }
+  } catch (error) {
+    console.error('Erro ao salvar nota de histórico:', error)
+    alert('Erro ao salvar a nota. Tente novamente.')
+  }
 }
 </script>
 
@@ -598,12 +698,22 @@ const salvarNovaNota = () => {
   ]">
     <div class="flex justify-between items-start mb-3">
       <div class="pr-6">
-        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ project.cliente_nome }}</p>
+        <div class="flex items-center gap-1.5">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ project.cliente_nome }}</p>
+          <span 
+            v-if="temDocumentosPendentesRevisao" 
+            class="w-2 h-2 rounded-full bg-blue-500 animate-pulse shrink-0 cursor-help"
+            title="Documento pendente de visualização"
+          ></span>
+        </div>
         <h4 class="text-sm font-semibold text-slate-800 mt-0.5 leading-snug">{{ project.titulo_projeto || '-' }}</h4>
       </div>
       
       <!-- Dropdown Menu -->
-      <div class="absolute top-3 right-3" @click.stop>
+      <div class="absolute top-3 right-3 flex items-center gap-1" @click.stop>
+        <button @click.stop="isDrawerOpen = true" class="text-slate-400 hover:text-slate-600 p-1 rounded-md hover:bg-slate-50 transition-colors" title="Ver Detalhes">
+          <span class="material-symbols-outlined text-[18px]">open_in_full</span>
+        </button>
         <button @click.stop="toggleMenu" class="text-slate-400 hover:text-slate-600 p-1 rounded-md hover:bg-slate-50 transition-colors">
           <span class="material-symbols-outlined text-[18px]">more_horiz</span>
         </button>
@@ -612,8 +722,8 @@ const salvarNovaNota = () => {
           <button @click.stop="openWhatsAppDirect" class="w-full text-left px-4 py-2 text-xs text-emerald-600 font-semibold hover:bg-emerald-50 flex items-center gap-2">
             <span class="material-symbols-outlined text-[14px]">chat</span> Chamar no Whats
           </button>
-          <button 
-            v-if="project.coluna === 'engenharia_caixa' || project.coluna === 'obra_liberada'"
+          <button
+            v-if="project.coluna === 'obra_liberada'"
             @click.stop="isDiarioModalOpen = true; closeMenu()"
             class="w-full text-left px-4 py-2 text-xs text-indigo-600 font-semibold hover:bg-indigo-50 flex items-center gap-2"
           >
@@ -627,9 +737,9 @@ const salvarNovaNota = () => {
             <span class="material-symbols-outlined text-[14px]">history</span> Histórico e Notas
           </button>
           <div class="border-t border-slate-100 my-1"></div>
-          <button 
-            v-if="project.coluna === 'engenharia_caixa' || project.coluna === 'obra_liberada'"
-            @click.stop="copyPortalAccessLink" 
+          <button
+            v-if="project.coluna === 'obra_liberada'"
+            @click.stop="copyPortalAccessLink"
             class="w-full text-left px-4 py-2 text-xs font-semibold flex items-center gap-2 transition-colors"
             :class="hasCopiedPortalLink ? 'text-emerald-600 bg-emerald-50 hover:bg-emerald-50' : 'text-indigo-600 hover:bg-indigo-50'"
           >
@@ -685,6 +795,11 @@ const salvarNovaNota = () => {
         <div class="flex items-center gap-2">
           <span class="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-blue-500 transition-colors">folder_open</span>
           <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{{ project.documentos.length }} Documentos Anexados</span>
+          <span 
+            v-if="temDocumentosPendentesRevisao" 
+            class="w-2 h-2 rounded-full bg-blue-500 animate-pulse shrink-0"
+            title="Documento pendente de visualização"
+          ></span>
         </div>
         <span 
           class="material-symbols-outlined text-[20px] text-slate-400 transition-transform duration-300"
@@ -707,17 +822,43 @@ const salvarNovaNota = () => {
           <ul class="space-y-2 mb-3 mt-1">
             <li v-for="(doc, index) in project.documentos" :key="index" class="flex items-center justify-between text-xs bg-white p-2 rounded-md border border-slate-200 shadow-sm transition-all hover:border-slate-300">
               <div class="flex items-center gap-2 overflow-hidden">
-                <span class="material-symbols-outlined text-[16px] text-blue-500 shrink-0" style="font-variation-settings: 'FILL' 1;">description</span>
-                <span class="text-slate-700 font-medium truncate">{{ doc.name }}</span>
+                <span class="material-symbols-outlined text-[16px] text-blue-500 shrink-0" style="font-variation-settings: 'FILL' 1;">
+                  {{ docCategoriaLabels[doc.categoria]?.icon || 'description' }}
+                </span>
+                <div class="flex flex-col overflow-hidden">
+                  <span class="text-slate-700 font-medium truncate">
+                    {{ docCategoriaLabels[doc.categoria]?.label || doc.name }}
+                  </span>
+                  <span v-if="doc.categoria" class="text-[10px] text-slate-400 truncate">{{ doc.name }}</span>
+                </div>
               </div>
-              <a v-if="doc.url" :href="doc.url" target="_blank" class="text-blue-600 hover:text-white hover:bg-blue-600 transition-colors shrink-0 flex items-center gap-1 border border-blue-200 bg-blue-50 px-2 py-1 rounded">
-                <span class="material-symbols-outlined text-[14px]">visibility</span> <span class="hidden sm:inline font-medium">Ver</span>
-              </a>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <span v-if="doc.categoria" class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 border border-blue-100">
+                  {{ docCategoriaLabels[doc.categoria]?.badge }}
+                </span>
+                <span v-if="doc.url && (project.status === 'docs_validados' || doc.status === 'aprovado')" class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 border border-emerald-100">
+                  Aprovado
+                </span>
+                <span v-else-if="doc.url" class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-50 text-amber-600 border border-amber-100">
+                  Em Análise
+                </span>
+                <span v-if="!doc.url && doc.status === 'rejeitado'" class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-red-50 text-red-600 border border-red-100" :title="doc.motivo">
+                  Recusado
+                </span>
+                <a v-if="doc.url" :href="doc.url" target="_blank" class="text-blue-600 hover:text-white hover:bg-blue-600 transition-colors flex items-center gap-1 border border-blue-200 bg-blue-50 px-2 py-1 rounded">
+                  <span class="material-symbols-outlined text-[14px]">visibility</span>
+                  <span class="hidden sm:inline font-medium">Ver</span>
+                </a>
+                <button v-if="project.coluna === 'contrato_pendente' && project.status !== 'docs_validados' && doc.status !== 'aprovado' && doc.url" @click.stop="abrirModalRejeicao(doc)" class="text-red-600 hover:text-white hover:bg-red-600 transition-colors flex items-center gap-1 border border-red-200 bg-red-50 px-2 py-1 rounded">
+                  <span class="material-symbols-outlined text-[14px]">cancel</span>
+                  <span class="hidden sm:inline font-medium">Recusar</span>
+                </button>
+              </div>
             </li>
           </ul>
 
           <button 
-            v-if="project.status === 'docs_completos'"
+            v-if="project.coluna === 'contrato_pendente' && project.status !== 'docs_validados'"
             @click.stop="validarDocumentos" 
             class="w-full py-2.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold text-xs rounded-md transition-colors flex items-center justify-center gap-1.5 shadow-sm"
           >
@@ -782,34 +923,37 @@ const salvarNovaNota = () => {
           <span class="material-symbols-outlined text-[18px]">chat</span>
         </button>
 
-      <!-- Botões Fixos de Acesso Fácil (Engenharia e Obra Liberada) -->
-      <template v-if="project.coluna === 'engenharia_caixa' || project.coluna === 'obra_liberada'">
-        <button 
-          @click.stop="handleAbrirSinapi"
-          class="text-xs px-2.5 py-1.5 rounded-lg font-medium bg-white text-indigo-600 hover:bg-indigo-50 border border-indigo-200 transition-colors flex items-center gap-1 shadow-sm shrink-0 cursor-pointer"
+      <!-- Botão SINAPI: visível em engenharia_caixa e obra_liberada -->
+      <button
+        v-if="project.coluna === 'engenharia_caixa' || project.coluna === 'obra_liberada'"
+        @click.stop="handleAbrirSinapi"
+        class="text-xs px-2.5 py-1.5 rounded-lg font-medium bg-white text-indigo-600 hover:bg-indigo-50 border border-indigo-200 transition-colors flex items-center gap-1 shadow-sm shrink-0 cursor-pointer"
+      >
+        <span class="material-symbols-outlined text-[16px]">engineering</span>
+        SINAPI
+      </button>
+
+      <!-- Botão Portal: somente após obra liberada -->
+      <div
+        v-if="project.coluna === 'obra_liberada'"
+        class="relative group flex items-center shrink-0"
+      >
+        <button
+          @click.stop="sendPortalAccess"
+          :disabled="isSendingPortalAccess"
+          class="text-xs px-2.5 py-1.5 rounded-lg font-medium bg-indigo-600 text-white hover:bg-indigo-700 border border-indigo-600 transition-colors flex items-center gap-1 shadow-sm disabled:opacity-50 cursor-pointer"
         >
-          <span class="material-symbols-outlined text-[16px]">engineering</span>
-          SINAPI
+          <span v-if="isSendingPortalAccess" class="material-symbols-outlined animate-spin text-[16px]">sync</span>
+          <span v-else class="material-symbols-outlined text-[16px]">send</span>
+          Portal
         </button>
 
-        <div class="relative group flex items-center shrink-0">
-          <button 
-            @click.stop="sendPortalAccess"
-            :disabled="isSendingPortalAccess"
-            class="text-xs px-2.5 py-1.5 rounded-lg font-medium bg-indigo-600 text-white hover:bg-indigo-700 border border-indigo-600 transition-colors flex items-center gap-1 shadow-sm disabled:opacity-50 cursor-pointer"
-          >
-            <span v-if="isSendingPortalAccess" class="material-symbols-outlined animate-spin text-[16px]">sync</span>
-            <span v-else class="material-symbols-outlined text-[16px]">send</span>
-            Portal
-          </button>
-          
-          <!-- Tooltip Visível no Hover -->
-          <div class="absolute bottom-full right-0 mb-2 w-48 p-2 bg-slate-800 text-white text-[10px] leading-relaxed rounded-lg shadow-xl z-50 text-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-            Enviar link de acesso exclusivo ao Portal da Obra para o cliente (via WhatsApp).
-            <div class="absolute top-full right-5 border-4 border-transparent border-t-slate-800"></div>
-          </div>
+        <!-- Tooltip Visível no Hover -->
+        <div class="absolute bottom-full right-0 mb-2 w-48 p-2 bg-slate-800 text-white text-[10px] leading-relaxed rounded-lg shadow-xl z-50 text-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+          Enviar link de acesso exclusivo ao Portal da Obra para o cliente (via WhatsApp).
+          <div class="absolute top-full right-5 border-4 border-transparent border-t-slate-800"></div>
         </div>
-      </template>
+      </div>
 
       <button v-if="ctaInfo" @click.stop="handleCtaClick" :class="['text-xs px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer', ctaInfo.class]">
           <span v-if="ctaInfo.icon" class="material-symbols-outlined text-[14px]">{{ ctaInfo.icon }}</span>
@@ -919,7 +1063,7 @@ const salvarNovaNota = () => {
       :is-open="isSetupModalOpen" 
       :project="project"
       @close="isSetupModalOpen = false"
-      @success="onSetupSuccess"
+      @salvar="onSetupSuccess"
     />
 
     <!-- Modal Editar Projeto -->
@@ -928,6 +1072,15 @@ const salvarNovaNota = () => {
       :projeto-origem="project"
       @close="isEditModalOpen = false"
       @save="handleSaveProjectEdit"
+    />
+
+    <!-- Modal Rejeição de Documento -->
+    <RejeicaoDocumentoModal
+      :is-open="isRejeicaoModalOpen"
+      :projeto-id="project.id"
+      :documento="selectedDocParaRejeicao"
+      @close="isRejeicaoModalOpen = false"
+      @rejeitado="onDocRejeitado"
     />
 
     <!-- Modal Diário de Obra -->
@@ -981,7 +1134,7 @@ const salvarNovaNota = () => {
               <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm hover:border-blue-200 transition-colors">
                 <div class="flex items-center justify-between mb-1">
                   <span class="text-xs font-bold text-slate-800">{{ nota.autor }}</span>
-                  <span class="text-[10px] font-medium text-slate-500">{{ nota.data }}</span>
+                  <span class="text-[10px] font-medium text-slate-500">{{ formatarData(nota.data) }}</span>
                 </div>
                 <p class="text-sm text-slate-600 leading-relaxed">{{ nota.texto }}</p>
               </div>
@@ -1037,5 +1190,13 @@ const salvarNovaNota = () => {
         </div>
       </div>
     </div>
+    
+    <!-- Drawer Detalhes Projeto -->
+    <DrawerDetalheProjeto
+      :is-open="isDrawerOpen"
+      :project="project"
+      @close="isDrawerOpen = false"
+      @update="emit('update')"
+    />
   </div>
 </template>

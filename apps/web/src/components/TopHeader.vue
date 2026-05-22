@@ -56,6 +56,22 @@ const abrirModalArquivados = () => {
       <button @click="toggleSidebar" class="lg:hidden p-2 -ml-2 text-ink-muted hover:bg-surface-hover rounded-md transition-colors flex items-center justify-center cursor-pointer">
         <span class="material-symbols-outlined">menu</span>
       </button>
+      <button
+        v-if="route.path.startsWith('/orcamento')"
+        @click="router.push('/engenharia')"
+        class="hidden sm:flex items-center gap-1 text-sm font-semibold text-ink-muted hover:text-ink transition-colors shrink-0"
+      >
+        <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+        Obras
+      </button>
+      <button
+        v-else-if="route.path === '/configuracoes'"
+        @click="router.push('/dashboard')"
+        class="hidden sm:flex items-center gap-1 text-sm font-semibold text-ink-muted hover:text-ink transition-colors shrink-0"
+      >
+        <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+        Dashboard
+      </button>
       <div class="relative w-full max-w-md">
         <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted text-lg">search</span>
         <input class="w-full bg-canvas border border-hairline rounded-md py-2 pl-10 pr-4 text-sm text-ink placeholder:text-ink-muted focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/50 transition-colors" placeholder="Buscar cliente ou obra..." type="text"/>
