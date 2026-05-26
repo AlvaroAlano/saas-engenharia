@@ -3,6 +3,17 @@ import { ref, computed, onMounted } from 'vue'
 import { supabase } from '../../supabase'
 import { useToast } from '../../composables/useToast'
 import axios from 'axios'
+import {
+  AlertTriangle,
+  CheckCircle2,
+  ExternalLink,
+  Loader2,
+  Plus,
+  MapPin,
+  X,
+  Trash2,
+  ImagePlus
+} from 'lucide-vue-next'
 
 const { showToast } = useToast()
 
@@ -174,7 +185,7 @@ onMounted(fetchVitrine)
   <div v-else class="space-y-5">
 
     <!-- Card: URL da Vitrine -->
-    <div class="bg-surface rounded-2xl border border-hairline overflow-hidden">
+    <div class="bg-surface rounded-md border border-hairline overflow-hidden">
       <div class="px-6 py-5 border-b border-hairline">
         <h3 class="text-sm font-bold text-ink">URL da Vitrine</h3>
         <p class="text-xs text-ink-muted mt-0.5">Defina o endereço público do seu perfil de engenheiro.</p>
@@ -182,7 +193,7 @@ onMounted(fetchVitrine)
       <div class="px-6 py-5 space-y-4">
         <div class="space-y-1.5">
           <label class="text-xs font-bold text-ink-muted uppercase tracking-wide">Slug Personalizado</label>
-          <div class="flex items-center gap-0 border border-hairline rounded-xl overflow-hidden focus-within:ring-1 focus-within:ring-brand-primary focus-within:border-brand-primary transition-all bg-canvas" :class="slugError ? 'border-red-400 focus-within:ring-red-400' : ''">
+          <div class="flex items-center gap-0 border border-hairline rounded-md overflow-hidden focus-within:ring-1 focus-within:ring-brand-primary focus-within:border-brand-primary transition-all bg-canvas" :class="slugError ? 'border-red-400 focus-within:ring-red-400' : ''">
             <span class="px-3 py-2.5 text-sm text-ink-muted bg-canvas/50 border-r border-hairline shrink-0 select-none">vertice.app/p/</span>
             <input
               v-model="vitrine.slug_vitrine"
@@ -193,11 +204,11 @@ onMounted(fetchVitrine)
             />
           </div>
           <p v-if="slugError" class="text-xs text-red-500 flex items-center gap-1">
-            <span class="material-symbols-outlined text-[13px]">error</span>
+            <AlertTriangle class="w-3.5 h-3.5" stroke-width="1.5" />
             {{ slugError }}
           </p>
           <p v-else-if="vitrine.slug_vitrine" class="text-xs text-ink-muted flex items-center gap-1">
-            <span class="material-symbols-outlined text-[13px] text-green-500">check_circle</span>
+            <CheckCircle2 class="w-3.5 h-3.5 text-green-500" stroke-width="1.5" />
             Seu perfil ficará em <span class="font-mono text-brand-primary ml-1">{{ slugPreview }}</span>
           </p>
           <p v-else class="text-xs text-ink-muted">Use 3–50 caracteres: letras minúsculas, números e hífens.</p>
@@ -210,23 +221,23 @@ onMounted(fetchVitrine)
           target="_blank"
           class="flex items-center gap-1.5 text-xs font-semibold text-ink-muted hover:text-brand-primary transition-colors"
         >
-          <span class="material-symbols-outlined text-[15px]">open_in_new</span>
+          <ExternalLink class="w-3.5 h-3.5" stroke-width="1.5" />
           Visualizar Vitrine
         </a>
         <span v-else class="text-xs text-ink-muted italic">Salve uma URL para visualizar</span>
         <button
           @click="saveSlug"
           :disabled="isSavingSlug || !!slugError || !vitrine.slug_vitrine"
-          class="bg-brand-primary hover:bg-brand-hover text-white px-5 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+          class="bg-brand-primary hover:bg-brand-hover text-white px-5 py-2 rounded-md font-bold text-sm transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
         >
-          <span v-if="isSavingSlug" class="material-symbols-outlined animate-spin text-base">sync</span>
+          <Loader2 v-if="isSavingSlug" class="w-4 h-4 animate-spin" stroke-width="1.5" />
           {{ isSavingSlug ? 'Salvando...' : 'Salvar URL' }}
         </button>
       </div>
     </div>
 
     <!-- Card: Apresentação -->
-    <div class="bg-surface rounded-2xl border border-hairline overflow-hidden">
+    <div class="bg-surface rounded-md border border-hairline overflow-hidden">
       <div class="px-6 py-5 border-b border-hairline">
         <h3 class="text-sm font-bold text-ink">Apresentação</h3>
         <p class="text-xs text-ink-muted mt-0.5">Descreva sua experiência, especialidades e diferenciais. Visível no seu perfil público.</p>
@@ -235,7 +246,7 @@ onMounted(fetchVitrine)
         <textarea
           v-model="vitrine.descricao_vitrine"
           rows="5"
-          class="w-full bg-canvas border border-hairline text-ink rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all resize-none placeholder:text-ink-muted leading-relaxed"
+          class="w-full bg-canvas border border-hairline text-ink rounded-md px-4 py-3 text-sm focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all resize-none placeholder:text-ink-muted leading-relaxed"
           placeholder="Ex: Engenheiro civil com 10 anos de experiência em obras residenciais de alto padrão no litoral catarinense. Especialista em estruturas metálicas e gerenciamento de obras Caixa..."
         ></textarea>
         <p class="text-xs text-ink-muted mt-1.5 text-right">{{ vitrine.descricao_vitrine.length }} / 1000 caracteres</p>
@@ -244,16 +255,16 @@ onMounted(fetchVitrine)
         <button
           @click="saveBio"
           :disabled="isSavingBio"
-          class="bg-brand-primary hover:bg-brand-hover text-white px-5 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+          class="bg-brand-primary hover:bg-brand-hover text-white px-5 py-2 rounded-md font-bold text-sm transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
         >
-          <span v-if="isSavingBio" class="material-symbols-outlined animate-spin text-base">sync</span>
+          <Loader2 v-if="isSavingBio" class="w-4 h-4 animate-spin" stroke-width="1.5" />
           {{ isSavingBio ? 'Salvando...' : 'Salvar Apresentação' }}
         </button>
       </div>
     </div>
 
     <!-- Card: Cidades de Atuação -->
-    <div class="bg-surface rounded-2xl border border-hairline overflow-hidden">
+    <div class="bg-surface rounded-md border border-hairline overflow-hidden">
       <div class="px-6 py-5 border-b border-hairline">
         <h3 class="text-sm font-bold text-ink">Cidades de Atuação</h3>
         <p class="text-xs text-ink-muted mt-0.5">Informe onde você atua para aparecer no matchmaking da região.</p>
@@ -263,16 +274,16 @@ onMounted(fetchVitrine)
           <input
             v-model="cidadeInput"
             type="text"
-            class="flex-1 bg-canvas border border-hairline text-ink rounded-xl px-4 py-2.5 text-sm focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all placeholder:text-ink-muted"
+            class="flex-1 bg-canvas border border-hairline text-ink rounded-md px-4 py-2.5 text-sm focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all placeholder:text-ink-muted"
             placeholder="Ex: Florianópolis - SC"
             @keydown.enter.prevent="addCidade"
             @keydown.,.prevent="addCidade"
           />
           <button
             @click="addCidade"
-            class="px-4 py-2.5 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary rounded-xl text-sm font-bold transition-colors cursor-pointer"
+            class="px-4 py-2.5 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary rounded-md text-sm font-bold transition-colors cursor-pointer flex items-center justify-center"
           >
-            <span class="material-symbols-outlined text-base">add</span>
+            <Plus class="w-4 h-4" stroke-width="1.5" />
           </button>
         </div>
         <p class="text-xs text-ink-muted">Pressione Enter ou vírgula para adicionar.</p>
@@ -282,10 +293,10 @@ onMounted(fetchVitrine)
             :key="i"
             class="flex items-center gap-1.5 bg-brand-primary/10 text-brand-primary px-3 py-1.5 rounded-lg text-xs font-semibold"
           >
-            <span class="material-symbols-outlined text-[12px]">location_on</span>
+            <MapPin class="w-3.5 h-3.5 text-brand-primary shrink-0" stroke-width="1.5" />
             {{ cidade }}
-            <button @click="removeCidade(i)" class="ml-0.5 hover:text-red-500 transition-colors cursor-pointer">
-              <span class="material-symbols-outlined text-[12px]">close</span>
+            <button @click="removeCidade(i)" class="ml-0.5 hover:text-red-500 transition-colors cursor-pointer flex items-center justify-center">
+              <X class="w-3 h-3 hover:text-red-500 transition-colors" stroke-width="1.5" />
             </button>
           </span>
         </div>
@@ -295,16 +306,16 @@ onMounted(fetchVitrine)
         <button
           @click="saveCidades"
           :disabled="isSavingCidades"
-          class="bg-brand-primary hover:bg-brand-hover text-white px-5 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+          class="bg-brand-primary hover:bg-brand-hover text-white px-5 py-2 rounded-md font-bold text-sm transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
         >
-          <span v-if="isSavingCidades" class="material-symbols-outlined animate-spin text-base">sync</span>
+          <Loader2 v-if="isSavingCidades" class="w-4 h-4 animate-spin" stroke-width="1.5" />
           {{ isSavingCidades ? 'Salvando...' : 'Salvar Cidades' }}
         </button>
       </div>
     </div>
 
     <!-- Card: Portfólio de Obras -->
-    <div class="bg-surface rounded-2xl border border-hairline overflow-hidden">
+    <div class="bg-surface rounded-md border border-hairline overflow-hidden">
       <div class="px-6 py-5 border-b border-hairline">
         <h3 class="text-sm font-bold text-ink">Portfólio de Obras</h3>
         <p class="text-xs text-ink-muted mt-0.5">Fotos das suas obras concluídas. Exibidas na galeria do seu perfil público.</p>
@@ -315,22 +326,22 @@ onMounted(fetchVitrine)
           <div
             v-for="(url, i) in vitrine.fotos_portfolio"
             :key="url"
-            class="relative group aspect-square rounded-xl overflow-hidden border border-hairline bg-canvas"
+            class="relative group aspect-square rounded-md overflow-hidden border border-hairline bg-canvas"
           >
             <img :src="url" class="h-full w-full object-cover" />
             <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
               <button
                 @click="removePortfolioPhoto(i)"
-                class="p-1.5 bg-red-500 hover:bg-red-600 rounded-lg transition-colors cursor-pointer"
+                class="p-1.5 bg-red-500 hover:bg-red-600 rounded-lg transition-colors cursor-pointer flex items-center justify-center"
               >
-                <span class="material-symbols-outlined text-white text-base">delete</span>
+                <Trash2 class="w-4 h-4 text-white" stroke-width="1.5" />
               </button>
             </div>
           </div>
 
           <!-- Botão de adicionar mais -->
-          <label class="aspect-square rounded-xl border-2 border-dashed border-hairline hover:border-brand-primary/50 bg-canvas hover:bg-brand-primary/5 flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors group">
-            <span class="material-symbols-outlined text-2xl text-ink-muted group-hover:text-brand-primary transition-colors">add_photo_alternate</span>
+          <label class="aspect-square rounded-md border-2 border-dashed border-hairline hover:border-brand-primary/50 bg-canvas hover:bg-brand-primary/5 flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors group">
+            <ImagePlus class="w-6 h-6 text-ink-muted group-hover:text-brand-primary transition-colors" stroke-width="1.5" />
             <span class="text-[10px] text-ink-muted group-hover:text-brand-primary font-semibold uppercase tracking-wide transition-colors">Adicionar</span>
             <input type="file" class="hidden" accept="image/*" multiple @change="handlePortfolioUpload" :disabled="isSavingPortfolio" />
           </label>
@@ -338,8 +349,8 @@ onMounted(fetchVitrine)
 
         <!-- Estado vazio -->
         <div v-else>
-          <label class="flex flex-col items-center justify-center gap-3 py-10 border-2 border-dashed border-hairline rounded-xl hover:border-brand-primary/50 hover:bg-brand-primary/5 transition-colors cursor-pointer group">
-            <span class="material-symbols-outlined text-4xl text-ink-muted group-hover:text-brand-primary transition-colors">add_photo_alternate</span>
+          <label class="flex flex-col items-center justify-center gap-3 py-10 border-2 border-dashed border-hairline rounded-md hover:border-brand-primary/50 hover:bg-brand-primary/5 transition-colors cursor-pointer group">
+            <ImagePlus class="w-10 h-10 text-ink-muted group-hover:text-brand-primary transition-colors" stroke-width="1.5" />
             <div class="text-center">
               <p class="text-sm font-semibold text-ink-muted group-hover:text-brand-primary transition-colors">Clique para adicionar fotos</p>
               <p class="text-xs text-ink-muted mt-0.5">PNG, JPG até 10 MB. Múltiplos arquivos suportados.</p>
@@ -349,7 +360,7 @@ onMounted(fetchVitrine)
         </div>
 
         <div v-if="isSavingPortfolio" class="flex items-center gap-2 text-xs text-ink-muted">
-          <span class="material-symbols-outlined animate-spin text-base">sync</span>
+          <Loader2 class="w-4 h-4 animate-spin" stroke-width="1.5" />
           Enviando fotos...
         </div>
       </div>

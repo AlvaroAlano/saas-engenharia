@@ -1,6 +1,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { ETAPAS_OBRA } from '../constants/etapas'
+import { X, FilePlus, ChevronDown, Loader2, CheckCircle2 } from 'lucide-vue-next'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -46,11 +47,11 @@ const handleConfirm = () => {
       <div class="p-6">
         <div class="flex items-center justify-between mb-6">
           <h3 class="text-xl font-bold text-ink flex items-center gap-2">
-            <span class="material-symbols-outlined text-brand-primary">post_add</span>
+            <FilePlus class="w-5 h-5 text-brand-primary" stroke-width="1.5" />
             Item Manual
           </h3>
-          <button @click="emit('close')" class="p-1 rounded-lg hover:bg-surface-hover text-ink-muted hover:text-ink transition-colors">
-            <span class="material-symbols-outlined">close</span>
+          <button @click="emit('close')" class="p-1 rounded-lg hover:bg-surface-hover text-ink-muted hover:text-ink transition-colors flex items-center justify-center">
+            <X class="w-4 h-4" stroke-width="1.5" />
           </button>
         </div>
         
@@ -76,7 +77,7 @@ const handleConfirm = () => {
               >
                 <option v-for="etapa in etapas" :key="etapa.value" :value="etapa.value">{{ etapa.label }}</option>
               </select>
-              <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[20px]">expand_more</span>
+              <ChevronDown class="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" stroke-width="1.5" />
             </div>
           </div>
 
@@ -91,7 +92,7 @@ const handleConfirm = () => {
                 >
                   <option v-for="un in unidades" :key="un" :value="un">{{ un }}</option>
                 </select>
-                <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[20px]">expand_more</span>
+                <ChevronDown class="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" stroke-width="1.5" />
               </div>
             </div>
 
@@ -136,8 +137,8 @@ const handleConfirm = () => {
           :disabled="isSaving || !form.descricao"
           class="px-6 py-2.5 text-sm font-bold text-white bg-brand-primary hover:bg-brand-hover rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <span v-if="isSaving" class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
-          <span v-else class="material-symbols-outlined text-[18px]">check_circle</span>
+          <Loader2 v-if="isSaving" class="w-4 h-4 animate-spin" stroke-width="1.5" />
+          <CheckCircle2 v-else class="w-4 h-4" stroke-width="1.5" />
           {{ isSaving ? 'Adicionando...' : 'Adicionar Item' }}
         </button>
       </div>

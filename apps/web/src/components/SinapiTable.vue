@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { formatCurrency } from '../utils/formatters'
+import { Plus, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from 'lucide-vue-next'
 
 const props = defineProps({
   items: {
@@ -80,7 +81,7 @@ const onLimitChange = (e) => {
           <tr v-for="item in items" :key="item.id" class="hover:bg-surface-hover transition-colors">
             <td class="px-6 py-4">
               <button @click="emit('add-item', item)" class="flex items-center justify-center w-8 h-8 rounded-md bg-brand-primary/10 text-brand-primary hover:bg-brand-primary hover:text-white transition-colors" title="Adicionar ao Orçamento">
-                <span class="material-symbols-outlined text-[18px]">add</span>
+                <Plus class="w-[18px] h-[18px]" stroke-width="1.5" />
               </button>
             </td>
             <td class="px-6 py-4 font-mono text-sm text-ink-muted">{{ item.codigo_item }}</td>
@@ -107,10 +108,10 @@ const onLimitChange = (e) => {
       
       <div class="flex items-center gap-2">
         <button @click="firstPage" :disabled="currentPage === 1" class="px-2 py-1.5 border border-hairline rounded-md hover:bg-surface transition-all text-ink-muted disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center" title="Primeira Página">
-          <span class="material-symbols-outlined text-[20px]">first_page</span>
+          <ChevronsLeft class="w-5 h-5" stroke-width="1.5" />
         </button>
         <button @click="prevPage" :disabled="currentPage === 1" class="px-2 py-1.5 border border-hairline rounded-md hover:bg-surface transition-all text-ink-muted disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center" title="Página Anterior">
-          <span class="material-symbols-outlined text-[20px]">chevron_left</span>
+          <ChevronLeft class="w-5 h-5" stroke-width="1.5" />
         </button>
         
         <span class="text-sm text-ink-muted font-medium px-2">
@@ -118,10 +119,10 @@ const onLimitChange = (e) => {
         </span>
         
         <button @click="nextPage" :disabled="currentPage === totalPages || totalPages === 0" class="px-2 py-1.5 border border-hairline rounded-md hover:bg-surface transition-all text-ink-muted disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center" title="Próxima Página">
-          <span class="material-symbols-outlined text-[20px]">chevron_right</span>
+          <ChevronRight class="w-5 h-5" stroke-width="1.5" />
         </button>
         <button @click="lastPage" :disabled="currentPage === totalPages || totalPages === 0" class="px-2 py-1.5 border border-hairline rounded-md hover:bg-surface transition-all text-ink-muted disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center" title="Última Página">
-          <span class="material-symbols-outlined text-[20px]">last_page</span>
+          <ChevronsRight class="w-5 h-5" stroke-width="1.5" />
         </button>
       </div>
     </div>

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { supabase } from '../supabase'
+import { Building, Upload, Briefcase, Loader2 } from 'lucide-vue-next'
 
 const empresa = ref({
   nome_fantasia: '',
@@ -106,13 +107,13 @@ onMounted(fetchEmpresa)
         <div class="relative group">
           <div class="h-32 w-48 rounded-2xl overflow-hidden border-2 border-hairline bg-canvas flex items-center justify-center p-4">
             <img v-if="empresa.logo_url" :src="empresa.logo_url" class="max-h-full max-w-full object-contain" />
-            <div v-else class="text-center">
-              <span class="material-symbols-outlined text-4xl text-ink-muted">domain</span>
+            <div v-else class="text-center flex flex-col items-center justify-center">
+              <Building class="w-10 h-10 text-ink-muted" stroke-width="1.5" />
               <p class="text-[10px] text-ink-muted mt-1 font-bold uppercase">Logo da Empresa</p>
             </div>
           </div>
-          <label class="absolute -bottom-2 -right-2 bg-surface border border-hairline p-2 rounded-xl cursor-pointer hover:bg-canvas transition-colors">
-            <span class="material-symbols-outlined text-[20px] text-ink-muted">upload_file</span>
+          <label class="absolute -bottom-2 -right-2 bg-surface border border-hairline p-2 rounded-xl cursor-pointer hover:bg-canvas transition-colors flex items-center justify-center">
+            <Upload class="w-4.5 h-4.5 text-ink-muted" stroke-width="1.5" />
             <input type="file" class="hidden" accept="image/*" @change="handleFileUpload" />
           </label>
         </div>
@@ -130,7 +131,7 @@ onMounted(fetchEmpresa)
       <div class="bg-surface rounded-2xl border border-hairline overflow-hidden">
         <div class="px-6 py-4 border-b border-hairline bg-canvas/50">
           <h3 class="text-sm font-bold text-ink flex items-center gap-2">
-            <span class="material-symbols-outlined text-[18px]">business_center</span>
+            <Briefcase class="w-4.5 h-4.5 text-ink" stroke-width="1.5" />
             Dados Jurídicos e Localização
           </h3>
         </div>
@@ -156,7 +157,7 @@ onMounted(fetchEmpresa)
 
         <div class="px-6 py-4 bg-canvas/50 border-t border-hairline flex justify-end">
           <button @click="saveEmpresa" :disabled="isSaving" class="bg-brand-primary hover:bg-brand-hover text-white px-6 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer">
-            <span v-if="isSaving" class="material-symbols-outlined animate-spin text-[18px]">sync</span>
+            <Loader2 v-if="isSaving" class="w-4.5 h-4.5 animate-spin" stroke-width="1.5" />
             {{ isSaving ? 'Salvando...' : 'Salvar Dados da Empresa' }}
           </button>
         </div>

@@ -3,6 +3,26 @@ import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useToast } from '../../composables/useToast'
 import { ETAPAS_OBRA } from '../../constants/etapas'
+import {
+  FilePenLine,
+  Lock,
+  RotateCcw,
+  Loader2,
+  Save,
+  HardHat,
+  Layers,
+  Building,
+  Zap,
+  Paintbrush
+} from 'lucide-vue-next'
+
+const iconMap = {
+  engineering: HardHat,
+  foundation: Layers,
+  domain: Building,
+  electric_bolt: Zap,
+  format_paint: Paintbrush
+}
 
 const { showToast } = useToast()
 
@@ -93,7 +113,7 @@ onMounted(loadTemplates)
   <div class="space-y-5">
 
     <!-- Header card -->
-    <div class="bg-surface rounded-2xl border border-hairline overflow-hidden">
+    <div class="bg-surface rounded-md border border-hairline overflow-hidden">
       <div class="px-6 py-5 border-b border-hairline">
         <h3 class="text-sm font-bold text-ink">Parâmetros de Estimativa (EAP Padrão)</h3>
         <p class="text-xs text-ink-muted mt-0.5">
@@ -108,7 +128,7 @@ onMounted(loadTemplates)
           v-for="p in PADROES"
           :key="p.id"
           @click="activePadrao = p.id"
-          class="px-4 py-1.5 rounded-xl text-sm font-semibold transition-all focus:outline-none cursor-pointer"
+          class="px-4 py-1.5 rounded-md text-sm font-semibold transition-all focus:outline-none cursor-pointer"
           :class="activePadrao === p.id
             ? 'bg-brand-primary text-white'
             : 'bg-canvas border border-hairline text-ink-muted hover:text-ink'"
@@ -121,14 +141,14 @@ onMounted(loadTemplates)
             v-if="isCustomizado"
             class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20"
           >
-            <span class="material-symbols-outlined text-[13px]">edit_note</span>
+            <FilePenLine class="w-3.5 h-3.5" stroke-width="1.5" />
             Personalizado
           </span>
           <span
             v-else
             class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-ink-muted/10 text-ink-muted border border-hairline"
           >
-            <span class="material-symbols-outlined text-[13px]">lock</span>
+            <Lock class="w-3.5 h-3.5" stroke-width="1.5" />
             Sistema
           </span>
         </div>
@@ -136,7 +156,7 @@ onMounted(loadTemplates)
 
       <!-- Loading skeleton -->
       <div v-if="isLoading" class="px-6 py-8 space-y-3">
-        <div v-for="i in 5" :key="i" class="h-8 bg-canvas rounded-xl animate-pulse" />
+        <div v-for="i in 5" :key="i" class="h-8 bg-canvas rounded-md animate-pulse" />
       </div>
 
       <!-- Tabela de parâmetros -->
@@ -147,12 +167,12 @@ onMounted(loadTemplates)
           class="px-6 py-4"
         >
           <div class="flex items-center gap-2 mb-3">
-            <span class="material-symbols-outlined text-[16px] text-ink-muted">{{ etapa.icon }}</span>
+            <component :is="iconMap[etapa.icon]" class="w-4 h-4 text-ink-muted shrink-0" stroke-width="1.5" />
             <span class="text-xs font-bold text-ink uppercase tracking-wide">{{ etapa.label }}</span>
             <span class="ml-1 text-[11px] text-ink-muted">({{ (itensByFase[etapa.value] ?? []).length }} itens)</span>
           </div>
 
-          <div v-if="(itensByFase[etapa.value] ?? []).length" class="rounded-xl border border-hairline overflow-hidden">
+          <div v-if="(itensByFase[etapa.value] ?? []).length" class="rounded-md border border-hairline overflow-hidden">
             <table class="w-full text-xs">
               <thead>
                 <tr class="bg-canvas/60 border-b border-hairline">
@@ -197,9 +217,9 @@ onMounted(loadTemplates)
           v-if="isCustomizado"
           @click="resetTemplate"
           :disabled="isResetting"
-          class="flex items-center gap-1.5 text-xs text-ink-muted hover:text-ink transition-colors cursor-pointer disabled:opacity-50"
+          class="flex items-center gap-1.5 text-xs text-ink-muted hover:text-ink transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center"
         >
-          <span class="material-symbols-outlined text-[14px]">restart_alt</span>
+          <RotateCcw class="w-3.5 h-3.5" stroke-width="1.5" />
           Restaurar padrão do sistema
         </button>
         <span v-else class="text-xs text-ink-muted italic">Editando os parâmetros criará sua versão personalizada.</span>
@@ -207,10 +227,10 @@ onMounted(loadTemplates)
         <button
           @click="saveTemplate"
           :disabled="isSaving"
-          class="ml-auto flex items-center gap-2 bg-brand-primary hover:bg-brand-hover text-white px-5 py-2 rounded-xl font-bold text-sm transition-all cursor-pointer disabled:opacity-50"
+          class="ml-auto flex items-center gap-2 bg-brand-primary hover:bg-brand-hover text-white px-5 py-2 rounded-md font-bold text-sm transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center"
         >
-          <span v-if="isSaving" class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
-          <span v-else class="material-symbols-outlined text-[16px]">save</span>
+          <Loader2 v-if="isSaving" class="w-4 h-4 animate-spin" stroke-width="1.5" />
+          <Save v-else class="w-4 h-4" stroke-width="1.5" />
           {{ isCustomizado ? 'Atualizar Parâmetros' : 'Salvar como Personalizado' }}
         </button>
       </div>

@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { supabase } from '../../supabase'
 import { useProfile } from '../../composables/useProfile'
 import { useToast } from '../../composables/useToast'
+import { User, Camera, Loader2 } from 'lucide-vue-next'
 
 const { refreshProfile } = useProfile()
 const { showToast } = useToast()
@@ -98,19 +99,19 @@ onMounted(fetchProfile)
   <div v-else class="space-y-5">
 
     <!-- Card: Foto de Perfil -->
-    <div class="bg-surface rounded-2xl border border-hairline overflow-hidden">
+    <div class="bg-surface rounded-md border border-hairline overflow-hidden">
       <div class="px-6 py-5 border-b border-hairline">
         <h3 class="text-sm font-bold text-ink">Foto de Perfil</h3>
         <p class="text-xs text-ink-muted mt-0.5">Visível no painel, contratos e vitrine pública.</p>
       </div>
       <div class="px-6 py-5 flex items-center gap-5">
         <div class="relative shrink-0">
-          <div class="h-20 w-20 rounded-2xl overflow-hidden border-2 border-hairline bg-canvas flex items-center justify-center">
+          <div class="h-20 w-20 rounded-md overflow-hidden border-2 border-hairline bg-canvas flex items-center justify-center">
             <img v-if="profile.foto_perfil" :src="profile.foto_perfil" class="h-full w-full object-cover" />
-            <span v-else class="material-symbols-outlined text-3xl text-ink-muted">person</span>
+            <User v-else class="w-8 h-8 text-ink-muted" stroke-width="1.5" />
           </div>
-          <label class="absolute -bottom-1.5 -right-1.5 bg-surface border border-hairline p-1.5 rounded-lg cursor-pointer hover:bg-canvas transition-colors">
-            <span class="material-symbols-outlined text-base text-ink-muted">photo_camera</span>
+          <label class="absolute -bottom-1.5 -right-1.5 bg-surface border border-hairline p-1.5 rounded-lg cursor-pointer hover:bg-canvas transition-colors flex items-center justify-center">
+            <Camera class="w-4 h-4 text-ink-muted" stroke-width="1.5" />
             <input type="file" class="hidden" accept="image/*" @change="handleAvatarUpload" />
           </label>
         </div>
@@ -122,7 +123,7 @@ onMounted(fetchProfile)
     </div>
 
     <!-- Card: Informações Pessoais -->
-    <div class="bg-surface rounded-2xl border border-hairline overflow-hidden">
+    <div class="bg-surface rounded-md border border-hairline overflow-hidden">
       <div class="px-6 py-5 border-b border-hairline">
         <h3 class="text-sm font-bold text-ink">Informações Profissionais</h3>
         <p class="text-xs text-ink-muted mt-0.5">Nome, contato e registro profissional exibidos nos documentos.</p>
@@ -130,31 +131,31 @@ onMounted(fetchProfile)
       <div class="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div class="space-y-1.5">
           <label class="text-xs font-bold text-ink-muted uppercase tracking-wide">Nome Completo <span class="text-red-500">*</span></label>
-          <input v-model="profile.nome_completo" type="text" class="w-full bg-canvas border border-hairline text-ink rounded-xl px-4 py-2.5 text-sm focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all placeholder:text-ink-muted" placeholder="Ex: Eng. Álvaro Alano" />
+          <input v-model="profile.nome_completo" type="text" class="w-full bg-canvas border border-hairline text-ink rounded-md px-4 py-2.5 text-sm focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all placeholder:text-ink-muted" placeholder="Ex: Eng. Álvaro Alano" />
         </div>
         <div class="space-y-1.5">
           <label class="text-xs font-bold text-ink-muted uppercase tracking-wide">E-mail</label>
-          <input v-model="profile.email" type="email" class="w-full bg-canvas border border-hairline text-ink-muted rounded-xl px-4 py-2.5 text-sm cursor-not-allowed" readonly />
+          <input v-model="profile.email" type="email" class="w-full bg-canvas border border-hairline text-ink-muted rounded-md px-4 py-2.5 text-sm cursor-not-allowed" readonly />
         </div>
         <div class="space-y-1.5">
           <label class="text-xs font-bold text-ink-muted uppercase tracking-wide">Telefone / WhatsApp</label>
-          <input v-model="profile.telefone" v-maska="'(##) #####-####'" type="text" class="w-full bg-canvas border border-hairline text-ink rounded-xl px-4 py-2.5 text-sm focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all placeholder:text-ink-muted" placeholder="(48) 99999-9999" />
+          <input v-model="profile.telefone" v-maska="'(##) #####-####'" type="text" class="w-full bg-canvas border border-hairline text-ink rounded-md px-4 py-2.5 text-sm focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all placeholder:text-ink-muted" placeholder="(48) 99999-9999" />
         </div>
         <div class="space-y-1.5">
           <label class="text-xs font-bold text-ink-muted uppercase tracking-wide">Registro CREA/CAU</label>
-          <input v-model="profile.registro_crea_cau" type="text" class="w-full bg-canvas border border-hairline text-ink rounded-xl px-4 py-2.5 text-sm focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all placeholder:text-ink-muted" placeholder="CREA/SC 123456-D" />
+          <input v-model="profile.registro_crea_cau" type="text" class="w-full bg-canvas border border-hairline text-ink rounded-md px-4 py-2.5 text-sm focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all placeholder:text-ink-muted" placeholder="CREA/SC 123456-D" />
         </div>
       </div>
       <div class="px-6 py-4 bg-canvas/50 border-t border-hairline flex justify-end">
-        <button @click="saveProfile" :disabled="isSavingProfile" class="bg-brand-primary hover:bg-brand-hover text-white px-5 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer">
-          <span v-if="isSavingProfile" class="material-symbols-outlined animate-spin text-base">sync</span>
+        <button @click="saveProfile" :disabled="isSavingProfile" class="bg-brand-primary hover:bg-brand-hover text-white px-5 py-2 rounded-md font-bold text-sm transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer">
+          <Loader2 v-if="isSavingProfile" class="w-4 h-4 animate-spin" stroke-width="1.5" />
           {{ isSavingProfile ? 'Salvando...' : 'Salvar Alterações' }}
         </button>
       </div>
     </div>
 
     <!-- Card: Alterar Senha -->
-    <div class="bg-surface rounded-2xl border border-hairline overflow-hidden">
+    <div class="bg-surface rounded-md border border-hairline overflow-hidden">
       <div class="px-6 py-5 border-b border-hairline">
         <h3 class="text-sm font-bold text-ink">Alterar Senha</h3>
         <p class="text-xs text-ink-muted mt-0.5">Mínimo de 8 caracteres. Use uma senha forte e única.</p>
@@ -162,23 +163,23 @@ onMounted(fetchProfile)
       <div class="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div class="space-y-1.5">
           <label class="text-xs font-bold text-ink-muted uppercase tracking-wide">Nova Senha</label>
-          <input v-model="password.nova" type="password" class="w-full bg-canvas border border-hairline text-ink rounded-xl px-4 py-2.5 text-sm focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all placeholder:text-ink-muted" placeholder="••••••••" />
+          <input v-model="password.nova" type="password" class="w-full bg-canvas border border-hairline text-ink rounded-md px-4 py-2.5 text-sm focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all placeholder:text-ink-muted" placeholder="••••••••" />
         </div>
         <div class="space-y-1.5">
           <label class="text-xs font-bold text-ink-muted uppercase tracking-wide">Confirmar Senha</label>
-          <input v-model="password.confirmar" type="password" class="w-full bg-canvas border border-hairline text-ink rounded-xl px-4 py-2.5 text-sm focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all placeholder:text-ink-muted" placeholder="••••••••" />
+          <input v-model="password.confirmar" type="password" class="w-full bg-canvas border border-hairline text-ink rounded-md px-4 py-2.5 text-sm focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all placeholder:text-ink-muted" placeholder="••••••••" />
         </div>
       </div>
       <div class="px-6 py-4 bg-canvas/50 border-t border-hairline flex justify-end">
-        <button @click="savePassword" :disabled="isSavingPassword || !password.nova" class="bg-brand-primary hover:bg-brand-hover text-white px-5 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer">
-          <span v-if="isSavingPassword" class="material-symbols-outlined animate-spin text-base">sync</span>
+        <button @click="savePassword" :disabled="isSavingPassword || !password.nova" class="bg-brand-primary hover:bg-brand-hover text-white px-5 py-2 rounded-md font-bold text-sm transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer">
+          <Loader2 v-if="isSavingPassword" class="w-4 h-4 animate-spin" stroke-width="1.5" />
           {{ isSavingPassword ? 'Alterando...' : 'Alterar Senha' }}
         </button>
       </div>
     </div>
 
     <!-- Card: Danger Zone -->
-    <div class="bg-surface rounded-2xl border border-red-200 dark:border-red-900/50 overflow-hidden">
+    <div class="bg-surface rounded-md border border-red-200 dark:border-red-900/50 overflow-hidden">
       <div class="px-6 py-5 border-b border-red-100 dark:border-red-900/30">
         <h3 class="text-sm font-bold text-red-600 dark:text-red-400">Danger Zone</h3>
         <p class="text-xs text-ink-muted mt-0.5">Ações permanentes e irreversíveis.</p>
@@ -189,7 +190,7 @@ onMounted(fetchProfile)
             <p class="text-sm font-semibold text-ink">Excluir Conta</p>
             <p class="text-xs text-ink-muted mt-0.5">Remove permanentemente sua conta e todos os dados associados.</p>
           </div>
-          <button @click="deleteAccount" class="shrink-0 px-4 py-2 rounded-xl border border-red-400 dark:border-red-600 text-red-500 dark:text-red-400 text-xs font-bold hover:bg-red-500 hover:text-white dark:hover:bg-red-600 dark:hover:text-white transition-all cursor-pointer">
+          <button @click="deleteAccount" class="shrink-0 px-4 py-2 rounded-md border border-red-400 dark:border-red-600 text-red-500 dark:text-red-400 text-xs font-bold hover:bg-red-500 hover:text-white dark:hover:bg-red-600 dark:hover:text-white transition-all cursor-pointer">
             Excluir Conta
           </button>
         </div>

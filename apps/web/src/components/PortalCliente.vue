@@ -6,6 +6,40 @@ import { useToast } from '../composables/useToast'
 import { forceLightMode } from '../composables/useTheme'
 import { supabase } from '../supabase'
 import Caixometro from './Caixometro.vue'
+import {
+  IdCard,
+  Building,
+  Users,
+  Clock,
+  XCircle,
+  CheckCircle2,
+  Ruler,
+  FileText,
+  Home,
+  File,
+  Layers,
+  Lock,
+  AlertTriangle,
+  Eye,
+  Loader2,
+  Trash2,
+  Upload,
+  Send,
+  Hourglass,
+  Activity,
+  User,
+  Landmark,
+  FolderOpen,
+  Download,
+  HardHat,
+  Shield
+} from 'lucide-vue-next'
+
+const iconMap = {
+  badge: IdCard,
+  home_work: Building,
+  family_restroom: Users
+}
 
 const route = useRoute()
 const token = route.params.token
@@ -26,19 +60,19 @@ const categoriasDocsB2C = [
 
 const getDocumentStatusInfo = (categoria) => {
   if (!projetoData.value || !projetoData.value.documentos) {
-    return { status: 'pendente', label: 'Pendente', icon: 'pending', badgeClass: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300' }
+    return { status: 'pendente', label: 'Pendente', icon: Clock, badgeClass: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300' }
   }
   const doc = projetoData.value.documentos.find(d => d.categoria === categoria)
   if (!doc) {
-    return { status: 'pendente', label: 'Pendente', icon: 'pending', badgeClass: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300' }
+    return { status: 'pendente', label: 'Pendente', icon: Clock, badgeClass: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300' }
   }
   if (doc.status === 'rejeitado') {
-    return { status: 'rejeitado', label: 'Recusado', icon: 'cancel', badgeClass: 'bg-red-50 text-red-600 border border-red-100 dark:bg-red-950/20 dark:text-red-400 dark:border-red-900/30', motivo: doc.motivo }
+    return { status: 'rejeitado', label: 'Recusado', icon: XCircle, badgeClass: 'bg-red-50 text-red-600 border border-red-100 dark:bg-red-950/20 dark:text-red-400 dark:border-red-900/30', motivo: doc.motivo }
   }
   if (doc.url) {
-    return { status: 'aprovado', label: 'Aprovado', icon: 'check_circle', badgeClass: 'bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/30', filename: doc.name }
+    return { status: 'aprovado', label: 'Aprovado', icon: CheckCircle2, badgeClass: 'bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/30', filename: doc.name }
   }
-  return { status: 'pendente', label: 'Pendente', icon: 'pending', badgeClass: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300' }
+  return { status: 'pendente', label: 'Pendente', icon: Clock, badgeClass: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300' }
 }
 
 const handleFileSelect = (event, categoria) => {
@@ -267,10 +301,10 @@ const formatCurrency = (val) => {
 
 const getDocIcon = (categoria) => {
   const cat = (categoria || '').toLowerCase()
-  if (cat.includes('planta') || cat.includes('projeto')) return 'architecture'
-  if (cat.includes('contrato')) return 'description'
-  if (cat.includes('habite')) return 'home'
-  return 'draft'
+  if (cat.includes('planta') || cat.includes('projeto')) return Ruler
+  if (cat.includes('contrato')) return FileText
+  if (cat.includes('habite')) return Home
+  return File
 }
 </script>
 
@@ -284,7 +318,7 @@ const getDocIcon = (categoria) => {
       <header class="bg-surface/80 backdrop-blur-lg border-b border-hairline/60 flex justify-between items-center w-full px-6 h-16 sticky top-0 z-40">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 bg-brand-primary/10 rounded-lg flex items-center justify-center border border-brand-primary/20">
-            <span class="material-symbols-outlined text-brand-primary text-lg">foundation</span>
+            <Layers class="w-4.5 h-4.5 text-brand-primary" stroke-width="1.5" />
           </div>
           <span class="text-lg font-bold tracking-tight text-ink">Portal do Cliente</span>
         </div>
@@ -301,7 +335,7 @@ const getDocIcon = (categoria) => {
         
         <!-- Ícone de Cadeado -->
         <div class="w-20 h-20 bg-canvas rounded-2xl flex items-center justify-center mb-6 border border-hairline">
-          <span class="material-symbols-outlined text-4xl text-ink-muted" style="font-variation-settings: 'FILL' 1;">lock</span>
+          <Lock class="w-10 h-10 text-ink-muted" stroke-width="1.5" />
         </div>
 
         <h1 class="text-2xl font-bold text-ink mb-2 text-center">Acesso ao Orçamento</h1>
@@ -335,7 +369,7 @@ const getDocIcon = (categoria) => {
 
           <!-- Mensagem de Erro -->
           <div v-if="errorMessage" class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 text-sm p-3 rounded-xl flex items-start gap-2 mb-6 animate-shake">
-            <span class="material-symbols-outlined text-base mt-0.5 shrink-0">error</span>
+            <AlertTriangle class="w-4 h-4 text-red-600 mt-0.5 shrink-0" stroke-width="1.5" />
             <span>{{ errorMessage }}</span>
           </div>
 
@@ -343,14 +377,9 @@ const getDocIcon = (categoria) => {
           <button
             type="submit"
             :disabled="!isPinComplete"
-            class="w-full py-4 rounded-xl font-semibold text-sm uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 border border-transparent"
-            :class="[
-              isPinComplete
-                ? 'bg-brand-primary hover:bg-brand-hover text-white active:scale-[0.98] cursor-pointer'
-                : 'bg-canvas border-hairline text-ink-muted cursor-not-allowed'
-            ]"
+            class="w-full py-4 rounded-xl font-semibold text-sm uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 border border-transparent cursor-pointer"
           >
-            <span class="material-symbols-outlined text-lg">visibility</span>
+            <Eye class="w-4.5 h-4.5" stroke-width="1.5" />
             Visualizar Orçamento
           </button>
         </form>
@@ -365,7 +394,7 @@ const getDocIcon = (categoria) => {
       <!-- ============================================ -->
       <div v-else-if="currentState === 'loading'" class="flex flex-col items-center justify-center px-6 pt-32">
         <div class="w-16 h-16 bg-brand-primary/10 rounded-2xl flex items-center justify-center mb-6 border border-brand-primary/20">
-          <span class="material-symbols-outlined text-3xl text-brand-primary animate-spin">progress_activity</span>
+          <Loader2 class="w-8 h-8 text-brand-primary animate-spin" stroke-width="1.5" />
         </div>
         <h2 class="text-lg font-bold text-ink mb-2">Validando acesso...</h2>
         <p class="text-sm text-ink-muted">Verificando seu PIN de segurança.</p>
@@ -380,7 +409,7 @@ const getDocIcon = (categoria) => {
         <div v-if="projetoData.status !== 'docs_pendentes' && projetoData.status !== 'docs_completos'" class="bg-brand-primary px-6 py-5">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-              <span class="material-symbols-outlined text-white text-xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+              <CheckCircle2 class="w-6 h-6 text-white" stroke-width="1.5" />
             </div>
             <div>
               <h2 class="text-white font-bold text-base">Acesso Liberado</h2>
@@ -393,7 +422,7 @@ const getDocIcon = (categoria) => {
         <div v-else-if="projetoData.status === 'docs_pendentes'" class="bg-amber-500 px-6 py-5">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-              <span class="material-symbols-outlined text-white text-xl" style="font-variation-settings: 'FILL' 1;">warning</span>
+              <AlertTriangle class="w-6 h-6 text-white" stroke-width="1.5" />
             </div>
             <div>
               <h2 class="text-white font-bold text-base">Ação Necessária</h2>
@@ -406,7 +435,7 @@ const getDocIcon = (categoria) => {
         <div v-else-if="projetoData.status === 'docs_completos'" class="bg-blue-600 px-6 py-5">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-              <span class="material-symbols-outlined text-white text-xl" style="font-variation-settings: 'FILL' 1;">schedule</span>
+              <Clock class="w-6 h-6 text-white" stroke-width="1.5" />
             </div>
             <div>
               <h2 class="text-white font-bold text-base">Documentos em Análise</h2>
@@ -446,7 +475,7 @@ const getDocIcon = (categoria) => {
                 <!-- Status Header -->
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-ink-muted text-lg">{{ cat.icon }}</span>
+                    <component :is="iconMap[cat.icon]" class="w-4.5 h-4.5 text-ink-muted" stroke-width="1.5" />
                     <span class="text-xs font-bold text-ink">{{ cat.label }}</span>
                   </div>
                   
@@ -456,7 +485,7 @@ const getDocIcon = (categoria) => {
                       class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full flex items-center gap-1"
                       :class="getDocumentStatusInfo(cat.id).badgeClass"
                     >
-                      <span class="material-symbols-outlined text-[12px]">{{ getDocumentStatusInfo(cat.id).icon }}</span>
+                      <component :is="getDocumentStatusInfo(cat.id).icon" class="w-3 h-3" stroke-width="1.5" />
                       {{ getDocumentStatusInfo(cat.id).label }}
                     </span>
                   </div>
@@ -467,7 +496,7 @@ const getDocIcon = (categoria) => {
                 <!-- Motivo de Rejeição -->
                 <div v-if="getDocumentStatusInfo(cat.id).status === 'rejeitado'" class="bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 text-red-700 dark:text-red-400 text-xs p-3 rounded-lg flex flex-col gap-1">
                   <span class="font-bold flex items-center gap-1">
-                    <span class="material-symbols-outlined text-sm">error</span>
+                    <AlertTriangle class="w-4 h-4 text-red-700 dark:text-red-400 shrink-0" stroke-width="1.5" />
                     Motivo da Recusa:
                   </span>
                   <span>{{ getDocumentStatusInfo(cat.id).motivo }}</span>
@@ -484,8 +513,8 @@ const getDocIcon = (categoria) => {
                   <!-- Se um arquivo local foi selecionado -->
                   <div v-if="arquivosCorrigidos[cat.id]" class="bg-zinc-50 dark:bg-zinc-900 border border-hairline p-3 rounded-lg flex items-center justify-between text-xs">
                     <span class="truncate font-semibold text-ink max-w-[80%]">{{ arquivosCorrigidos[cat.id].name }}</span>
-                    <button @click="removerArquivoSelecionado(cat.id)" class="text-red-500 hover:text-red-700 flex items-center">
-                      <span class="material-symbols-outlined text-lg">delete</span>
+                    <button @click="removerArquivoSelecionado(cat.id)" class="text-red-500 hover:text-red-700 flex items-center justify-center">
+                      <Trash2 class="w-4 h-4" stroke-width="1.5" />
                     </button>
                   </div>
                   
@@ -494,7 +523,7 @@ const getDocIcon = (categoria) => {
                       :for="`file-input-${cat.id}`"
                       class="flex items-center justify-center gap-2 border border-dashed border-hairline hover:border-brand-primary hover:bg-brand-primary/5 transition-all py-3 rounded-xl cursor-pointer text-xs font-semibold text-ink-muted hover:text-brand-primary"
                     >
-                      <span class="material-symbols-outlined text-lg">upload_file</span>
+                      <Upload class="w-4 h-4" stroke-width="1.5" />
                       Selecionar Arquivo
                     </label>
                     <input 
@@ -513,10 +542,10 @@ const getDocIcon = (categoria) => {
             <button
               @click="enviarDocumentosCorrigidos"
               :disabled="!temArquivosSelecionados || isEnviandoCorrecoes"
-              class="w-full py-4 bg-brand-primary hover:bg-brand-hover text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 border border-transparent shadow-sm mt-6"
+              class="w-full py-4 bg-brand-primary hover:bg-brand-hover text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 border border-transparent shadow-sm mt-6 cursor-pointer"
             >
-              <span v-if="isEnviandoCorrecoes" class="material-symbols-outlined animate-spin text-lg">progress_activity</span>
-              <span v-else class="material-symbols-outlined text-lg">send</span>
+              <Loader2 v-if="isEnviandoCorrecoes" class="w-4.5 h-4.5 animate-spin" stroke-width="1.5" />
+              <Send v-else class="w-4.5 h-4.5" stroke-width="1.5" />
               {{ isEnviandoCorrecoes ? 'Enviando Documentos...' : 'Enviar Documentos Corrigidos' }}
             </button>
           </div>
@@ -524,7 +553,7 @@ const getDocIcon = (categoria) => {
           <!-- Seção de Documentos em Análise (docs_completos / Lead) -->
           <div v-else-if="projetoData.status === 'docs_completos'" class="space-y-6 text-center py-10 flex flex-col items-center">
             <div class="w-20 h-20 bg-blue-50 dark:bg-blue-950/20 rounded-2xl flex items-center justify-center border border-blue-100 dark:border-blue-900/30 mb-4 animate-pulse">
-              <span class="material-symbols-outlined text-4xl text-blue-500">hourglass_top</span>
+              <Hourglass class="w-10 h-10 text-blue-500" stroke-width="1.5" />
             </div>
             <h3 class="text-base font-bold text-ink">Seus documentos estão em análise</h3>
             <p class="text-xs text-ink-muted leading-relaxed max-w-sm">
@@ -543,7 +572,7 @@ const getDocIcon = (categoria) => {
             </div>
             
             <div v-if="feedData.length === 0" class="border border-hairline rounded-2xl bg-surface p-8 text-center flex flex-col items-center">
-              <span class="material-symbols-outlined text-3xl text-ink-muted mb-2">timeline</span>
+              <Activity class="w-8 h-8 text-ink-muted mb-2" stroke-width="1.5" />
               <span class="text-xs font-semibold text-ink block mb-1">Nenhuma atualização no momento</span>
               <span class="text-[11px] text-ink-muted">As fotos e posts do canteiro de obras começarão em breve.</span>
             </div>
@@ -555,7 +584,7 @@ const getDocIcon = (categoria) => {
                 <div class="bg-surface border border-hairline rounded-xl overflow-hidden shadow-sm">
                   <div class="px-4 py-2.5 border-b border-hairline bg-canvas/30 flex justify-between items-center">
                     <span class="text-[11px] text-ink font-semibold flex items-center gap-1">
-                      <span class="material-symbols-outlined text-brand-primary text-sm">person</span>
+                      <User class="w-4 h-4 text-brand-primary" stroke-width="1.5" />
                       Responsável Técnico
                     </span>
                     <span class="text-[9px] text-ink-muted font-mono">{{ formatDate(post.criado_em) }}</span>
@@ -582,7 +611,7 @@ const getDocIcon = (categoria) => {
             </div>
             
             <div v-if="!caixaData" class="border border-hairline rounded-2xl bg-surface p-8 text-center flex flex-col items-center">
-              <span class="material-symbols-outlined text-3xl text-ink-muted mb-2">account_balance</span>
+              <Landmark class="w-8 h-8 text-ink-muted mb-2" stroke-width="1.5" />
               <span class="text-xs font-semibold text-ink block mb-1">Dados não disponíveis</span>
               <span class="text-[11px] text-ink-muted">Aguardando a primeira medição técnica da Caixa.</span>
             </div>
@@ -598,7 +627,7 @@ const getDocIcon = (categoria) => {
             </div>
             
             <div v-if="documentosData.length === 0" class="border border-hairline rounded-2xl bg-surface p-8 text-center flex flex-col items-center">
-              <span class="material-symbols-outlined text-3xl text-ink-muted mb-2">folder_open</span>
+              <FolderOpen class="w-8 h-8 text-ink-muted mb-2" stroke-width="1.5" />
               <span class="text-xs font-semibold text-ink block mb-1">Nenhum documento publicado</span>
               <span class="text-[11px] text-ink-muted">Os arquivos do projeto serão disponibilizados aqui pelo engenheiro.</span>
             </div>
@@ -606,7 +635,7 @@ const getDocIcon = (categoria) => {
             <div v-else class="space-y-2.5">
               <div v-for="doc in documentosData" :key="doc.id" class="flex items-center gap-3 bg-surface border border-hairline rounded-xl p-3.5 hover:bg-surface-hover/20 transition-all">
                 <div class="w-9 h-9 bg-brand-primary/10 rounded-lg flex items-center justify-center text-brand-primary shrink-0">
-                  <span class="material-symbols-outlined text-lg">{{ getDocIcon(doc.categoria) }}</span>
+                  <component :is="getDocIcon(doc.categoria)" class="w-4.5 h-4.5" stroke-width="1.5" />
                 </div>
                 <div class="flex-1 min-w-0">
                   <span class="text-[8px] text-brand-primary font-bold uppercase tracking-wider block mb-0.5">{{ doc.categoria }}</span>
@@ -614,7 +643,7 @@ const getDocIcon = (categoria) => {
                   <span class="text-[9px] text-ink-muted font-mono">{{ formatDate(doc.criado_em) }}</span>
                 </div>
                 <a :href="doc.arquivo_url" target="_blank" class="w-8 h-8 rounded-lg bg-canvas border border-hairline flex items-center justify-center text-ink hover:bg-surface-hover transition-colors">
-                  <span class="material-symbols-outlined text-base">download</span>
+                  <Download class="w-4 h-4" stroke-width="1.5" />
                 </a>
               </div>
             </div>
@@ -626,7 +655,7 @@ const getDocIcon = (categoria) => {
             <div class="bg-surface border border-hairline rounded-xl overflow-hidden">
               <div class="bg-canvas px-4 py-2.5 border-b border-hairline">
                 <div class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-ink-muted text-base">engineering</span>
+                  <HardHat class="w-4 h-4 text-ink-muted shrink-0" stroke-width="1.5" />
                   <h3 class="text-xs font-bold text-ink uppercase tracking-wider">Dados Gerais</h3>
                 </div>
               </div>
@@ -659,7 +688,7 @@ const getDocIcon = (categoria) => {
             <div v-if="projetoData.observacoes" class="bg-surface border border-hairline rounded-xl overflow-hidden">
               <div class="bg-canvas px-4 py-2.5 border-b border-hairline">
                 <div class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-ink-muted text-base">sticky_note_2</span>
+                  <FileText class="w-4 h-4 text-ink-muted shrink-0" stroke-width="1.5" />
                   <h3 class="text-xs font-bold text-ink uppercase tracking-wider">Observações</h3>
                 </div>
               </div>
@@ -672,7 +701,7 @@ const getDocIcon = (categoria) => {
 
           <!-- Rodapé de segurança -->
           <div class="flex items-center justify-center gap-1.5 pt-8 pb-2">
-            <span class="material-symbols-outlined text-ink-muted text-sm">shield</span>
+            <Shield class="w-3.5 h-3.5 text-ink-muted shrink-0" stroke-width="1.5" />
             <span class="text-[10px] text-ink-muted font-semibold uppercase tracking-wider">Visualização protegida por PIN • Conexão Criptografada</span>
           </div>
         </main>

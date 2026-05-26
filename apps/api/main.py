@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 
 # Routers
-from routers import relatorios, projetos, sinapi, integracoes, portal_cliente, simulador, matchmaking
+from routers import relatorios, projetos, sinapi, integracoes, portal_cliente, simulador, matchmaking, configuracoes, vitrine
 # Core
 from core.scheduler import scheduler
 from core.exceptions import setup_exception_handlers
@@ -63,6 +63,8 @@ app.include_router(integracoes.router)
 app.include_router(portal_cliente.router)
 app.include_router(simulador.router)
 app.include_router(matchmaking.router)
+app.include_router(configuracoes.router)
+app.include_router(vitrine.router)
 
 @app.get("/api/health")
 async def health_check():

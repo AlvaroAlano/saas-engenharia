@@ -1,5 +1,6 @@
 <script setup>
 import { ref, watch } from 'vue'
+import { X, SquarePen } from 'lucide-vue-next'
 
 const props = defineProps({
   isOpen: {
@@ -48,11 +49,11 @@ const salvarAlteracoes = () => {
         <!-- Header -->
         <div class="flex items-center justify-between px-6 py-4 border-b border-hairline bg-canvas">
           <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-brand-primary">edit_square</span>
+            <SquarePen class="w-5 h-5 text-brand-primary" stroke-width="1.5" />
             <h3 class="text-lg font-bold text-ink">Editar Cliente/Projeto</h3>
           </div>
-          <button @click="$emit('close')" class="p-1 rounded-lg hover:bg-surface-hover transition-all text-ink-muted hover:text-ink">
-            <span class="material-symbols-outlined">close</span>
+          <button @click="$emit('close')" class="p-1 rounded-lg hover:bg-surface-hover transition-all text-ink-muted hover:text-ink flex items-center justify-center">
+            <X class="w-4 h-4" stroke-width="1.5" />
           </button>
         </div>
 

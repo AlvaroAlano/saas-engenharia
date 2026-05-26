@@ -1,6 +1,10 @@
 <script setup>
 import { computed, onBeforeUnmount, watch, ref } from 'vue'
 import { formatCurrency } from '../utils/formatters'
+import { 
+  BarChart2, Maximize2, Plus, Search, Trash2, 
+  CheckCircle2, Loader2, FileDown, FileText, X 
+} from 'lucide-vue-next'
 
 const props = defineProps({
   cartItems: {
@@ -169,11 +173,11 @@ const totalValue = computed(() => {
     <div class="bg-surface p-6 rounded-xl border border-hairline flex flex-col max-h-[calc(100vh-8rem)]">
       <div class="flex justify-between items-center mb-6">
         <h3 class="text-xl font-bold text-ink flex items-center gap-2">
-          <span class="material-symbols-outlined text-brand-primary">analytics</span>
+          <BarChart2 class="w-5 h-5 text-brand-primary" stroke-width="1.5" />
           Resumo Financeiro
         </h3>
         <button @click="isExpanded = true" class="text-ink-muted hover:text-brand-primary transition-colors cursor-pointer" title="Modo de Foco (Expandir)">
-          <span class="material-symbols-outlined">fullscreen</span>
+          <Maximize2 class="w-5 h-5" stroke-width="1.5" />
         </button>
       </div>
       <div class="flex flex-col flex-1 min-h-0">
@@ -195,10 +199,10 @@ const totalValue = computed(() => {
             <h4 class="text-xs font-semibold text-ink-muted uppercase tracking-wider">Itens ({{ cartItems.length }})</h4>
             <div class="flex items-center gap-2">
               <button @click="showManualItemModal = true" class="text-xs bg-surface hover:bg-canvas text-ink px-2.5 py-1.5 rounded-lg font-semibold transition-all border border-hairline flex items-center gap-1 cursor-pointer">
-                <span class="material-symbols-outlined text-[14px] text-brand-primary">add</span> Item Manual
+                <Plus class="w-[14px] h-[14px] text-brand-primary" stroke-width="1.5" /> Item Manual
               </button>
               <div class="relative w-48">
-                <span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-ink-muted text-sm">search</span>
+                <Search class="absolute left-2 top-1/2 -translate-y-1/2 text-ink-muted w-4 h-4" stroke-width="1.5" />
                 <input v-model="searchQuery" class="w-full bg-canvas border border-hairline rounded-lg px-2 py-1.5 pl-8 text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all text-ink" placeholder="Buscar no carrinho..." type="text"/>
               </div>
             </div>
@@ -229,7 +233,7 @@ const totalValue = computed(() => {
                 {{ formatCurrency(Number(item.quantidade) * Number(item.valor_unitario)) }}
               </span>
               <button @click="emit('remove-item', item.id)" class="text-ink-muted hover:text-red-500 transition-colors cursor-pointer" title="Remover">
-                <span class="material-symbols-outlined text-[14px]">delete</span>
+                <Trash2 class="w-[14px] h-[14px]" stroke-width="1.5" />
               </button>
             </div>
           </div>
@@ -242,19 +246,19 @@ const totalValue = computed(() => {
             {{ formatCurrency(totalValue) }}
           </div>
           <div class="mt-4 flex items-center gap-1 text-brand-primary text-xs font-semibold opacity-90">
-            <span class="material-symbols-outlined text-[16px]">check_circle</span>
+            <CheckCircle2 class="w-4 h-4" stroke-width="1.5" />
             Valores atualizados com SINAPI
           </div>
         </div>
         
         <button @click="baixarPropostaPDF" :disabled="isDownloadingPDF" class="w-full shrink-0 mt-6 flex items-center justify-center gap-2 bg-brand-primary text-white py-3 rounded-lg hover:bg-brand-hover transition-all font-semibold disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer">
-          <span v-if="isDownloadingPDF" class="material-symbols-outlined animate-spin">progress_activity</span>
-          <span v-else class="material-symbols-outlined">picture_as_pdf</span> 
+          <Loader2 v-if="isDownloadingPDF" class="w-5 h-5 animate-spin" stroke-width="1.5" />
+          <FileDown v-else class="w-5 h-5" stroke-width="1.5" /> 
           {{ isDownloadingPDF ? 'Gerando PDF...' : 'Gerar Proposta Comercial' }}
         </button>
         
         <button class="w-full shrink-0 mt-3 flex items-center justify-center gap-2 bg-zinc-950 dark:bg-zinc-900 text-white hover:bg-zinc-900 dark:hover:bg-zinc-800 border border-transparent dark:border-hairline py-3 rounded-lg transition-all font-semibold cursor-pointer">
-          <span class="material-symbols-outlined">description</span> Gerar Dossiê Caixa
+          <FileText class="w-5 h-5" stroke-width="1.5" /> Gerar Dossiê Caixa
         </button>
       </div>
     </div>
@@ -276,7 +280,7 @@ const totalValue = computed(() => {
           <div class="px-8 py-5 border-b border-hairline flex items-center justify-between bg-canvas shrink-0">
             <div class="flex items-center gap-3">
               <div class="bg-brand-primary/10 p-2 rounded-lg border border-brand-primary/20">
-                <span class="material-symbols-outlined text-brand-primary">fullscreen</span>
+                <Maximize2 class="w-5 h-5 text-brand-primary" stroke-width="1.5" />
               </div>
               <div>
                 <h2 class="text-xl font-bold text-ink">Modo de Foco: Carrinho</h2>
@@ -285,11 +289,11 @@ const totalValue = computed(() => {
             </div>
             <div class="flex items-center gap-4">
               <div class="relative w-64">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted text-sm">search</span>
+                <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted w-4 h-4" stroke-width="1.5" />
                 <input v-model="searchQuery" class="w-full bg-canvas border border-hairline rounded-lg py-2 pl-9 pr-4 text-sm focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all text-ink" placeholder="Buscar item..." type="text"/>
               </div>
               <button @click="isExpanded = false" class="p-2 text-ink-muted hover:text-ink hover:bg-surface-hover rounded-lg transition-colors cursor-pointer">
-                <span class="material-symbols-outlined">close</span>
+                <X class="w-5 h-5" stroke-width="1.5" />
               </button>
             </div>
           </div>
@@ -336,7 +340,7 @@ const totalValue = computed(() => {
                     </td>
                     <td class="px-6 py-4 text-center">
                       <button @click="emit('remove-item', item.id)" class="text-ink-muted hover:text-red-500 transition-colors p-1.5 rounded hover:bg-red-50 dark:hover:bg-canvas cursor-pointer" title="Remover Item">
-                        <span class="material-symbols-outlined text-[18px]">delete</span>
+                        <Trash2 class="w-[18px] h-[18px]" stroke-width="1.5" />
                       </button>
                     </td>
                   </tr>

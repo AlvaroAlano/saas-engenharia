@@ -5,6 +5,12 @@ import { useRoute } from 'vue-router'
 import axios from 'axios'
 import { supabase } from '../supabase'
 import { forceLightMode } from '../composables/useTheme'
+import { 
+  ArrowLeft, Building, CheckCircle2, Sofa, Utensils, Bed, Bath, 
+  CheckCircle, Landmark, ExternalLink, Check, ChevronDown, Loader2, 
+  HardHat, User, X, ArrowRight, Calculator, ThumbsUp, IdCard, Users, 
+  AlertTriangle, FileText, Upload, Hourglass, PartyPopper 
+} from 'lucide-vue-next'
 
 const route = useRoute()
 const step = ref(1)
@@ -125,9 +131,9 @@ const docSlots = reactive({
 })
 
 const docMeta = {
-  identidade:   { label: 'Documento de Identidade',    sublabel: 'RG ou CNH',                            icon: 'badge' },
-  residencia:   { label: 'Comprovante de Residência',  sublabel: 'Atualizado (máx. 3 meses)',             icon: 'home_work' },
-  estado_civil: { label: 'Certidão de Estado Civil',   sublabel: 'Nascimento, casamento ou divórcio',     icon: 'family_restroom' }
+  identidade:   { label: 'Documento de Identidade',    sublabel: 'RG ou CNH',                            icon: IdCard },
+  residencia:   { label: 'Comprovante de Residência',  sublabel: 'Atualizado (máx. 3 meses)',             icon: Building },
+  estado_civil: { label: 'Certidão de Estado Civil',   sublabel: 'Nascimento, casamento ou divórcio',     icon: Users }
 }
 
 const allDocsReady = computed(() =>
@@ -388,13 +394,13 @@ const uploadFiles = async () => {
         </div>
         <div class="px-6 py-4 flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <button v-if="step > 1" @click="prevStep" class="text-ink-muted hover:text-ink transition-colors cursor-pointer">
-              <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+            <button v-if="step > 1" @click="prevStep" class="text-ink-muted hover:text-ink transition-colors cursor-pointer flex items-center">
+              <ArrowLeft class="w-5 h-5" stroke-width="1.5" />
             </button>
             <span class="text-sm font-bold tracking-wide text-ink-muted uppercase">Passo {{ step }} de {{ isMatchmakingFlow ? 4 : 3 }}</span>
           </div>
           <div class="w-8 h-8 rounded-full bg-canvas flex items-center justify-center text-ink-muted">
-            <span class="material-symbols-outlined text-[16px]">home_work</span>
+            <Building class="w-4 h-4" stroke-width="1.5" />
           </div>
         </div>
       </div>
@@ -417,7 +423,7 @@ const uploadFiles = async () => {
               :class="padraoSelecionado?.id === padrao.id ? 'border-brand-primary bg-brand-primary/10' : 'border-hairline hover:border-brand-primary hover:bg-canvas'"
             >
               <div v-if="padraoSelecionado?.id === padrao.id" class="absolute top-3 right-3 text-brand-primary">
-                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">check_circle</span>
+                <CheckCircle2 class="w-5 h-5 text-brand-primary" stroke-width="1.5" />
               </div>
               <h3 class="text-lg font-bold text-ink mb-1" :class="padraoSelecionado?.id === padrao.id ? 'text-brand-primary' : ''">{{ padrao.nome }}</h3>
               <p class="text-xs text-brand-primary font-semibold mb-3">a partir de R$ {{ padrao.precoBase }}/m²</p>
@@ -434,7 +440,7 @@ const uploadFiles = async () => {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
             <div class="bg-canvas p-4 rounded-xl border border-hairline flex items-center gap-4">
               <div class="w-12 h-12 bg-surface border border-hairline rounded-full flex items-center justify-center text-ink-muted">
-                <span class="material-symbols-outlined text-[24px]">living</span>
+                <Sofa class="w-6 h-6 text-ink-muted" stroke-width="1.5" />
               </div>
               <div class="flex-1">
                 <label class="block text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">Sala / Estar</label>
@@ -447,7 +453,7 @@ const uploadFiles = async () => {
 
             <div class="bg-canvas p-4 rounded-xl border border-hairline flex items-center gap-4">
               <div class="w-12 h-12 bg-surface border border-hairline rounded-full flex items-center justify-center text-ink-muted">
-                <span class="material-symbols-outlined text-[24px]">kitchen</span>
+                <Utensils class="w-6 h-6 text-ink-muted" stroke-width="1.5" />
               </div>
               <div class="flex-1">
                 <label class="block text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">Cozinha</label>
@@ -460,7 +466,7 @@ const uploadFiles = async () => {
 
             <div class="bg-canvas p-4 rounded-xl border border-hairline flex items-center gap-4">
               <div class="w-12 h-12 bg-surface border border-hairline rounded-full flex items-center justify-center text-ink-muted">
-                <span class="material-symbols-outlined text-[24px]">bed</span>
+                <Bed class="w-6 h-6 text-ink-muted" stroke-width="1.5" />
               </div>
               <div class="flex-1">
                 <label class="block text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">Quartos</label>
@@ -473,7 +479,7 @@ const uploadFiles = async () => {
 
             <div class="bg-canvas p-4 rounded-xl border border-hairline flex items-center gap-4">
               <div class="w-12 h-12 bg-surface border border-hairline rounded-full flex items-center justify-center text-ink-muted">
-                <span class="material-symbols-outlined text-[24px]">shower</span>
+                <Bath class="w-6 h-6 text-ink-muted" stroke-width="1.5" />
               </div>
               <div class="flex-1">
                 <label class="block text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">Banheiros</label>
@@ -494,7 +500,7 @@ const uploadFiles = async () => {
         <!-- STEP 3: Resultado -->
         <div v-if="step === 3" class="flex-1 flex flex-col items-center justify-center text-center animate-in fade-in zoom-in-95 duration-500 py-10">
           <div class="w-20 h-20 bg-brand-primary/10 text-brand-primary rounded-full flex items-center justify-center mb-6 border border-brand-primary/20">
-            <span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1">task_alt</span>
+            <CheckCircle class="w-10 h-10 text-brand-primary" stroke-width="1.5" />
           </div>
           
           <h2 class="text-xl font-semibold text-ink-muted uppercase tracking-widest mb-2">Valor Estimado da Obra</h2>
@@ -514,7 +520,7 @@ const uploadFiles = async () => {
           <!-- Caixa Simulation Box -->
           <div class="mt-8 w-full max-w-lg bg-brand-primary/5 border border-brand-primary/20 rounded-xl p-6 text-left">
             <div class="flex items-start gap-4 mb-4">
-              <span class="material-symbols-outlined text-brand-primary text-2xl">account_balance</span>
+              <Landmark class="w-6 h-6 text-brand-primary" stroke-width="1.5" />
               <div>
                 <h3 class="text-lg font-bold text-brand-primary dark:text-white mb-1">Pré-qualificação Caixa</h3>
                 <p class="text-sm text-brand-primary dark:text-ink leading-relaxed">
@@ -528,7 +534,7 @@ const uploadFiles = async () => {
               target="_blank"
               class="w-full py-3 mb-4 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2 border border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white"
             >
-              Acessar Simulador da Caixa <span class="material-symbols-outlined text-[18px]">open_in_new</span>
+              Acessar Simulador da Caixa <ExternalLink class="w-[18px] h-[18px]" stroke-width="1.5" />
             </a>
 
             <label class="flex items-start gap-3 cursor-pointer group p-2 rounded-lg hover:bg-brand-primary/10 transition-colors">
@@ -538,7 +544,7 @@ const uploadFiles = async () => {
                   v-model="simulacaoCaixaConcluida"
                   class="peer appearance-none w-5 h-5 border border-brand-primary/30 rounded-md checked:bg-brand-primary checked:border-brand-primary cursor-pointer transition-all focus:outline-none focus:ring-1 focus:ring-brand-primary dark:focus:ring-offset-slate-900"
                 >
-                <span class="material-symbols-outlined absolute text-white text-[16px] pointer-events-none opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style="font-variation-settings: 'FILL' 1, 'wght' 700">check</span>
+                <Check class="w-3 h-3 absolute text-white pointer-events-none opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" stroke-width="2" />
               </div>
               <span class="text-sm font-medium text-brand-primary dark:text-white leading-tight">
                 Confirmo que realizei a simulação na Caixa e tenho margem aprovada.
@@ -566,7 +572,7 @@ const uploadFiles = async () => {
                 >
                   <option v-for="uf in ufs" :key="uf" :value="uf">{{ uf }}</option>
                 </select>
-                <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[16px]">expand_more</span>
+                <ChevronDown class="w-4 h-4 absolute right-2 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" stroke-width="1.5" />
               </div>
             </div>
           </div>
@@ -598,13 +604,13 @@ const uploadFiles = async () => {
           </div>
 
           <!-- Lista de Engenheiros -->
-          <div v-if="isFetchingEngineers" class="text-center py-12">
-            <span class="material-symbols-outlined animate-spin text-brand-primary text-3xl">sync</span>
+          <div v-if="isFetchingEngineers" class="text-center py-12 flex flex-col items-center">
+            <Loader2 class="w-8 h-8 animate-spin text-brand-primary" stroke-width="1.5" />
             <p class="text-ink-muted text-sm mt-2">Buscando profissionais...</p>
           </div>
 
-          <div v-else-if="engineers.length === 0" class="text-center py-12 border border-hairline border-dashed rounded-xl bg-canvas">
-            <span class="material-symbols-outlined text-ink-muted text-4xl">engineering</span>
+          <div v-else-if="engineers.length === 0" class="text-center py-12 border border-hairline border-dashed rounded-xl bg-canvas flex flex-col items-center justify-center">
+            <HardHat class="w-10 h-10 text-ink-muted" stroke-width="1.5" />
             <p class="text-ink font-semibold mt-2">Nenhum engenheiro disponível para {{ ufObra }}</p>
             <p class="text-ink-muted text-sm mt-1">Tente selecionar outra UF acima.</p>
           </div>
@@ -625,7 +631,7 @@ const uploadFiles = async () => {
                     class="w-14 h-14 rounded-full object-cover border border-hairline shrink-0"
                   />
                   <div v-else class="w-14 h-14 rounded-full bg-canvas border border-hairline flex items-center justify-center text-ink-muted shrink-0">
-                    <span class="material-symbols-outlined text-[28px]">person</span>
+                    <User class="w-7 h-7 text-ink-muted" stroke-width="1.5" />
                   </div>
 
                   <!-- Info -->
@@ -655,9 +661,9 @@ const uploadFiles = async () => {
                 <button 
                   @click="solicitarOrcamento(eng)"
                   :disabled="isSubmittingLead"
-                  class="bg-[#5e6ad2] hover:bg-[#828fff] text-white text-xs font-bold px-4 py-2 rounded-md transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  class="bg-[#5e6ad2] hover:bg-[#828fff] text-white text-xs font-bold px-4 py-2 rounded-md transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 font-sans"
                 >
-                  <span v-if="isSubmittingLead" class="material-symbols-outlined animate-spin text-[14px]">sync</span>
+                  <Loader2 v-if="isSubmittingLead" class="w-3.5 h-3.5 animate-spin" stroke-width="1.5" />
                   Solicitar Orçamento
                 </button>
               </div>
@@ -670,7 +676,7 @@ const uploadFiles = async () => {
               @click="concluirSemSelecionar"
               class="text-xs text-ink-muted hover:text-ink font-semibold flex items-center gap-1 hover:underline cursor-pointer"
             >
-              <span class="material-symbols-outlined text-[16px]">close</span>
+              <X class="w-4 h-4" stroke-width="1.5" />
               Apenas concluir simulação sem conectar com um engenheiro
             </button>
           </div>
@@ -689,7 +695,7 @@ const uploadFiles = async () => {
           class="w-full py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed border border-transparent cursor-pointer"
           :class="padraoSelecionado ? 'bg-zinc-950 dark:bg-zinc-900 text-white hover:bg-zinc-900 dark:hover:bg-zinc-800' : 'bg-canvas text-ink-muted'"
         >
-          Continuar <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+          Continuar <ArrowRight class="w-5 h-5" stroke-width="1.5" />
         </button>
 
         <button 
@@ -698,7 +704,7 @@ const uploadFiles = async () => {
           :disabled="metragem_total === 0"
           class="w-full py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 bg-zinc-950 dark:bg-zinc-900 text-white hover:bg-zinc-900 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed border border-transparent cursor-pointer"
         >
-          Calcular Estimativa <span class="material-symbols-outlined text-[20px]">calculate</span>
+          Calcular Estimativa <Calculator class="w-5 h-5" stroke-width="1.5" />
         </button>
 
         <button 
@@ -709,11 +715,11 @@ const uploadFiles = async () => {
           :class="isLoading ? 'bg-canvas text-ink-muted' : 'bg-brand-primary text-white hover:bg-brand-hover'"
         >
           <template v-if="isMatchmakingFlow">
-            Avançar para Encontrar Engenheiro <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+            Avançar para Encontrar Engenheiro <ArrowRight class="w-5 h-5" stroke-width="1.5" />
           </template>
           <template v-else>
-            <span v-if="isLoading" class="material-symbols-outlined animate-spin text-[20px]">sync</span>
-            <span v-else class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1">thumb_up</span>
+            <Loader2 v-if="isLoading" class="w-5 h-5 animate-spin" stroke-width="1.5" />
+            <ThumbsUp v-else class="w-5 h-5" stroke-width="1.5" />
             {{ isLoading ? 'Processando...' : 'Aprovei, quero avançar!' }}
           </template>
         </button>
@@ -726,7 +732,7 @@ const uploadFiles = async () => {
         
         <div v-if="!isUploadComplete" class="w-full flex flex-col items-center">
           <div class="w-24 h-24 bg-brand-primary/10 text-brand-primary rounded-full flex items-center justify-center mb-6 border border-brand-primary/20">
-            <span class="material-symbols-outlined text-5xl" style="font-variation-settings: 'FILL' 1">check_circle</span>
+            <CheckCircle2 class="w-12 h-12 text-brand-primary" stroke-width="1.5" />
           </div>
           <h2 class="text-2xl md:text-3xl font-black text-ink mb-4 tracking-tight text-center">Estimativa Aprovada! 🚀</h2>
           <p class="text-ink-muted md:text-lg max-w-sm mx-auto leading-relaxed text-center mb-10">
@@ -745,18 +751,18 @@ const uploadFiles = async () => {
             >
               <!-- Cabeçalho do slot -->
               <div class="flex items-center gap-3 mb-3">
-                <span class="material-symbols-outlined text-brand-primary text-xl">{{ docMeta[categoria].icon }}</span>
+                <component :is="docMeta[categoria].icon" class="w-5 h-5 text-brand-primary" stroke-width="1.5" />
                 <div class="flex-1">
                   <p class="text-sm font-semibold text-ink">{{ docMeta[categoria].label }}</p>
                   <p class="text-xs text-ink-muted">{{ docMeta[categoria].sublabel }}</p>
                 </div>
-                <span v-if="slot.file || (slot.existingUrl && slot.status !== 'rejeitado')" class="material-symbols-outlined text-emerald-500 text-xl" style="font-variation-settings: 'FILL' 1">check_circle</span>
+                <CheckCircle2 v-if="slot.file || (slot.existingUrl && slot.status !== 'rejeitado')" class="w-5 h-5 text-emerald-500" stroke-width="1.5" />
               </div>
 
               <!-- Motivo de Rejeição -->
               <div v-if="slot.status === 'rejeitado'" class="bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 text-red-700 dark:text-red-400 text-xs p-3 rounded-lg flex flex-col gap-1 mb-3">
                 <span class="font-bold flex items-center gap-1">
-                  <span class="material-symbols-outlined text-sm">error</span>
+                  <AlertTriangle class="w-3.5 h-3.5 text-red-700 dark:text-red-400" stroke-width="1.5" />
                   Motivo da Recusa:
                 </span>
                 <span>{{ slot.motivo }}</span>
@@ -773,27 +779,27 @@ const uploadFiles = async () => {
                 <!-- Arquivo selecionado -->
                 <div v-if="slot.file" class="flex items-center justify-between bg-surface border border-hairline rounded-lg px-3 py-2">
                   <div class="flex items-center gap-2 overflow-hidden">
-                    <span class="material-symbols-outlined text-ink-muted text-base shrink-0">description</span>
+                    <FileText class="w-4 h-4 text-ink-muted shrink-0" stroke-width="1.5" />
                     <span class="text-sm text-ink truncate">{{ slot.file.name }}</span>
                   </div>
-                  <button @click="removeDoc(categoria)" class="text-ink-muted hover:text-red-500 transition-colors p-1 cursor-pointer shrink-0">
-                    <span class="material-symbols-outlined text-sm">close</span>
+                  <button @click="removeDoc(categoria)" class="text-ink-muted hover:text-red-500 transition-colors p-1 cursor-pointer shrink-0 flex items-center justify-center">
+                    <X class="w-4 h-4" stroke-width="1.5" />
                   </button>
                 </div>
 
                 <!-- Dropzone vazia -->
                 <div
                   v-else
-                  class="relative border border-dashed rounded-lg p-4 flex items-center gap-3 hover:bg-surface-hover transition-colors cursor-pointer text-ink-muted"
+                  class="relative border border-dashed rounded-lg p-4 flex items-center gap-3 hover:bg-surface-hover transition-colors cursor-pointer text-ink-muted font-sans"
                   :class="slot.isDragging ? 'border-brand-primary bg-brand-primary/5' : 'border-hairline'"
                   @dragover.prevent="slot.isDragging = true"
                   @dragleave.prevent="slot.isDragging = false"
                   @drop.prevent="handleDocDrop(categoria, $event)"
                 >
                   <input type="file" accept=".pdf,.jpg,.jpeg,.png" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" @change="handleDocFileSelect(categoria, $event)">
-                  <span class="material-symbols-outlined text-xl">upload_file</span>
+                  <Upload class="w-5 h-5 text-ink-muted" stroke-width="1.5" />
                   <p class="text-xs">Arraste ou <span class="text-brand-primary font-semibold">clique para buscar</span></p>
-                  <span class="text-[10px] text-ink-muted ml-auto">PDF, JPG, PNG</span>
+                  <span class="text-[10px] text-ink-muted ml-auto font-mono">PDF, JPG, PNG</span>
                 </div>
               </div>
             </div>
@@ -803,11 +809,11 @@ const uploadFiles = async () => {
           <button
             @click="uploadFiles"
             :disabled="isUploading || !allDocsReady"
-            class="w-full max-w-md py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed border border-transparent cursor-pointer"
+            class="w-full max-w-md py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed border border-transparent cursor-pointer font-sans"
             :class="isUploading ? 'bg-canvas text-ink-muted' : 'bg-brand-primary text-white hover:bg-brand-hover'"
           >
-            <span v-if="isUploading" class="material-symbols-outlined animate-spin text-[20px]">sync</span>
-            <span v-else class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1">upload</span>
+            <Loader2 v-if="isUploading" class="w-5 h-5 animate-spin" stroke-width="1.5" />
+            <Upload v-else class="w-5 h-5" stroke-width="1.5" />
             {{ isUploading ? 'Enviando documentos...' : 'Finalizar Envio' }}
           </button>
         </div>
@@ -817,7 +823,7 @@ const uploadFiles = async () => {
           
           <template v-if="concluidoSemConectar">
             <div class="w-24 h-24 bg-brand-primary text-white rounded-full flex items-center justify-center mb-6">
-              <span class="material-symbols-outlined text-5xl" style="font-variation-settings: 'FILL' 1">thumb_up</span>
+              <ThumbsUp class="w-12 h-12" stroke-width="1.5" />
             </div>
             <h2 class="text-2xl md:text-3xl font-black text-ink mb-4 tracking-tight">Simulação Concluída!</h2>
             <p class="text-ink-muted md:text-lg max-w-sm mx-auto leading-relaxed mb-6">
@@ -830,7 +836,7 @@ const uploadFiles = async () => {
           
           <template v-else-if="isWaitingRoom">
             <div class="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-6 border border-emerald-200">
-              <span class="material-symbols-outlined text-5xl" style="font-variation-settings: 'FILL' 1">description</span>
+              <FileText class="w-12 h-12 text-emerald-600" stroke-width="1.5" />
             </div>
             <h2 class="text-2xl md:text-3xl font-black text-ink mb-4 tracking-tight">Documentos em Análise! 📑</h2>
             <p class="text-ink-muted md:text-lg max-w-md mx-auto leading-relaxed mb-8 text-center">
@@ -838,7 +844,7 @@ const uploadFiles = async () => {
             </p>
             <div class="w-full max-w-md bg-zinc-50 dark:bg-zinc-900 border border-hairline rounded-xl p-5 mb-6 text-left shadow-sm">
               <h4 class="text-xs font-bold text-ink uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-brand-primary text-base">hourglass_empty</span>
+                <Hourglass class="w-4 h-4 text-brand-primary" stroke-width="1.5" />
                 Próximos Passos
               </h4>
               <p class="text-xs text-ink-muted leading-relaxed">
@@ -849,7 +855,7 @@ const uploadFiles = async () => {
           
           <template v-else>
             <div class="w-24 h-24 bg-brand-primary text-white rounded-full flex items-center justify-center mb-6">
-              <span class="material-symbols-outlined text-5xl" style="font-variation-settings: 'FILL' 1">celebration</span>
+              <PartyPopper class="w-12 h-12" stroke-width="1.5" />
             </div>
             <h2 class="text-2xl md:text-3xl font-black text-ink mb-4 tracking-tight">Tudo Pronto!</h2>
             <p class="text-ink-muted md:text-lg max-w-sm mx-auto leading-relaxed">
@@ -863,7 +869,5 @@ const uploadFiles = async () => {
 </template>
 
 <style scoped>
-.material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-}
+
 </style>

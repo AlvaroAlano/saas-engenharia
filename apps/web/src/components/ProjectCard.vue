@@ -9,6 +9,12 @@ import DiarioObraModal from './modals/DiarioObraModal.vue'
 import RejeicaoDocumentoModal from './modals/RejeicaoDocumentoModal.vue'
 import DrawerDetalheProjeto from './DrawerDetalheProjeto.vue'
 import { formatCurrency } from '../utils/formatters'
+import { 
+  Maximize2, MoreHorizontal, MessageSquare, Camera, Pen, History, 
+  Loader2, CheckCircle2, Copy, Undo, FileSignature, Archive, FolderOpen, 
+  User, Home, Users, FileText, Link, AlertTriangle, HelpCircle, Send, 
+  Eye, X, ExternalLink, Download, Info, Plus, ChevronDown, HardHat
+} from 'lucide-vue-next'
 
 const { empresa } = useProfile()
 const router = useRouter()
@@ -56,9 +62,9 @@ const isLoadingTemplates = ref(false)
 const isDocsExpanded = ref(false)
 
 const docCategoriaLabels = {
-  identidade:   { label: 'Identidade',   badge: 'RG/CNH',      icon: 'badge' },
-  residencia:   { label: 'Residência',   badge: 'Comprovante', icon: 'home_work' },
-  estado_civil: { label: 'Estado Civil', badge: 'Certidão',    icon: 'family_restroom' }
+  identidade:   { label: 'Identidade',   badge: 'RG/CNH',      icon: User },
+  residencia:   { label: 'Residência',   badge: 'Comprovante', icon: Home },
+  estado_civil: { label: 'Estado Civil', badge: 'Certidão',    icon: Users }
 }
 const isAdvancing = ref(false)
 const isSendingToZapSign = ref(false)
@@ -126,7 +132,7 @@ const ctaInfo = computed(() => {
   if (props.project.coluna === 'estimativa_enviada' && props.project.status === 'aguardando_cliente') {
     return {
       text: isCopied.value ? 'Copiado!' : 'Copiar Link',
-      icon: isCopied.value ? 'check_circle' : 'link',
+      icon: isCopied.value ? CheckCircle2 : Link,
       class: isCopied.value 
         ? 'bg-emerald-500 text-white border border-emerald-500 shadow-sm' 
         : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50',
@@ -142,7 +148,7 @@ const ctaInfo = computed(() => {
   if (props.project.status === 'docs_validados') {
     // Estado A: Não Gerado
     if (!props.project.contrato_gerado) {
-      return { text: 'Gerar Contrato', icon: 'description', class: 'bg-emerald-600 text-white hover:bg-emerald-700 border border-emerald-600 shadow-sm', action: 'generate_contract' }
+      return { text: 'Gerar Contrato', icon: FileText, class: 'bg-emerald-600 text-white hover:bg-emerald-700 border border-emerald-600 shadow-sm', action: 'generate_contract' }
     }
     // Estado B: Gerado/Aprovado mas não enviado
     if (!props.project.status_assinatura || props.project.status_assinatura === 'nao_enviado') {
@@ -150,7 +156,7 @@ const ctaInfo = computed(() => {
     }
     // Estado Final: Ambos assinaram
     if (props.project.status_assinatura === 'assinado') {
-      return { text: 'Finalizar', icon: 'task_alt', class: 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm', action: 'advance_phase' }
+      return { text: 'Finalizar', icon: CheckCircle2, class: 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm', action: 'advance_phase' }
     }
   }
   return null
@@ -712,29 +718,29 @@ const salvarNovaNota = async () => {
       <!-- Dropdown Menu -->
       <div class="absolute top-3 right-3 flex items-center gap-1" @click.stop>
         <button @click.stop="isDrawerOpen = true" class="text-slate-400 hover:text-slate-600 p-1 rounded-md hover:bg-slate-50 transition-colors" title="Ver Detalhes">
-          <span class="material-symbols-outlined text-[18px]">open_in_full</span>
+          <Maximize2 class="w-[18px] h-[18px]" stroke-width="1.5" />
         </button>
         <button @click.stop="toggleMenu" class="text-slate-400 hover:text-slate-600 p-1 rounded-md hover:bg-slate-50 transition-colors">
-          <span class="material-symbols-outlined text-[18px]">more_horiz</span>
+          <MoreHorizontal class="w-[18px] h-[18px]" stroke-width="1.5" />
         </button>
         
         <div v-if="isMenuOpen" class="absolute right-0 mt-1 w-44 bg-white rounded-md shadow-lg border border-slate-100 z-10 py-1" @click.stop>
           <button @click.stop="openWhatsAppDirect" class="w-full text-left px-4 py-2 text-xs text-emerald-600 font-semibold hover:bg-emerald-50 flex items-center gap-2">
-            <span class="material-symbols-outlined text-[14px]">chat</span> Chamar no Whats
+            <MessageSquare class="w-[14px] h-[14px]" stroke-width="1.5" /> Chamar no Whats
           </button>
           <button
             v-if="project.coluna === 'obra_liberada'"
             @click.stop="isDiarioModalOpen = true; closeMenu()"
             class="w-full text-left px-4 py-2 text-xs text-indigo-600 font-semibold hover:bg-indigo-50 flex items-center gap-2"
           >
-            <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">photo_camera</span> Diário de Obra
+            <Camera class="w-[14px] h-[14px]" stroke-width="1.5" /> Diário de Obra
           </button>
           <div class="border-t border-slate-100 my-1"></div>
           <button @click.stop="openEditModal" class="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2">
-            <span class="material-symbols-outlined text-[14px]">edit</span> Editar
+            <Pen class="w-[14px] h-[14px]" stroke-width="1.5" /> Editar
           </button>
           <button @click.stop="abrirModalHistorico(project)" class="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2">
-            <span class="material-symbols-outlined text-[14px]">history</span> Histórico e Notas
+            <History class="w-[14px] h-[14px]" stroke-width="1.5" /> Histórico e Notas
           </button>
           <div class="border-t border-slate-100 my-1"></div>
           <button
@@ -743,9 +749,9 @@ const salvarNovaNota = async () => {
             class="w-full text-left px-4 py-2 text-xs font-semibold flex items-center gap-2 transition-colors"
             :class="hasCopiedPortalLink ? 'text-emerald-600 bg-emerald-50 hover:bg-emerald-50' : 'text-indigo-600 hover:bg-indigo-50'"
           >
-            <span v-if="isCopyingPortalLink" class="material-symbols-outlined animate-spin text-[14px]">sync</span>
-            <span v-else-if="hasCopiedPortalLink" class="material-symbols-outlined text-[14px]">check_circle</span>
-            <span v-else class="material-symbols-outlined text-[14px]">content_copy</span>
+            <Loader2 v-if="isCopyingPortalLink" class="w-[14px] h-[14px] animate-spin" stroke-width="1.5" />
+            <CheckCircle2 v-else-if="hasCopiedPortalLink" class="w-[14px] h-[14px]" stroke-width="1.5" />
+            <Copy v-else class="w-[14px] h-[14px]" stroke-width="1.5" />
             {{ hasCopiedPortalLink ? 'Copiado!' : 'Copiar Link do Portal' }}
           </button>
           <div v-if="project.coluna === 'engenharia_caixa' || project.coluna === 'obra_liberada'" class="border-t border-slate-100 my-1"></div>
@@ -754,18 +760,18 @@ const salvarNovaNota = async () => {
             @click.stop="voltarEtapa" 
             class="w-full text-left px-4 py-2 text-xs text-slate-500 hover:bg-slate-50 flex items-center gap-2"
           >
-            <span class="material-symbols-outlined text-[14px]">undo</span> Voltar Etapa
+            <Undo class="w-[14px] h-[14px]" stroke-width="1.5" /> Voltar Etapa
           </button>
           <button 
             v-if="project.coluna === 'contrato_pendente' && project.contrato_gerado"
             @click.stop="openContractModal" 
             class="w-full text-left px-4 py-2 text-xs text-blue-600 font-semibold hover:bg-blue-50 flex items-center gap-2"
           >
-            <span class="material-symbols-outlined text-[14px]">history_edu</span> Atualizar/Refazer Contrato
+            <FileSignature class="w-[14px] h-[14px]" stroke-width="1.5" /> Atualizar/Refazer Contrato
           </button>
           <div v-if="project.coluna === 'contrato_pendente' && project.contrato_gerado" class="border-t border-slate-100 my-1"></div>
           <button @click.stop="arquivarProjeto" class="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 flex items-center gap-2">
-            <span class="material-symbols-outlined text-[14px]">archive</span> Arquivar
+            <Archive class="w-[14px] h-[14px]" stroke-width="1.5" /> Arquivar
           </button>
         </div>
       </div>
@@ -793,7 +799,7 @@ const salvarNovaNota = async () => {
         class="w-full px-3 py-2.5 flex items-center justify-between hover:bg-slate-100/50 transition-colors group"
       >
         <div class="flex items-center gap-2">
-          <span class="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-blue-500 transition-colors">folder_open</span>
+          <FolderOpen class="w-[18px] h-[18px] text-slate-400 group-hover:text-blue-500 transition-colors" stroke-width="1.5" />
           <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{{ project.documentos.length }} Documentos Anexados</span>
           <span 
             v-if="temDocumentosPendentesRevisao" 
@@ -801,12 +807,11 @@ const salvarNovaNota = async () => {
             title="Documento pendente de visualização"
           ></span>
         </div>
-        <span 
-          class="material-symbols-outlined text-[20px] text-slate-400 transition-transform duration-300"
+        <ChevronDown 
+          class="w-5 h-5 text-slate-400 transition-transform duration-300"
           :class="{ 'rotate-180': isDocsExpanded }"
-        >
-          expand_more
-        </span>
+          stroke-width="1.5"
+        />
       </button>
 
       <!-- Expandable List -->
@@ -822,9 +827,11 @@ const salvarNovaNota = async () => {
           <ul class="space-y-2 mb-3 mt-1">
             <li v-for="(doc, index) in project.documentos" :key="index" class="flex items-center justify-between text-xs bg-white p-2 rounded-md border border-slate-200 shadow-sm transition-all hover:border-slate-300">
               <div class="flex items-center gap-2 overflow-hidden">
-                <span class="material-symbols-outlined text-[16px] text-blue-500 shrink-0" style="font-variation-settings: 'FILL' 1;">
-                  {{ docCategoriaLabels[doc.categoria]?.icon || 'description' }}
-                </span>
+                <component 
+                  :is="docCategoriaLabels[doc.categoria]?.icon || FileText" 
+                  class="w-4 h-4 text-blue-500 shrink-0" 
+                  stroke-width="1.5" 
+                />
                 <div class="flex flex-col overflow-hidden">
                   <span class="text-slate-700 font-medium truncate">
                     {{ docCategoriaLabels[doc.categoria]?.label || doc.name }}
@@ -846,11 +853,11 @@ const salvarNovaNota = async () => {
                   Recusado
                 </span>
                 <a v-if="doc.url" :href="doc.url" target="_blank" class="text-blue-600 hover:text-white hover:bg-blue-600 transition-colors flex items-center gap-1 border border-blue-200 bg-blue-50 px-2 py-1 rounded">
-                  <span class="material-symbols-outlined text-[14px]">visibility</span>
+                  <Eye class="w-[14px] h-[14px]" stroke-width="1.5" />
                   <span class="hidden sm:inline font-medium">Ver</span>
                 </a>
                 <button v-if="project.coluna === 'contrato_pendente' && project.status !== 'docs_validados' && doc.status !== 'aprovado' && doc.url" @click.stop="abrirModalRejeicao(doc)" class="text-red-600 hover:text-white hover:bg-red-600 transition-colors flex items-center gap-1 border border-red-200 bg-red-50 px-2 py-1 rounded">
-                  <span class="material-symbols-outlined text-[14px]">cancel</span>
+                  <X class="w-[14px] h-[14px]" stroke-width="1.5" />
                   <span class="hidden sm:inline font-medium">Recusar</span>
                 </button>
               </div>
@@ -862,10 +869,10 @@ const salvarNovaNota = async () => {
             @click.stop="validarDocumentos" 
             class="w-full py-2.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold text-xs rounded-md transition-colors flex items-center justify-center gap-1.5 shadow-sm"
           >
-            <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">verified</span> Validar Documentos
+            <CheckCircle2 class="w-4 h-4 text-emerald-800" stroke-width="1.5" /> Validar Documentos
           </button>
           <div v-else-if="project.status === 'docs_validados'" class="w-full py-2 bg-white text-emerald-600 font-bold text-xs rounded-md flex items-center justify-center gap-1.5 border border-emerald-100">
-            <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">check_circle</span> Documentos Validados
+            <CheckCircle2 class="w-4 h-4 text-emerald-600" stroke-width="1.5" /> Documentos Validados
           </div>
         </div>
       </transition>
@@ -875,12 +882,12 @@ const salvarNovaNota = async () => {
     <div v-if="project.status_assinatura === 'pendente' && project.coluna === 'contrato_pendente'" class="mb-3 px-3 py-2 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <div class="flex items-center gap-1" :title="project.engenheiro_assinou ? 'Engenheiro assinou' : 'Aguardando engenheiro'">
-          <span class="material-symbols-outlined text-[14px]" :class="project.engenheiro_assinou ? 'text-emerald-500' : 'text-slate-300'">person</span>
+          <User class="w-3.5 h-3.5" :class="project.engenheiro_assinou ? 'text-emerald-500' : 'text-slate-300'" stroke-width="1.5" />
           <span class="text-[9px] font-bold" :class="project.engenheiro_assinou ? 'text-emerald-600' : 'text-slate-400'">ENG</span>
         </div>
         <div class="w-px h-3 bg-slate-200"></div>
         <div class="flex items-center gap-1" :title="project.cliente_assinou ? 'Cliente assinou' : 'Aguardando cliente'">
-          <span class="material-symbols-outlined text-[14px]" :class="project.cliente_assinou ? 'text-emerald-500' : 'text-slate-300'">person</span>
+          <User class="w-3.5 h-3.5" :class="project.cliente_assinou ? 'text-emerald-500' : 'text-slate-300'" stroke-width="1.5" />
           <span class="text-[9px] font-bold" :class="project.cliente_assinou ? 'text-emerald-600' : 'text-slate-400'">CLI</span>
         </div>
       </div>
@@ -893,7 +900,7 @@ const salvarNovaNota = async () => {
 
     <div class="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
       <span class="text-[10px] text-slate-400 flex items-center gap-1 font-medium">
-        <span class="material-symbols-outlined text-[14px]">schedule</span>
+        <History class="w-3.5 h-3.5" stroke-width="1.5" />
         {{ formatDate(project.created_at) }}
       </span>
       
@@ -920,7 +927,7 @@ const salvarNovaNota = async () => {
           title="Lembrar via WhatsApp"
           class="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors flex items-center justify-center border border-emerald-100 shadow-sm"
         >
-          <span class="material-symbols-outlined text-[18px]">chat</span>
+          <MessageSquare class="w-[18px] h-[18px]" stroke-width="1.5" />
         </button>
 
       <!-- Botão SINAPI: visível em engenharia_caixa e obra_liberada -->
@@ -929,7 +936,7 @@ const salvarNovaNota = async () => {
         @click.stop="handleAbrirSinapi"
         class="text-xs px-2.5 py-1.5 rounded-lg font-medium bg-white text-indigo-600 hover:bg-indigo-50 border border-indigo-200 transition-colors flex items-center gap-1 shadow-sm shrink-0 cursor-pointer"
       >
-        <span class="material-symbols-outlined text-[16px]">engineering</span>
+        <HardHat class="w-4 h-4" stroke-width="1.5" />
         SINAPI
       </button>
 
@@ -943,8 +950,8 @@ const salvarNovaNota = async () => {
           :disabled="isSendingPortalAccess"
           class="text-xs px-2.5 py-1.5 rounded-lg font-medium bg-indigo-600 text-white hover:bg-indigo-700 border border-indigo-600 transition-colors flex items-center gap-1 shadow-sm disabled:opacity-50 cursor-pointer"
         >
-          <span v-if="isSendingPortalAccess" class="material-symbols-outlined animate-spin text-[16px]">sync</span>
-          <span v-else class="material-symbols-outlined text-[16px]">send</span>
+          <Loader2 v-if="isSendingPortalAccess" class="w-4 h-4 animate-spin" stroke-width="1.5" />
+          <Send v-else class="w-4 h-4" stroke-width="1.5" />
           Portal
         </button>
 
@@ -956,7 +963,7 @@ const salvarNovaNota = async () => {
       </div>
 
       <button v-if="ctaInfo" @click.stop="handleCtaClick" :class="['text-xs px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer', ctaInfo.class]">
-          <span v-if="ctaInfo.icon" class="material-symbols-outlined text-[14px]">{{ ctaInfo.icon }}</span>
+          <component v-if="ctaInfo.icon" :is="ctaInfo.icon" class="w-3.5 h-3.5" stroke-width="1.5" />
           {{ ctaInfo.text }}
         </button>
       </div>
@@ -971,11 +978,11 @@ const salvarNovaNota = async () => {
         <!-- Modal Header -->
         <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
           <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-            <span class="material-symbols-outlined text-emerald-600">contract</span>
+            <FileSignature class="w-5 h-5 text-emerald-600" stroke-width="1.5" />
             {{ pdfPreviewUrl ? 'Visualização do Contrato' : 'Gerar Contrato' }}
           </h3>
           <button @click.stop="closeContractModal" class="text-slate-400 hover:text-slate-600 p-1 rounded-md hover:bg-slate-200 transition-colors">
-            <span class="material-symbols-outlined">close</span>
+            <X class="w-5 h-5" stroke-width="1.5" />
           </button>
         </div>
 
@@ -1012,7 +1019,7 @@ const salvarNovaNota = async () => {
               :disabled="isGeneratingContract"
               class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold text-sm transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
             >
-              <span v-if="isGeneratingContract" class="material-symbols-outlined animate-spin text-[18px]">sync</span>
+              <Loader2 v-if="isGeneratingContract" class="w-[18px] h-[18px] animate-spin" stroke-width="1.5" />
               {{ isGeneratingContract ? 'Gerando...' : 'Visualizar Contrato' }}
             </button>
           </div>
@@ -1027,20 +1034,20 @@ const salvarNovaNota = async () => {
           <div class="px-6 py-4 border-t border-slate-100 bg-white shrink-0">
             <div class="flex justify-between items-center">
               <button @click.stop="pdfPreviewUrl = null" class="text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors flex items-center gap-1">
-                <span class="material-symbols-outlined text-[18px]">arrow_back</span> Voltar à seleção
+                <ArrowLeft class="w-[18px] h-[18px]" stroke-width="1.5" /> Voltar à seleção
               </button>
               <div class="flex gap-3">
                 <button @click.stop="openInNewTab" class="px-4 py-2 rounded-lg font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors text-sm flex items-center gap-2">
-                  <span class="material-symbols-outlined text-[18px]">open_in_new</span> Abrir em Nova Aba
+                  <ExternalLink class="w-[18px] h-[18px]" stroke-width="1.5" /> Abrir em Nova Aba
                 </button>
                 <button @click.stop="downloadContract" class="px-4 py-2 rounded-lg font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors text-sm flex items-center gap-2">
-                  <span class="material-symbols-outlined text-[18px]">download</span> Download
+                  <Download class="w-[18px] h-[18px]" stroke-width="1.5" /> Download
                 </button>
               </div>
             </div>
             <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
               <p class="text-xs text-slate-500 max-w-xs leading-relaxed">
-                <span class="material-symbols-outlined text-[14px] align-middle text-amber-500 mr-1">info</span>
+                <Info class="w-[14px] h-[14px] text-amber-500 mr-1 inline align-middle" stroke-width="1.5" />
                 Revise o documento acima. Ao aprovar, o contrato será marcado como gerado e ficará disponível para envio à ZapSign.
               </p>
               <button 
@@ -1048,8 +1055,8 @@ const salvarNovaNota = async () => {
                 :disabled="isApprovingContract"
                 class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-emerald-600/20 disabled:opacity-50 flex items-center gap-2 active:scale-95 shrink-0"
               >
-                <span v-if="isApprovingContract" class="material-symbols-outlined animate-spin text-[18px]">sync</span>
-                <span v-else class="material-symbols-outlined text-[18px]">check_circle</span>
+                <Loader2 v-if="isApprovingContract" class="w-[18px] h-[18px] animate-spin" stroke-width="1.5" />
+                <CheckCircle2 v-else class="w-[18px] h-[18px]" stroke-width="1.5" />
                 {{ isApprovingContract ? 'Aprovando...' : '✅ Aprovar Contrato' }}
               </button>
             </div>
@@ -1099,11 +1106,11 @@ const salvarNovaNota = async () => {
         <!-- Header -->
         <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
           <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-            <span class="material-symbols-outlined text-blue-600">history</span>
+            <History class="w-5 h-5 text-blue-600" stroke-width="1.5" />
             Histórico e Notas
           </h3>
           <button @click.stop="isModalHistoricoAberto = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-md hover:bg-slate-200 transition-colors">
-            <span class="material-symbols-outlined">close</span>
+            <X class="w-5 h-5" stroke-width="1.5" />
           </button>
         </div>
 
@@ -1121,7 +1128,7 @@ const salvarNovaNota = async () => {
               :disabled="!novaNota.trim()"
               class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-600/50 disabled:cursor-not-allowed text-white rounded-lg text-sm font-semibold transition-colors shadow-sm flex items-center gap-2"
             >
-              <span class="material-symbols-outlined text-[16px]">add</span> Adicionar Nota
+              <Plus class="w-4 h-4" stroke-width="1.5" /> Adicionar Nota
             </button>
           </div>
         </div>
@@ -1150,7 +1157,8 @@ const salvarNovaNota = async () => {
         <!-- Header -->
         <div class="px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50">
           <div :class="confirmModal.isDanger ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'" class="p-2 rounded-full flex items-center justify-center">
-            <span class="material-symbols-outlined text-[20px]">{{ confirmModal.isDanger ? 'report' : 'help' }}</span>
+            <AlertTriangle v-if="confirmModal.isDanger" class="w-5 h-5 text-red-600" stroke-width="1.5" />
+            <HelpCircle v-else class="w-5 h-5 text-amber-600" stroke-width="1.5" />
           </div>
           <h3 class="text-base font-bold text-slate-800">{{ confirmModal.title }}</h3>
         </div>
@@ -1179,8 +1187,8 @@ const salvarNovaNota = async () => {
               'px-5 py-2 text-sm font-bold text-white rounded-xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2'
             ]"
           >
-            <span v-if="statusBotao === 'loading'" class="material-symbols-outlined animate-spin text-[18px]">sync</span>
-            <span v-else-if="statusBotao === 'success'" class="material-symbols-outlined text-[18px]">check_circle</span>
+            <Loader2 v-if="statusBotao === 'loading'" class="w-[18px] h-[18px] animate-spin" stroke-width="1.5" />
+            <CheckCircle2 v-else-if="statusBotao === 'success'" class="w-[18px] h-[18px]" stroke-width="1.5" />
             <span>{{ 
               statusBotao === 'loading' ? confirmModal.loadingText : 
               statusBotao === 'success' ? confirmModal.successText : 

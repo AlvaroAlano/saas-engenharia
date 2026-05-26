@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import { Plus, ChevronRight, Loader2, Save, Info, Braces, FileText } from 'lucide-vue-next'
 
 const templates = ref([])
 const activeTemplate = ref(null)
@@ -119,8 +120,8 @@ onMounted(() => {
       <aside class="w-72 bg-surface border-r border-hairline flex flex-col shrink-0">
         <div class="p-4 border-b border-hairline bg-canvas flex justify-between items-center">
           <h2 class="text-xs font-bold text-ink-muted uppercase tracking-wider">Templates Salvos</h2>
-          <button @click="() => selectTemplate('new')" class="flex items-center gap-1 text-xs font-semibold text-brand-primary hover:bg-brand-primary/10 px-2 py-1 rounded-lg transition-colors cursor-pointer">
-            <span class="material-symbols-outlined text-[16px]">add</span>
+          <button @click="selectTemplate('new')" class="flex items-center gap-1 text-xs font-semibold text-brand-primary hover:bg-brand-primary/10 px-2 py-1 rounded-lg transition-colors cursor-pointer">
+            <Plus class="w-3.5 h-3.5" stroke-width="1.5" />
             Novo
           </button>
         </div>
@@ -135,7 +136,7 @@ onMounted(() => {
               :class="activeTemplate?.id === tpl.id ? 'bg-brand-primary/10 text-brand-primary border border-brand-primary/20' : 'text-ink-muted hover:bg-canvas border border-transparent'"
             >
               <span class="truncate pr-2">{{ tpl.titulo }}</span>
-              <span class="material-symbols-outlined text-[16px] opacity-0 group-hover:opacity-100 transition-opacity">chevron_right</span>
+              <ChevronRight class="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" stroke-width="1.5" />
             </button>
             <div v-if="templates.length === 0" class="text-center py-6 text-ink-muted text-sm italic">
               Nenhum template encontrado.
@@ -164,8 +165,8 @@ onMounted(() => {
                   :disabled="isSaving"
                   class="bg-brand-primary hover:bg-brand-hover text-white px-4 py-1.5 rounded-lg font-bold text-sm flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
                 >
-                  <span v-if="isSaving" class="material-symbols-outlined animate-spin text-[16px]">sync</span>
-                  <span v-else class="material-symbols-outlined text-[16px]">save</span>
+                  <Loader2 v-if="isSaving" class="w-4 h-4 animate-spin" stroke-width="1.5" />
+                  <Save v-else class="w-4 h-4" stroke-width="1.5" />
                   {{ isSaving ? 'Salvando...' : 'Salvar Template' }}
                 </button>
               </div>
@@ -174,13 +175,13 @@ onMounted(() => {
             <!-- Informational Banner + Variables Panel -->
             <div class="px-5 py-4 border-b border-hairline bg-brand-primary/5 dark:bg-brand-primary/10 shrink-0">
               <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 rounded-lg p-3.5 flex gap-3 text-blue-800 dark:text-blue-200 text-xs mb-4">
-                <span class="material-symbols-outlined shrink-0 text-blue-500 dark:text-blue-400 text-base">info</span>
+                <Info class="w-4 h-4 shrink-0 text-blue-500 dark:text-blue-400" stroke-width="1.5" />
                 <p>
                   <strong>Como funciona:</strong> Crie seus modelos padrão de contrato abaixo. Clique nas variáveis para copiar e cole no texto. Na geração do documento, o sistema substituirá as tags pelos dados reais do cliente.
                 </p>
               </div>
               <p class="text-xs font-bold text-brand-primary mb-2 uppercase tracking-wider flex items-center gap-1">
-                <span class="material-symbols-outlined text-[14px]">data_object</span> Variáveis Dinâmicas
+                <Braces class="w-3.5 h-3.5" stroke-width="1.5" /> Variáveis Dinâmicas
               </p>
               <p class="text-xs text-ink-muted mb-3">Clique em uma tag para copiar e cole no corpo do texto.</p>
               <div class="flex flex-wrap gap-2">
@@ -211,8 +212,8 @@ onMounted(() => {
       </main>
       
       <div v-else class="flex-1 flex items-center justify-center bg-canvas">
-        <div class="text-center text-ink-muted">
-          <span class="material-symbols-outlined text-4xl mb-2 opacity-50">description</span>
+        <div class="text-center text-ink-muted flex flex-col items-center justify-center">
+          <FileText class="w-12 h-12 mb-3 opacity-40 text-ink-muted" stroke-width="1.5" />
           <p class="text-sm font-medium">Selecione um template na lateral ou crie um novo.</p>
         </div>
       </div>

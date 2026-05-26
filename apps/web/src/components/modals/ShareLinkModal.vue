@@ -1,6 +1,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import axios from 'axios'
+import { Share2, X, AlertTriangle, Link, Loader2, CheckCircle2, Check, Copy } from 'lucide-vue-next'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -90,11 +91,11 @@ const enviarWhatsApp = () => {
       <div class="bg-surface border border-hairline w-full max-w-md overflow-hidden animate-in zoom-in duration-200 shadow-sm rounded-xl">
         <div class="flex items-center justify-between px-6 py-4 border-b border-hairline bg-canvas">
           <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-brand-primary">share</span>
+            <Share2 class="w-5 h-5 text-brand-primary" stroke-width="1.5" />
             <h3 class="text-lg font-bold text-ink">Compartilhar {{ resourceLabel }}</h3>
           </div>
-          <button @click="emit('close')" class="p-1 rounded-lg hover:bg-surface-hover transition-all">
-            <span class="material-symbols-outlined text-ink-muted">close</span>
+          <button @click="emit('close')" class="p-1 rounded-lg hover:bg-surface-hover transition-all flex items-center justify-center">
+            <X class="w-4 h-4 text-ink-muted" stroke-width="1.5" />
           </button>
         </div>
 
@@ -105,19 +106,19 @@ const enviarWhatsApp = () => {
               Defina um <strong>PIN de 4 dígitos</strong> para proteger o acesso do cliente ao {{ resourceLabel.toLowerCase() }} online.
             </p>
             <div v-if="shareError" class="bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm p-3 rounded-lg flex items-start gap-2 mb-4">
-              <span class="material-symbols-outlined text-base">error</span>
+              <AlertTriangle class="w-4 h-4 text-red-650 dark:text-red-400 shrink-0 mt-0.5" stroke-width="1.5" />
               <span>{{ shareError }}</span>
             </div>
             <input v-model="sharePin" @input="sharePin = sharePin.replace(/\D/g, '')" maxlength="4" inputmode="numeric" pattern="\d{4}" class="w-full bg-canvas border border-hairline text-ink rounded-lg py-3 px-4 text-center text-2xl font-bold tracking-[0.5em] focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all" placeholder="• • • •"/>
             <button @click="gerarLinkB2C" :disabled="sharePin.length !== 4" class="w-full mt-4 py-3 bg-brand-primary hover:bg-brand-hover text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-              <span class="material-symbols-outlined text-lg">link</span>
+              <Link class="w-4 h-4" stroke-width="1.5" />
               Gerar Link Seguro
             </button>
           </div>
 
           <!-- Step B: Loading -->
           <div v-else-if="shareStep === 'loading'" class="text-center py-8">
-            <span class="material-symbols-outlined text-3xl text-brand-primary animate-spin">progress_activity</span>
+            <Loader2 class="w-8 h-8 text-brand-primary animate-spin mx-auto" stroke-width="1.5" />
             <p class="text-sm text-ink-muted mt-3">Gerando link seguro...</p>
           </div>
 
@@ -125,13 +126,14 @@ const enviarWhatsApp = () => {
           <div v-else-if="shareStep === 'result'">
             <div class="bg-brand-primary/10 dark:bg-brand-primary/5 border border-brand-primary/30 rounded-xl p-4 mb-4">
               <div class="flex items-center gap-2 mb-2">
-                <span class="material-symbols-outlined text-brand-primary text-base" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                <CheckCircle2 class="w-4 h-4 text-brand-primary" stroke-width="1.5" />
                 <span class="text-sm font-bold text-brand-primary">Link gerado com sucesso!</span>
               </div>
               <div class="bg-surface rounded-lg border border-brand-primary/20 px-3 py-2 flex items-center gap-2">
                 <span class="text-xs text-ink-muted truncate flex-1 font-mono">{{ shareLinkUrl }}</span>
-                <button @click="copiarLink" class="shrink-0 p-1.5 rounded-md transition-all" :class="linkCopiado ? 'bg-brand-primary/20 text-brand-primary' : 'hover:bg-canvas text-ink-muted'">
-                  <span class="material-symbols-outlined text-base">{{ linkCopiado ? 'check' : 'content_copy' }}</span>
+                <button @click="copiarLink" class="shrink-0 p-1.5 rounded-md transition-all flex items-center justify-center" :class="linkCopiado ? 'bg-brand-primary/20 text-brand-primary' : 'hover:bg-canvas text-ink-muted'">
+                  <Check v-if="linkCopiado" class="w-4 h-4 text-emerald-600" stroke-width="1.5" />
+                  <Copy v-else class="w-4 h-4" stroke-width="1.5" />
                 </button>
               </div>
               <p class="text-xs text-brand-primary mt-2">

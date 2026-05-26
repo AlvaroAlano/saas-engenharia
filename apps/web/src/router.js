@@ -24,9 +24,17 @@ const routes = [
   {
     path: '/configuracoes',
     component: () => import('./components/Configuracoes.vue'),
-    meta: { requiresAuth: true }
-  },
-  { path: '/configuracoes/:tab', redirect: '/configuracoes' }
+    meta: { requiresAuth: true },
+    redirect: '/configuracoes/perfil',
+    children: [
+      { path: 'perfil',         component: () => import('./components/settings/TabPerfil.vue') },
+      { path: 'empresa',        component: () => import('./components/settings/TabEmpresa.vue') },
+      { path: 'preferencias',   component: () => import('./components/settings/TabPreferencias.vue') },
+      { path: 'vitrine',        component: () => import('./components/settings/TabVitrine.vue') },
+      { path: 'parametros-eap', component: () => import('./components/settings/TabParametrosEAP.vue') },
+      { path: 'contratos',      component: () => import('./components/ConfiguracoesContratos.vue') },
+    ]
+  }
 ]
 
 const router = createRouter({
@@ -35,7 +43,7 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to, from, next) => {
-  if (to.meta.requiresAuth) {
+  if (to.matched.some(record => record.meta.requiresAuth)) {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
       next('/auth')

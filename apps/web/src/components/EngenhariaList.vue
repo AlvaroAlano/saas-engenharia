@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router'
 import axios from 'axios'
 import Sidebar from './Sidebar.vue'
 import TopHeader from './TopHeader.vue'
+import { Search, Loader2, HardHat, Building } from 'lucide-vue-next'
 
 const router = useRouter()
 const projects = ref([])
@@ -67,7 +68,7 @@ const goToProject = (id) => {
           </div>
           
           <div class="relative group">
-            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted group-focus-within:text-brand-primary transition-colors">search</span>
+            <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted group-focus-within:text-brand-primary transition-colors w-5 h-5" stroke-width="1.5" />
             <input 
               v-model="searchQuery"
               type="text" 
@@ -80,13 +81,13 @@ const goToProject = (id) => {
         <!-- Tabela Simplificada -->
         <div class="bg-surface border border-hairline rounded-2xl overflow-hidden">
           <div v-if="isLoading" class="flex flex-col items-center justify-center py-24 gap-4">
-            <span class="material-symbols-outlined text-4xl animate-spin text-brand-primary">sync</span>
+            <Loader2 class="w-10 h-10 animate-spin text-brand-primary" stroke-width="1.5" />
             <p class="text-ink-muted font-medium">Carregando obras...</p>
           </div>
 
           <div v-else-if="filteredProjects.length === 0" class="flex flex-col items-center justify-center py-24 px-6 text-center">
             <div class="w-16 h-16 bg-canvas rounded-full flex items-center justify-center mb-4 border border-hairline">
-              <span class="material-symbols-outlined text-3xl text-ink-muted">engineering</span>
+              <HardHat class="w-8 h-8 text-ink-muted" stroke-width="1.5" />
             </div>
             <h3 class="text-lg font-semibold text-ink tracking-tight">Nenhuma obra na fase de Engenharia.</h3>
             <p class="text-ink-muted text-sm mt-1 max-w-sm">Avance um projeto no Dashboard para começar a orçar.</p>
@@ -112,7 +113,7 @@ const goToProject = (id) => {
                   <td class="px-6 py-4">
                     <div class="flex items-center gap-3">
                       <div class="w-10 h-10 rounded-xl bg-canvas text-ink-muted flex items-center justify-center group-hover:bg-brand-primary group-hover:text-white transition-all">
-                        <span class="material-symbols-outlined text-xl">apartment</span>
+                        <Building class="w-5 h-5" stroke-width="1.5" />
                       </div>
                       <span class="font-bold text-ink group-hover:text-brand-primary transition-colors leading-tight">{{ project.nome_obra || project.titulo_projeto || 'Sem nome' }}</span>
                     </div>
@@ -144,7 +145,4 @@ const goToProject = (id) => {
 </template>
 
 <style scoped>
-.material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-}
 </style>

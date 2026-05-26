@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { supabase } from '../../supabase'
 import { useToast } from '../../composables/useToast'
+import { Building, Upload, Loader2 } from 'lucide-vue-next'
 
 const { showToast } = useToast()
 const empresa = ref({ nome_fantasia: '', cnpj: '', endereco_completo: '', logo_url: '' })
@@ -66,22 +67,22 @@ onMounted(fetchEmpresa)
   <div v-else class="space-y-5">
 
     <!-- Card: Identidade da Marca -->
-    <div class="bg-surface rounded-2xl border border-hairline overflow-hidden">
+    <div class="bg-surface rounded-md border border-hairline overflow-hidden">
       <div class="px-6 py-5 border-b border-hairline">
         <h3 class="text-sm font-bold text-ink">Identidade da Marca</h3>
         <p class="text-xs text-ink-muted mt-0.5">Esta logo aparece nos cabeçalhos de contratos e relatórios gerados.</p>
       </div>
       <div class="px-6 py-5 flex items-center gap-6">
         <div class="relative shrink-0">
-          <div class="h-24 w-36 rounded-2xl overflow-hidden border-2 border-hairline bg-canvas flex items-center justify-center p-3">
+          <div class="h-24 w-36 rounded-md overflow-hidden border-2 border-hairline bg-canvas flex items-center justify-center p-3">
             <img v-if="empresa.logo_url" :src="empresa.logo_url" class="max-h-full max-w-full object-contain" />
-            <div v-else class="text-center">
-              <span class="material-symbols-outlined text-3xl text-ink-muted">domain</span>
-              <p class="text-[9px] text-ink-muted mt-0.5 font-bold uppercase tracking-wide">Logo</p>
+            <div v-else class="text-center flex flex-col items-center justify-center">
+              <Building class="w-8 h-8 text-ink-muted" stroke-width="1.5" />
+              <p class="text-[9px] text-ink-muted mt-1 font-bold uppercase tracking-wide">Logo</p>
             </div>
           </div>
-          <label class="absolute -bottom-1.5 -right-1.5 bg-surface border border-hairline p-1.5 rounded-xl cursor-pointer hover:bg-canvas transition-colors">
-            <span class="material-symbols-outlined text-base text-ink-muted">upload_file</span>
+          <label class="absolute -bottom-1.5 -right-1.5 bg-surface border border-hairline p-1.5 rounded-md cursor-pointer hover:bg-canvas transition-colors flex items-center justify-center">
+            <Upload class="w-4 h-4 text-ink-muted" stroke-width="1.5" />
             <input type="file" class="hidden" accept="image/*" @change="handleLogoUpload" />
           </label>
         </div>
@@ -93,7 +94,7 @@ onMounted(fetchEmpresa)
     </div>
 
     <!-- Card: Dados Jurídicos -->
-    <div class="bg-surface rounded-2xl border border-hairline overflow-hidden">
+    <div class="bg-surface rounded-md border border-hairline overflow-hidden">
       <div class="px-6 py-5 border-b border-hairline">
         <h3 class="text-sm font-bold text-ink">Dados Jurídicos e Localização</h3>
         <p class="text-xs text-ink-muted mt-0.5">Informações que constam nos documentos emitidos pela construtora.</p>
@@ -102,21 +103,21 @@ onMounted(fetchEmpresa)
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div class="space-y-1.5">
             <label class="text-xs font-bold text-ink-muted uppercase tracking-wide">Nome Fantasia <span class="text-red-500">*</span></label>
-            <input v-model="empresa.nome_fantasia" type="text" class="w-full bg-canvas border border-hairline text-ink rounded-xl px-4 py-2.5 text-sm focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all placeholder:text-ink-muted" placeholder="Alano Engenharia & Construções" />
+            <input v-model="empresa.nome_fantasia" type="text" class="w-full bg-canvas border border-hairline text-ink rounded-md px-4 py-2.5 text-sm focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all placeholder:text-ink-muted" placeholder="Alano Engenharia & Construções" />
           </div>
           <div class="space-y-1.5">
             <label class="text-xs font-bold text-ink-muted uppercase tracking-wide">CNPJ <span class="text-red-500">*</span></label>
-            <input v-model="empresa.cnpj" v-maska="'##.###.###/####-##'" type="text" class="w-full bg-canvas border border-hairline text-ink rounded-xl px-4 py-2.5 text-sm focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all placeholder:text-ink-muted" placeholder="00.000.000/0001-00" />
+            <input v-model="empresa.cnpj" v-maska="'##.###.###/####-##'" type="text" class="w-full bg-canvas border border-hairline text-ink rounded-md px-4 py-2.5 text-sm focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all placeholder:text-ink-muted" placeholder="00.000.000/0001-00" />
           </div>
         </div>
         <div class="space-y-1.5">
           <label class="text-xs font-bold text-ink-muted uppercase tracking-wide">Endereço Completo</label>
-          <input v-model="empresa.endereco_completo" type="text" class="w-full bg-canvas border border-hairline text-ink rounded-xl px-4 py-2.5 text-sm focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all placeholder:text-ink-muted" placeholder="Rua, Número, Bairro, Cidade - UF" />
+          <input v-model="empresa.endereco_completo" type="text" class="w-full bg-canvas border border-hairline text-ink rounded-md px-4 py-2.5 text-sm focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all placeholder:text-ink-muted" placeholder="Rua, Número, Bairro, Cidade - UF" />
         </div>
       </div>
       <div class="px-6 py-4 bg-canvas/50 border-t border-hairline flex justify-end">
-        <button @click="saveEmpresa" :disabled="isSaving" class="bg-brand-primary hover:bg-brand-hover text-white px-5 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer">
-          <span v-if="isSaving" class="material-symbols-outlined animate-spin text-base">sync</span>
+        <button @click="saveEmpresa" :disabled="isSaving" class="bg-brand-primary hover:bg-brand-hover text-white px-5 py-2 rounded-md font-bold text-sm transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer">
+          <Loader2 v-if="isSaving" class="w-4 h-4 animate-spin" stroke-width="1.5" />
           {{ isSaving ? 'Salvando...' : 'Salvar Dados da Empresa' }}
         </button>
       </div>

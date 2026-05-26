@@ -1,4 +1,6 @@
 <script setup>
+import { MoreHorizontal } from 'lucide-vue-next'
+
 defineProps({
   badgeText: {
     type: String,
@@ -25,7 +27,7 @@ defineProps({
       <span :class="['text-[10px] font-bold px-2 py-0.5 rounded', badgeClass]">
         {{ badgeText }}
       </span>
-      <span class="material-symbols-outlined text-ink-muted text-sm">more_horiz</span>
+      <MoreHorizontal class="w-4 h-4 text-ink-muted" stroke-width="1.5" />
     </div>
     <h4 class="text-sm font-semibold text-ink mb-1">{{ title }}</h4>
     <p class="text-xs text-ink-muted mb-4">{{ clientName }}</p>

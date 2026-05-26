@@ -1,6 +1,18 @@
 <script setup>
 import { ref } from 'vue'
 import axios from 'axios'
+import { 
+  Loader2, 
+  RefreshCw, 
+  CheckCircle2, 
+  AlertTriangle, 
+  Upload, 
+  Database, 
+  Clock, 
+  Network, 
+  CalendarRange, 
+  Play 
+} from 'lucide-vue-next'
 
 // --- Tabs Control ---
 const activeTab = ref('insumos')
@@ -129,14 +141,14 @@ const uploadComposicoes = async () => {
       
       <!-- Overlay de Loading (Bloqueio de Tela) -->
       <div v-if="isLoadingComp || isUploading" class="absolute inset-0 z-50 bg-surface/60 dark:bg-zinc-950/80 backdrop-blur-sm flex flex-col items-center justify-center">
-        <span class="material-symbols-outlined text-6xl text-brand-primary animate-spin mb-4">sync</span>
+        <Loader2 class="w-12 h-12 text-brand-primary animate-spin mb-4" stroke-width="1.5" />
         <h3 class="text-xl font-bold text-ink">Processando dados da Caixa...</h3>
         <p class="text-ink-muted mt-2 font-medium">Isso pode levar alguns minutos. Por favor, aguarde.</p>
       </div>
 
       <div class="bg-zinc-950 px-8 py-6 border-b border-hairline">
         <h2 class="text-2xl font-bold text-white flex items-center gap-3">
-          <span class="material-symbols-outlined text-brand-primary">cloud_sync</span>
+          <RefreshCw class="w-6 h-6 text-brand-primary" stroke-width="1.5" />
           Central de Sincronização
         </h2>
         <p class="text-zinc-400 text-sm mt-2">Faça o upload dos catálogos da SINAPI para atualizar o motor de dados do sistema.</p>
@@ -168,7 +180,8 @@ const uploadComposicoes = async () => {
       <!-- Aba: INSUMOS -->
       <div v-if="activeTab === 'insumos'" class="p-8">
         <div v-if="alertMessage" :class="alertType === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'" class="mb-6 p-4 rounded-lg border text-sm font-medium flex items-center gap-2">
-          <span class="material-symbols-outlined">{{ alertType === 'success' ? 'check_circle' : 'error' }}</span>
+          <CheckCircle2 v-if="alertType === 'success'" class="w-5 h-5 text-emerald-600 shrink-0" stroke-width="1.5" />
+          <AlertTriangle v-else class="w-5 h-5 text-red-600 shrink-0" stroke-width="1.5" />
           {{ alertMessage }}
         </div>
 
@@ -192,7 +205,7 @@ const uploadComposicoes = async () => {
             <label class="block text-sm font-semibold text-ink mb-2">Arquivo de Insumos (.xlsx)</label>
             <div class="mt-1 flex justify-center rounded-xl border border-dashed border-hairline px-6 py-10 hover:border-brand-primary hover:bg-brand-primary/5 transition-colors group relative cursor-pointer bg-canvas">
               <div class="text-center">
-                <span class="material-symbols-outlined text-4xl text-ink-muted group-hover:text-brand-primary mb-2">upload_file</span>
+                <Upload class="w-10 h-10 text-ink-muted group-hover:text-brand-primary mb-2 mx-auto" stroke-width="1.5" />
                 <div class="mt-2 flex text-sm text-ink-muted justify-center">
                   <label class="relative cursor-pointer font-semibold text-brand-primary hover:text-brand-hover">
                     <span>Selecione um arquivo</span>
@@ -206,7 +219,7 @@ const uploadComposicoes = async () => {
           </div>
 
           <button type="submit" class="w-full flex justify-center items-center gap-2 rounded-lg bg-brand-primary px-4 py-3 text-sm font-semibold text-white hover:bg-brand-hover transition-all disabled:opacity-50 border border-transparent cursor-pointer">
-            <span class="material-symbols-outlined">database</span>
+            <Database class="w-4 h-4" stroke-width="1.5" />
             Sincronizar Insumos
           </button>
         </form>
@@ -215,7 +228,8 @@ const uploadComposicoes = async () => {
       <!-- Aba: COMPOSIÇÕES -->
       <div v-if="activeTab === 'composicoes'" class="p-8">
         <div v-if="alertMessageComp" :class="alertTypeComp === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'" class="mb-6 p-4 rounded-lg border text-sm font-medium flex gap-2 items-start">
-          <span class="material-symbols-outlined mt-0.5">{{ alertTypeComp === 'success' ? 'check_circle' : 'error' }}</span>
+          <CheckCircle2 v-if="alertTypeComp === 'success'" class="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" stroke-width="1.5" />
+          <AlertTriangle v-else class="w-5 h-5 text-red-600 mt-0.5 shrink-0" stroke-width="1.5" />
           <span class="flex-1">{{ alertMessageComp }}</span>
         </div>
 
@@ -226,7 +240,7 @@ const uploadComposicoes = async () => {
             <div class="flex items-center justify-between">
               <div>
                 <label class="block text-sm font-semibold text-ink flex items-center gap-2">
-                  <span class="material-symbols-outlined text-[18px] text-brand-primary">schedule</span>
+                  <Clock class="w-4 h-4 text-brand-primary" stroke-width="1.5" />
                   Processamento Agendado
                 </label>
                 <p class="text-xs text-ink-muted mt-1 pr-4 leading-relaxed">Adie a sincronização (carga pesada no servidor) para o futuro, ideal para rodar durante a madrugada.</p>
@@ -247,7 +261,7 @@ const uploadComposicoes = async () => {
             <label class="block text-sm font-semibold text-ink mb-2">Arquivo Analítico (.xlsx)</label>
             <div class="mt-1 flex justify-center rounded-xl border border-dashed border-hairline px-6 py-10 hover:border-brand-primary hover:bg-brand-primary/5 transition-colors group relative cursor-pointer bg-canvas/30">
               <div class="text-center">
-                <span class="material-symbols-outlined text-4xl text-ink-muted group-hover:text-brand-primary mb-2">account_tree</span>
+                <Network class="w-10 h-10 text-ink-muted group-hover:text-brand-primary mb-2 mx-auto" stroke-width="1.5" />
                 <div class="mt-2 flex text-sm text-ink-muted justify-center">
                   <label class="relative cursor-pointer font-semibold text-brand-primary hover:text-brand-hover">
                     <span>Selecione o Relatório Analítico</span>
@@ -261,7 +275,8 @@ const uploadComposicoes = async () => {
           </div>
 
           <button type="submit" class="w-full flex justify-center items-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold text-white transition-all border border-transparent bg-brand-primary hover:bg-brand-hover disabled:opacity-50 cursor-pointer">
-            <span class="material-symbols-outlined">{{ isScheduled ? 'event_upcoming' : 'play_circle' }}</span>
+            <CalendarRange v-if="isScheduled" class="w-4 h-4" stroke-width="1.5" />
+            <Play v-else class="w-4 h-4" stroke-width="1.5" />
             {{ isScheduled ? 'Agendar Sincronização' : 'Sincronizar Composições Agora' }}
           </button>
         </form>

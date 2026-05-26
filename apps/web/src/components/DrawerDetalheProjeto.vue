@@ -5,6 +5,35 @@ import axios from 'axios'
 import { formatCurrency } from '../utils/formatters'
 import SetupOrcamentoModal from './modals/SetupOrcamentoModal.vue'
 import RejeicaoDocumentoModal from './modals/RejeicaoDocumentoModal.vue'
+import {
+  X,
+  Pen,
+  HardHat,
+  Info,
+  UserCheck,
+  Check,
+  Copy,
+  MessageSquare,
+  Share2,
+  Loader2,
+  CheckCircle2,
+  Lock,
+  FolderOpen,
+  Eye,
+  XCircle,
+  FileText,
+  User,
+  History,
+  IdCard,
+  Home,
+  Users
+} from 'lucide-vue-next'
+
+const iconMap = {
+  badge: IdCard,
+  home_work: Home,
+  family_restroom: Users
+}
 
 const props = defineProps({
   isOpen: {
@@ -245,6 +274,27 @@ const onSetupSuccess = () => {
   emit('update')
 }
 
+const isLiberandoObra = ref(false)
+
+const liberarObra = async () => {
+  if (isLiberandoObra.value) return
+  isLiberandoObra.value = true
+  try {
+    await axios.patch(`/projetos/${props.project.id}`, {
+      coluna: 'obra_liberada',
+      status: 'liberada'
+    })
+    props.project.coluna = 'obra_liberada'
+    props.project.status = 'liberada'
+    emit('update')
+  } catch (error) {
+    console.error('Erro ao liberar obra:', error)
+    alert('Erro ao liberar a obra. Tente novamente.')
+  } finally {
+    isLiberandoObra.value = false
+  }
+}
+
 const validarDocumentos = async () => {
   try {
     const docsAtualizados = (props.project.documentos || []).map(doc => {
@@ -309,7 +359,7 @@ watch(() => props.isOpen, (newVal) => {
               </h2>
             </div>
             <button @click="closeDrawer" class="p-2 rounded-xl bg-canvas text-ink-muted hover:bg-surface-hover hover:text-ink transition-colors cursor-pointer flex items-center justify-center">
-              <span class="material-symbols-outlined text-[20px]">close</span>
+              <X class="w-5 h-5" stroke-width="1.5" />
             </button>
           </div>
 
@@ -330,7 +380,7 @@ watch(() => props.isOpen, (newVal) => {
                     class="p-1.5 rounded-lg bg-canvas border border-hairline hover:bg-surface-hover text-ink-muted hover:text-ink transition-colors flex items-center justify-center cursor-pointer shadow-sm"
                     title="Editar Configurações da Obra"
                   >
-                    <span class="material-symbols-outlined text-[16px]">edit</span>
+                    <Pen class="w-4 h-4" stroke-width="1.5" />
                   </button>
                   <span :class="['text-xs font-semibold px-2.5 py-1 rounded-full border shrink-0', statusColunaLabels[project.coluna]?.class]">
                     {{ statusColunaLabels[project.coluna]?.label || project.coluna }}
@@ -371,19 +421,19 @@ watch(() => props.isOpen, (newVal) => {
                 @click="irParaOrcamento"
                 class="w-full py-3 bg-brand-primary hover:bg-brand-hover text-white rounded-xl font-semibold text-sm transition-all shadow-md flex items-center justify-center gap-2 group cursor-pointer"
               >
-                <span class="material-symbols-outlined text-[18px] group-hover:translate-x-0.5 transition-transform">engineering</span>
+                <HardHat class="w-4 h-4 group-hover:translate-x-0.5 transition-transform" stroke-width="1.5" />
                 Acessar Orçamento Completo
               </button>
 
               <div v-else-if="project.coluna === 'estimativa_enviada'" class="p-4 bg-amber-55/10 border border-amber-100 dark:border-amber-950/30 rounded-xl flex items-start gap-3">
-                <span class="material-symbols-outlined text-amber-600 dark:text-amber-400 text-[20px] shrink-0 mt-0.5">info</span>
+                <Info class="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" stroke-width="1.5" />
                 <p class="text-xs text-amber-800 dark:text-amber-300 leading-relaxed font-medium">
                   O orçamento detalhado estará disponível após o cliente realizar a simulação e enviar os documentos para análise.
                 </p>
               </div>
 
               <div v-else-if="project.coluna === 'contrato_pendente'" class="p-4 bg-amber-55/10 border border-amber-100 dark:border-amber-950/30 rounded-xl flex items-start gap-3">
-                <span class="material-symbols-outlined text-amber-600 dark:text-amber-400 text-[20px] shrink-0 mt-0.5">info</span>
+                <Info class="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" stroke-width="1.5" />
                 <p class="text-xs text-amber-800 dark:text-amber-300 leading-relaxed font-medium">
                   O orçamento detalhado estará disponível após a validação dos documentos e a assinatura do contrato (esteira Engenharia & Caixa).
                 </p>
@@ -392,7 +442,7 @@ watch(() => props.isOpen, (newVal) => {
               <!-- B2C Jornada de Qualificação -->
               <div v-if="project.coluna === 'estimativa_enviada' || project.coluna === 'contrato_pendente'" class="bg-surface border border-hairline p-4 rounded-xl shadow-sm space-y-3">
                 <div class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-blue-600 text-[18px]">assignment_ind</span>
+                  <UserCheck class="w-4 h-4 text-blue-600" stroke-width="1.5" />
                   <span class="text-xs font-bold text-ink uppercase tracking-wider">Jornada de Qualificação (B2C)</span>
                 </div>
                 <p class="text-xs text-ink-muted leading-relaxed">
@@ -408,9 +458,8 @@ watch(() => props.isOpen, (newVal) => {
                       class="p-2 rounded-lg bg-canvas border border-hairline hover:bg-surface-hover text-ink-muted hover:text-ink transition-colors cursor-pointer flex items-center justify-center shrink-0"
                       title="Copiar Link"
                     >
-                      <span class="material-symbols-outlined text-[16px]">
-                        {{ isQualificacaoCopied ? 'check' : 'content_copy' }}
-                      </span>
+                      <Check v-if="isQualificacaoCopied" class="w-4 h-4 text-emerald-600" stroke-width="1.5" />
+                      <Copy v-else class="w-4 h-4" stroke-width="1.5" />
                     </button>
                   </div>
                   <div class="flex justify-end">
@@ -418,7 +467,7 @@ watch(() => props.isOpen, (newVal) => {
                       @click="handleWhatsAppQualificacao"
                       class="px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-colors text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
                     >
-                      <span class="material-symbols-outlined text-[16px]">chat</span>
+                      <MessageSquare class="w-4 h-4 text-emerald-700" stroke-width="1.5" />
                       Compartilhar no WhatsApp
                     </button>
                   </div>
@@ -428,14 +477,14 @@ watch(() => props.isOpen, (newVal) => {
               <!-- B2C Portal de Acompanhamento (Obra Liberada) -->
               <div v-if="project.coluna === 'obra_liberada'" class="bg-surface border border-hairline p-4 rounded-xl shadow-sm space-y-3">
                 <div class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-indigo-600 text-[18px]">share_reviews</span>
+                  <Share2 class="w-4 h-4 text-indigo-600" stroke-width="1.5" />
                   <span class="text-xs font-bold text-ink uppercase tracking-wider">Portal de Acompanhamento</span>
                 </div>
                 <p class="text-xs text-ink-muted leading-relaxed">
                   Este cliente possui acesso ao Portal da Obra para acompanhar o feed e a medição Caixa em tempo real.
                 </p>
                 <div v-if="isLoadingPortal" class="flex items-center gap-2 text-xs text-ink-muted">
-                  <span class="material-symbols-outlined animate-spin text-[16px]">sync</span>
+                  <Loader2 class="w-4 h-4 animate-spin text-brand-primary" stroke-width="1.5" />
                   Carregando link do portal...
                 </div>
                 <div v-else class="space-y-3">
@@ -448,9 +497,8 @@ watch(() => props.isOpen, (newVal) => {
                       class="p-2 rounded-lg bg-canvas border border-hairline hover:bg-surface-hover text-ink-muted hover:text-ink transition-colors cursor-pointer flex items-center justify-center shrink-0"
                       title="Copiar Link"
                     >
-                      <span class="material-symbols-outlined text-[16px]">
-                        {{ isPortalCopied ? 'check' : 'content_copy' }}
-                      </span>
+                      <Check v-if="isPortalCopied" class="w-4 h-4 text-emerald-600" stroke-width="1.5" />
+                      <Copy v-else class="w-4 h-4" stroke-width="1.5" />
                     </button>
                   </div>
                   <div class="flex items-center justify-between gap-3">
@@ -462,17 +510,29 @@ watch(() => props.isOpen, (newVal) => {
                       @click="handleWhatsAppShare"
                       class="px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-colors text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
                     >
-                      <span class="material-symbols-outlined text-[16px]">chat</span>
+                      <MessageSquare class="w-4 h-4 text-emerald-700" stroke-width="1.5" />
                       Enviar WhatsApp
                     </button>
                   </div>
                 </div>
               </div>
 
+              <!-- Botão Liberar Obra (Engenharia & Caixa → Obra Liberada) -->
+              <button
+                v-if="project.coluna === 'engenharia_caixa'"
+                @click="liberarObra"
+                :disabled="isLiberandoObra"
+                class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-xl font-semibold text-sm transition-all shadow-md flex items-center justify-center gap-2 group cursor-pointer"
+              >
+                <Loader2 v-if="isLiberandoObra" class="w-4 h-4 animate-spin" stroke-width="1.5" />
+                <CheckCircle2 v-else class="w-4 h-4" stroke-width="1.5" />
+                {{ isLiberandoObra ? 'Liberando...' : 'Aprovar e Liberar Obra' }}
+              </button>
+
               <!-- B2C Portal Bloqueado (Engenharia & Caixa) -->
               <div v-if="project.coluna === 'engenharia_caixa'" class="bg-surface/60 border border-hairline p-4 rounded-xl shadow-sm space-y-2.5">
                 <div class="flex items-center gap-2 text-ink-muted">
-                  <span class="material-symbols-outlined text-[18px]">lock</span>
+                  <Lock class="w-4 h-4 text-ink-muted" stroke-width="1.5" />
                   <span class="text-xs font-bold uppercase tracking-wider">Acesso ao Portal de Obra</span>
                 </div>
                 <p class="text-xs text-ink-muted leading-relaxed font-medium">
@@ -485,7 +545,7 @@ watch(() => props.isOpen, (newVal) => {
             <div class="bg-surface border border-hairline p-5 rounded-xl shadow-sm space-y-4">
               <div class="flex items-center justify-between gap-2">
                 <div class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-blue-600 text-[18px]">folder_open</span>
+                  <FolderOpen class="w-4 h-4 text-blue-600" stroke-width="1.5" />
                   <span class="text-xs font-bold text-ink uppercase tracking-wider">Cofre de Documentos</span>
                   <span 
                     v-if="temDocumentosPendentesRevisao" 
@@ -499,7 +559,7 @@ watch(() => props.isOpen, (newVal) => {
                   @click="validarDocumentos"
                   class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg transition-colors text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm"
                 >
-                  <span class="material-symbols-outlined text-[16px]">verified</span>
+                  <CheckCircle2 class="w-4 h-4 text-emerald-700" stroke-width="1.5" />
                   Aprovar Todos
                 </button>
               </div>
@@ -512,9 +572,7 @@ watch(() => props.isOpen, (newVal) => {
                 >
                   <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
-                      <span class="material-symbols-outlined text-[18px] text-blue-500">
-                        {{ doc.icon }}
-                      </span>
+                      <component :is="iconMap[doc.icon]" class="w-4 h-4 text-blue-500" stroke-width="1.5" />
                       <span class="text-xs font-bold text-ink">{{ doc.label }}</span>
                     </div>
                     <span :class="['text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider', doc.status.class]">
@@ -526,7 +584,7 @@ watch(() => props.isOpen, (newVal) => {
                     <span class="text-ink-muted truncate max-w-[200px]" :title="doc.status.doc.name">{{ doc.status.doc.name }}</span>
                     <div class="flex items-center gap-2 shrink-0">
                       <a :href="doc.status.doc.url" target="_blank" class="text-brand-primary hover:underline flex items-center gap-1 font-semibold">
-                        <span class="material-symbols-outlined text-[14px]">visibility</span>
+                        <Eye class="w-3.5 h-3.5" stroke-width="1.5" />
                         Visualizar
                       </a>
                       <!-- Botão Recusar Documento específico -->
@@ -535,7 +593,7 @@ watch(() => props.isOpen, (newVal) => {
                         @click.stop="abrirModalRejeicao(doc.status.doc)" 
                         class="text-red-650 hover:text-white hover:bg-red-600 transition-colors flex items-center gap-1 border border-red-200 bg-red-50/50 px-2 py-0.5 rounded cursor-pointer font-bold"
                       >
-                        <span class="material-symbols-outlined text-[14px]">cancel</span>
+                        <XCircle class="w-3.5 h-3.5" stroke-width="1.5" />
                         Recusar
                       </button>
                     </div>
@@ -551,7 +609,7 @@ watch(() => props.isOpen, (newVal) => {
             <!-- 4. Contrato de Prestação de Serviços -->
             <div class="bg-surface border border-hairline p-5 rounded-xl shadow-sm space-y-4">
               <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-emerald-600 text-[18px]">contract</span>
+                <FileText class="w-4 h-4 text-emerald-600" stroke-width="1.5" />
                 <span class="text-xs font-bold text-ink uppercase tracking-wider">Contrato de Serviço</span>
               </div>
 
@@ -567,7 +625,7 @@ watch(() => props.isOpen, (newVal) => {
                 <p class="text-[10px] font-bold text-ink-muted uppercase tracking-wider">Assinaturas</p>
                 <div class="flex items-center justify-between text-xs">
                   <div class="flex items-center gap-1.5">
-                    <span class="material-symbols-outlined text-[16px]" :class="project.engenheiro_assinou ? 'text-emerald-500' : 'text-ink-muted'">person</span>
+                    <User class="w-4 h-4 text-ink-muted" stroke-width="1.5" />
                     <span class="font-medium" :class="project.engenheiro_assinou ? 'text-emerald-600 font-bold' : 'text-ink-muted'">Engenheiro</span>
                   </div>
                   <span class="text-[10px] font-bold" :class="project.engenheiro_assinou ? 'text-emerald-600' : 'text-ink-muted'">
@@ -576,7 +634,7 @@ watch(() => props.isOpen, (newVal) => {
                 </div>
                 <div class="flex items-center justify-between text-xs">
                   <div class="flex items-center gap-1.5">
-                    <span class="material-symbols-outlined text-[16px]" :class="project.cliente_assinou ? 'text-emerald-500' : 'text-ink-muted'">person</span>
+                    <User class="w-4 h-4 text-ink-muted" stroke-width="1.5" />
                     <span class="font-medium" :class="project.cliente_assinou ? 'text-emerald-600 font-bold' : 'text-ink-muted'">Cliente</span>
                   </div>
                   <span class="text-[10px] font-bold" :class="project.cliente_assinou ? 'text-emerald-600' : 'text-ink-muted'">
@@ -589,13 +647,13 @@ watch(() => props.isOpen, (newVal) => {
             <!-- 5. Histórico de Auditoria & Notas -->
             <div class="bg-surface border border-hairline p-5 rounded-xl shadow-sm space-y-4">
               <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-indigo-600 text-[18px]">history</span>
+                <History class="w-4 h-4 text-indigo-600" stroke-width="1.5" />
                 <span class="text-xs font-bold text-ink uppercase tracking-wider">Histórico Recente (Últimos 5)</span>
               </div>
 
               <!-- Loading State -->
               <div v-if="isLoadingHistory" class="flex flex-col items-center justify-center py-6 text-ink-muted text-xs gap-2">
-                <span class="material-symbols-outlined animate-spin text-2xl text-brand-primary">sync</span>
+                <Loader2 class="w-6 h-6 animate-spin text-brand-primary" stroke-width="1.5" />
                 Carregando histórico...
               </div>
 

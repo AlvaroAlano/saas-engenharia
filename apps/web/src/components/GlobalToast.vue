@@ -13,18 +13,16 @@
       ]"
     >
       <div class="flex items-center gap-3">
-        <span class="material-symbols-outlined shrink-0" :class="toastType === 'error' ? 'text-red-500' : toastType === 'warning' ? 'text-amber-500' : toastType === 'info' ? 'text-brand-primary' : 'text-emerald-600 dark:text-emerald-400'">
-          {{ 
-            toastType === 'error' ? 'error' : 
-            toastType === 'warning' ? 'warning' : 
-            toastType === 'info' ? 'info' : 
-            'check_circle' 
-          }}
-        </span>
+        <component 
+          :is="toastType === 'error' ? AlertTriangle : toastType === 'warning' ? AlertTriangle : toastType === 'info' ? Info : CheckCircle2"
+          class="w-5 h-5 shrink-0"
+          :class="toastType === 'error' ? 'text-red-500' : toastType === 'warning' ? 'text-amber-500' : toastType === 'info' ? 'text-brand-primary' : 'text-emerald-600 dark:text-emerald-400'"
+          stroke-width="1.5"
+        />
         <span class="font-semibold text-sm leading-snug">{{ toastMessage }}</span>
       </div>
       <button @click="toastVisible = false" class="shrink-0 rounded-md p-1 transition-colors hover:bg-surface-hover opacity-70 hover:opacity-100 flex items-center justify-center">
-        <span class="material-symbols-outlined text-[18px]">close</span>
+        <X class="w-4.5 h-4.5" stroke-width="1.5" />
       </button>
     </div>
   </Transition>
@@ -32,6 +30,7 @@
 
 <script setup>
 import { useToast } from '../composables/useToast'
+import { AlertTriangle, Info, CheckCircle2, X } from 'lucide-vue-next'
 
 const { toastVisible, toastMessage, toastType, pauseTimer, resumeTimer } = useToast()
 </script>

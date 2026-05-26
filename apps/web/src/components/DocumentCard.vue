@@ -1,5 +1,9 @@
 <script setup>
 import { computed } from 'vue'
+import { 
+  Clock, CheckCircle2, AlertTriangle, Paperclip, 
+  FileText, Upload, HelpCircle 
+} from 'lucide-vue-next'
 
 const props = defineProps({
   title: String,
@@ -9,11 +13,11 @@ const props = defineProps({
       return ['pending', 'verifying', 'approved', 'rejected'].includes(value)
     }
   },
-  icon: String,
+  icon: [String, Object],
   message: String,
   fileName: String,
   actionText: String,
-  actionIcon: String
+  actionIcon: [String, Object]
 })
 
 const statusConfig = computed(() => {
@@ -22,33 +26,53 @@ const statusConfig = computed(() => {
       return {
         label: 'Pendente',
         badgeClass: 'bg-canvas text-ink-muted border border-transparent',
-        badgeIcon: '',
+        badgeIcon: null,
         cardClass: 'border-hairline'
       }
     case 'verifying':
       return {
         label: 'Em Verificação',
         badgeClass: 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-500/30',
-        badgeIcon: 'schedule',
+        badgeIcon: Clock,
         cardClass: 'border-hairline'
       }
     case 'approved':
       return {
         label: 'Aprovado',
         badgeClass: 'bg-green-50 dark:bg-emerald-500/10 text-green-700 dark:text-emerald-400 border border-green-100 dark:border-emerald-500/30',
-        badgeIcon: 'check_circle',
+        badgeIcon: CheckCircle2,
         cardClass: 'border-hairline'
       }
     case 'rejected':
       return {
         label: 'Rejeitado',
         badgeClass: 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30',
-        badgeIcon: 'error',
+        badgeIcon: AlertTriangle,
         cardClass: 'border-red-500/50 dark:border-red-500/50'
       }
     default:
       return {}
   }
+})
+
+// Mapeamento opcional para suportar strings antigas de ícone caso ainda sejam passadas
+const iconMap = {
+  'description': FileText,
+  'upload': Upload,
+  'attachment': Paperclip,
+  'check_circle': CheckCircle2,
+  'error': AlertTriangle,
+  'schedule': Clock
+}
+
+const resolvedIcon = computed(() => {
+  if (typeof props.icon === 'object') return props.icon
+  return iconMap[props.icon] || FileText
+})
+
+const resolvedActionIcon = computed(() => {
+  if (typeof props.actionIcon === 'object') return props.actionIcon
+  return iconMap[props.actionIcon] || Upload
 })
 </script>
 
@@ -58,19 +82,17 @@ const statusConfig = computed(() => {
       <div class="flex-1">
         <h3 class="text-xl font-bold text-ink mb-1">{{ title }}</h3>
         <div :class="['inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-semibold', statusConfig.badgeClass]">
-          <span v-if="statusConfig.badgeIcon" class="material-symbols-outlined text-[14px]" :style="status === 'approved' ? 'font-variation-settings: \'FILL\' 1;' : ''">
-            {{ statusConfig.badgeIcon }}
-          </span>
+          <component v-if="statusConfig.badgeIcon" :is="statusConfig.badgeIcon" class="w-3.5 h-3.5" stroke-width="1.5" />
           {{ statusConfig.label }}
         </div>
       </div>
-      <span class="material-symbols-outlined text-ink-muted">{{ icon }}</span>
+      <component :is="resolvedIcon" class="w-5 h-5 text-ink-muted" stroke-width="1.5" />
     </div>
 
     <!-- Content variations based on status -->
     <template v-if="status === 'pending'">
       <button class="w-full bg-brand-primary hover:bg-brand-hover text-white font-semibold text-xs uppercase tracking-wider py-3 rounded-md active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer">
-        <span v-if="actionIcon" class="material-symbols-outlined text-lg">{{ actionIcon }}</span>
+        <component v-if="actionIcon" :is="resolvedActionIcon" class="w-5 h-5" stroke-width="1.5" />
         {{ actionText }}
       </button>
     </template>
@@ -81,7 +103,7 @@ const statusConfig = computed(() => {
 
     <template v-else-if="status === 'approved'">
       <div class="flex items-center gap-2 p-3 bg-green-50/30 dark:bg-emerald-500/5 rounded-md border border-green-100/50 dark:border-emerald-500/20">
-        <span class="material-symbols-outlined text-green-600 dark:text-emerald-400 text-sm">attachment</span>
+        <Paperclip class="w-3.5 h-3.5 text-green-600 dark:text-emerald-400" stroke-width="1.5" />
         <span class="font-mono text-green-700 dark:text-emerald-400 text-xs">{{ fileName }}</span>
       </div>
     </template>
@@ -91,7 +113,7 @@ const statusConfig = computed(() => {
         {{ message }}
       </div>
       <button class="w-full bg-surface border border-hairline text-ink font-semibold text-xs uppercase tracking-wider py-3 rounded-md hover:bg-canvas active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer">
-        <span v-if="actionIcon" class="material-symbols-outlined text-lg">{{ actionIcon }}</span>
+        <component v-if="actionIcon" :is="resolvedActionIcon" class="w-5 h-5" stroke-width="1.5" />
         {{ actionText }}
       </button>
     </template>

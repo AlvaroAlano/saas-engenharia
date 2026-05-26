@@ -233,13 +233,143 @@ async def atualizar_item_projeto(
 
 @router.delete("/api/projetos/{projeto_id}/itens/{item_id}")
 async def remover_item_projeto(
-    projeto_id: str, 
-    item_id: str, 
+    projeto_id: str,
+    item_id: str,
     supabase_client: Client = Depends(get_authenticated_supabase)
 ):
     """Exclui um insumo ou composição do projeto."""
     res = supabase_client.table("orcamento_itens").delete().eq("id", item_id).eq("projeto_id", projeto_id).execute()
     return {"success": True}
+
+
+class AplicarTemplateRequest(BaseModel):
+    modo: str = Field("mesclar", description="'substituir' apaga os itens atuais e insere o template; 'mesclar' insere apenas os códigos que ainda não estão na árvore")
+
+
+@router.post("/api/projetos/{projeto_id}/aplicar-template-padrao", status_code=status.HTTP_201_CREATED)
+async def aplicar_template_padrao(
+    projeto_id: str,
+    payload: AplicarTemplateRequest = AplicarTemplateRequest(),
+    supabase_client: Client = Depends(get_authenticated_supabase),
+    user_id: str = Depends(get_user_id),
+):
+    """
+    Popula a árvore de custos com os itens padrão do template SINAPI para o padrão de obra configurado.
+    Itens são inseridos com quantidade=0 para preenchimento posterior pelo engenheiro.
+    Usa o template CUSTOMIZADO do usuário se existir, senão fallback para o template SISTEMA.
+    modo='substituir': apaga todos os itens existentes antes de inserir.
+    modo='mesclar': insere apenas códigos que ainda não estão na árvore.
+    """
+    res_projeto = (
+        supabase_client.table("projetos_clientes")
+        .select("padrao, uf_obra, sinapi_mes_ano, sinapi_desonerado")
+        .eq("id", projeto_id)
+        .single()
+        .execute()
+    )
+    if not res_projeto.data:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Projeto não encontrado.")
+
+    projeto = res_projeto.data
+    padrao = projeto.get("padrao")
+    if not padrao:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Configure o padrão de obra no Setup antes de aplicar o template.")
+
+    uf_obra = projeto.get("uf_obra") or "SC"
+    sinapi_mes_ano = projeto.get("sinapi_mes_ano")
+    sinapi_desonerado = projeto.get("sinapi_desonerado") or False
+
+    # Tenta CUSTOMIZADO do usuário, fallback para SISTEMA
+    template_res = (
+        supabase_client.table("templates_eap")
+        .select("id, template_eap_itens(*)")
+        .eq("padrao_obra", padrao)
+        .eq("tipo", "CUSTOMIZADO")
+        .eq("usuario_id", user_id)
+        .execute()
+    )
+    if not template_res.data:
+        template_res = (
+            supabase_client.table("templates_eap")
+            .select("id, template_eap_itens(*)")
+            .eq("padrao_obra", padrao)
+            .eq("tipo", "SISTEMA")
+            .execute()
+        )
+
+    if not template_res.data:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Nenhum template encontrado para o padrão '{padrao}'.")
+
+    template_itens = template_res.data[0].get("template_eap_itens", [])
+    if not template_itens:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Template configurado não possui itens.")
+
+    # Busca preços ao vivo no SINAPI para todos os códigos do template
+    all_codes = [item["codigo_sinapi"] for item in template_itens]
+    sinapi_query = (
+        supabase_client.table("sinapi_itens")
+        .select("codigo_item, descricao, unidade, preco")
+        .in_("codigo_item", all_codes)
+        .eq("estado", uf_obra)
+        .eq("desonerado", sinapi_desonerado)
+    )
+    if sinapi_mes_ano:
+        sinapi_query = sinapi_query.eq("mes_ano", sinapi_mes_ano)
+
+    sinapi_res = sinapi_query.execute()
+    sinapi_map: dict = {}
+    for row in sinapi_res.data or []:
+        if row["codigo_item"] not in sinapi_map:
+            sinapi_map[row["codigo_item"]] = {
+                "descricao": row["descricao"],
+                "unidade": row["unidade"],
+                "preco": float(row["preco"] or 0),
+            }
+
+    nao_encontrados = [t["codigo_sinapi"] for t in template_itens if t["codigo_sinapi"] not in sinapi_map]
+    if nao_encontrados:
+        print(f"[WARN] aplicar_template_padrao: {len(nao_encontrados)} código(s) não encontrados no SINAPI "
+              f"({uf_obra}/{sinapi_mes_ano}/desonerado={sinapi_desonerado}): {nao_encontrados}")
+
+    # --- modo: substituir ---
+    if payload.modo == "substituir":
+        supabase_client.table("orcamento_itens").delete().eq("projeto_id", projeto_id).execute()
+        codigos_ja_presentes: set = set()
+    # --- modo: mesclar (padrão) ---
+    else:
+        existentes_res = (
+            supabase_client.table("orcamento_itens")
+            .select("codigo_sinapi")
+            .eq("projeto_id", projeto_id)
+            .execute()
+        )
+        codigos_ja_presentes = {row["codigo_sinapi"] for row in (existentes_res.data or [])}
+
+    itens_para_inserir = [
+        {
+            "projeto_id": projeto_id,
+            "codigo_sinapi": t["codigo_sinapi"],
+            "descricao": sinapi_map.get(t["codigo_sinapi"], {}).get("descricao") or f"Cód. SINAPI {t['codigo_sinapi']}",
+            "unidade": sinapi_map.get(t["codigo_sinapi"], {}).get("unidade") or "UN",
+            "quantidade": 0,
+            "valor_unitario": sinapi_map.get(t["codigo_sinapi"], {}).get("preco", 0.0),
+            "tipo_item": "insumo",
+            "etapa_obra": t["fase_obra"],
+        }
+        for t in template_itens
+        if t["codigo_sinapi"] not in codigos_ja_presentes
+    ]
+
+    if itens_para_inserir:
+        supabase_client.table("orcamento_itens").insert(itens_para_inserir).execute()
+
+    return {
+        "success": True,
+        "modo": payload.modo,
+        "inserted": len(itens_para_inserir),
+        "ignorados": len(template_itens) - len(itens_para_inserir),
+        "sem_preco": nao_encontrados,
+    }
 
 
 # =========================================================================

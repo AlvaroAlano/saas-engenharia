@@ -65,36 +65,32 @@ async def gerar_link_b2c(payload: LinkCreateRequest, supabase_client: Client = D
 async def acessar_orcamento_b2c(payload: LinkAcessoRequest):
     """
     Valida o token + PIN do cliente B2C e retorna os dados do projeto.
-    Utiliza Service Role para buscar dados protegidos após validação de PIN. REF: TODO.md P2.1
+    Usa service role para ambas as queries — o PIN é validado em Python antes de retornar dados.
     """
     try:
-        anon_url = os.environ.get("SUPABASE_URL", "")
-        anon_key = os.environ.get("SUPABASE_KEY", "")
-        anon_client = create_client(anon_url, anon_key)
-        
-        # Busca o link (RLS deve permitir select em links ativos para anon)
-        link_res = anon_client.table("orcamento_links").select("*").eq("token_acesso", payload.token_acesso).eq("ativo", True).execute()
+        service_client = get_service_supabase()
+
+        link_res = service_client.table("orcamento_links").select("*").eq("token_acesso", payload.token_acesso).eq("ativo", True).execute()
         if not link_res.data:
             raise HTTPException(status_code=404, detail="Link inválido ou expirado.")
-        
+
         link = link_res.data[0]
         if link.get("pin_acesso") != payload.pin_acesso:
             raise HTTPException(status_code=403, detail="PIN incorreto.")
-        
-        # PIN validado, busca o projeto via Admin Client (Service Role bypass RLS)
-        service_client = get_service_supabase()
+
         proj_res = service_client.table("projetos_clientes").select("*").eq("id", link["projeto_id"]).single().execute()
-        
+
         return {
-            "success": True, 
+            "success": True,
             "data": {
-                "projeto": proj_res.data, 
+                "projeto": proj_res.data,
                 "link_id": link["id"]
             }
         }
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
+        print(f"[ERRO PORTAL /acessar-orcamento] {type(e).__name__}: {e}")
         raise HTTPException(status_code=500, detail="Erro ao acessar o portal do cliente. Tente novamente.")
 
 

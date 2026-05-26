@@ -1,14 +1,41 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, nextTick } from 'vue'
 import { formatCurrency } from '../utils/formatters'
 import { ETAPAS_OBRA } from '../constants/etapas'
+import { 
+  Network, 
+  Loader2, 
+  Sparkles, 
+  Plus, 
+  Maximize2, 
+  Package, 
+  Download, 
+  ChevronDown, 
+  ListPlus, 
+  AlertTriangle, 
+  X,
+  HardHat,
+  Layers,
+  Building,
+  Zap,
+  Paintbrush
+} from 'lucide-vue-next'
+
+const iconMap = {
+  engineering: HardHat,
+  foundation: Layers,
+  domain: Building,
+  electric_bolt: Zap,
+  format_paint: Paintbrush
+}
 
 const props = defineProps({
-  items: { type: Array, default: () => [] },
-  bdi: { type: Number, default: 0 }
+  items:               { type: Array,   default: () => [] },
+  bdi:                 { type: Number,  default: 0 },
+  isApplyingTemplate:  { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['remove-item', 'update-quantity', 'add-manual-item', 'import-template'])
+const emit = defineEmits(['remove-item', 'update-quantity', 'add-manual-item', 'import-template', 'aplicar-template-padrao', 'expandir'])
 
 const etapas = ETAPAS_OBRA
 
@@ -58,17 +85,45 @@ const colorClasses = {
 const editingItemId = ref(null)
 const editQty = ref(0)
 let debounceTimer = null
+let isTabbing = false
+
+const orderedItems = computed(() =>
+  etapas.flatMap(e => itensPorEtapa.value[e.value])
+)
 
 const startEditQty = (item) => {
   editingItemId.value = item.id
-  editQty.value = item.quantidade
+  editQty.value = item.quantidade === 0 ? null : item.quantidade
 }
 
 const commitEditQty = (item) => {
-  if (editQty.value > 0 && editQty.value !== item.quantidade) {
-    emit('update-quantity', item.id, editQty.value)
+  if (isTabbing) return
+  const val = editQty.value
+  if (val != null && val > 0 && val !== item.quantidade) {
+    emit('update-quantity', item.id, val)
   }
   editingItemId.value = null
+}
+
+const tabToNextItem = (item) => {
+  isTabbing = true
+  clearTimeout(debounceTimer)
+  const val = editQty.value
+  if (val != null && val > 0 && val !== item.quantidade) {
+    emit('update-quantity', item.id, val)
+  }
+  const list = orderedItems.value
+  const idx = list.findIndex(i => i.id === item.id)
+  const next = list[idx + 1]
+  if (next) {
+    if (!expandedEtapas.value.has(next.etapa_obra)) {
+      expandedEtapas.value.add(next.etapa_obra)
+    }
+    startEditQty(next)
+  } else {
+    editingItemId.value = null
+  }
+  setTimeout(() => { isTabbing = false }, 0)
 }
 
 const debouncedUpdateQty = (item) => {
@@ -86,43 +141,70 @@ const debouncedUpdateQty = (item) => {
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
       <div class="flex items-center gap-2">
-        <span class="material-symbols-outlined text-brand-primary text-[22px]">account_tree</span>
+        <Network class="w-5 h-5 text-brand-primary" stroke-width="1.5" />
         <h3 class="text-sm font-extrabold text-ink uppercase tracking-wider">Árvore de Custos (EAP)</h3>
       </div>
       <div class="flex items-center gap-2">
         <button
+          @click="emit('aplicar-template-padrao')"
+          :disabled="isApplyingTemplate"
+          class="flex items-center gap-1.5 px-3 py-1.5 bg-brand-primary/10 border border-brand-primary/20 rounded-lg text-[11px] font-bold text-brand-primary hover:bg-brand-primary/20 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          title="Preencher a árvore com os insumos padrão para o tipo desta obra"
+        >
+          <Loader2 v-if="isApplyingTemplate" class="w-4 h-4 animate-spin" stroke-width="1.5" />
+          <Sparkles v-else class="w-4 h-4" stroke-width="1.5" />
+          {{ isApplyingTemplate ? 'Aplicando...' : 'Itens Padrão' }}
+        </button>
+        <button
           @click="emit('add-manual-item')"
           class="flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-hairline rounded-lg text-[11px] font-bold text-ink hover:bg-canvas hover:text-brand-primary transition-colors cursor-pointer"
         >
-          <span class="material-symbols-outlined text-[16px]">add</span>
+          <Plus class="w-4 h-4" stroke-width="1.5" />
           Item Manual
         </button>
         <span v-if="items.length" class="text-[10px] font-bold text-ink-muted bg-canvas px-2 py-1 rounded border border-hairline">{{ items.length }} itens</span>
+        <button
+          v-if="items.length"
+          @click="emit('expandir')"
+          class="flex items-center gap-1 px-2.5 py-1.5 bg-surface border border-hairline rounded-lg text-ink-muted hover:bg-canvas hover:text-brand-primary transition-colors cursor-pointer"
+          title="Expandir em tela cheia"
+        >
+          <Maximize2 class="w-4 h-4" stroke-width="1.5" />
+        </button>
       </div>
     </div>
 
     <!-- Empty State Global -->
     <div v-if="items.length === 0" class="bg-surface rounded-2xl border border-dashed border-hairline p-8 text-center flex flex-col items-center justify-center space-y-4">
       <div class="w-16 h-16 bg-brand-primary/10 rounded-full flex items-center justify-center">
-        <span class="material-symbols-outlined text-3xl text-brand-primary">inventory_2</span>
+        <Package class="w-8 h-8 text-brand-primary" stroke-width="1.5" />
       </div>
       <div>
         <h4 class="text-sm font-bold text-ink">Orçamento Vazio</h4>
         <p class="text-xs text-ink-muted mt-1 max-w-[240px] mx-auto">Esta obra não possui itens orçados. Importe um modelo salvo ou adicione itens manualmente para iniciar.</p>
       </div>
       <div class="flex flex-col sm:flex-row items-center gap-2.5 w-full max-w-sm">
-        <button 
-          @click="emit('import-template')"
-          class="w-full py-2.5 bg-brand-primary hover:bg-brand-hover text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2 group cursor-pointer"
+        <button
+          @click="emit('aplicar-template-padrao')"
+          :disabled="isApplyingTemplate"
+          class="w-full py-2.5 bg-brand-primary hover:bg-brand-hover text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2 group cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <span class="material-symbols-outlined text-sm">download_2</span>
+          <Loader2 v-if="isApplyingTemplate" class="w-4 h-4 animate-spin" stroke-width="1.5" />
+          <Sparkles v-else class="w-4 h-4" stroke-width="1.5" />
+          {{ isApplyingTemplate ? 'Aplicando...' : 'Itens Padrão' }}
+        </button>
+        <button
+          @click="emit('import-template')"
+          class="w-full py-2.5 bg-surface border border-hairline hover:bg-canvas text-ink rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2 group cursor-pointer"
+        >
+          <Download class="w-4 h-4" stroke-width="1.5" />
           Importar Modelo
         </button>
-        <button 
+        <button
           @click="emit('add-manual-item')"
           class="w-full py-2.5 bg-surface border border-hairline hover:bg-canvas text-ink rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2 group cursor-pointer"
         >
-          <span class="material-symbols-outlined text-sm">add</span>
+          <Plus class="w-4 h-4" stroke-width="1.5" />
           Item Manual
         </button>
       </div>
@@ -143,11 +225,12 @@ const debouncedUpdateQty = (item) => {
           :class="expandedEtapas.has(etapa.value) ? colorClasses[etapa.color].bg : 'bg-surface'"
         >
           <div class="flex items-center gap-3">
-            <span 
-              class="material-symbols-outlined text-[20px]" 
+            <component 
+              :is="iconMap[etapa.icon]" 
+              class="w-5 h-5" 
               :class="colorClasses[etapa.color].icon"
-              style="font-variation-settings: 'FILL' 1;"
-            >{{ etapa.icon }}</span>
+              stroke-width="1.5"
+            />
             <span class="text-sm font-bold text-ink">{{ etapa.label }}</span>
             <span 
               class="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
@@ -156,10 +239,11 @@ const debouncedUpdateQty = (item) => {
           </div>
           <div class="flex items-center gap-3">
             <span class="text-xs font-bold text-ink-muted font-mono">{{ formatCurrency(subtotalEtapa(etapa.value)) }}</span>
-            <span 
-              class="material-symbols-outlined text-[20px] text-ink-muted transition-transform duration-300"
+            <ChevronDown 
+              class="w-5 h-5 text-ink-muted transition-transform duration-300"
               :class="{ 'rotate-180': expandedEtapas.has(etapa.value) }"
-            >expand_more</span>
+              stroke-width="1.5"
+            />
           </div>
         </button>
 
@@ -175,7 +259,7 @@ const debouncedUpdateQty = (item) => {
           <div v-show="expandedEtapas.has(etapa.value)" class="overflow-hidden border-t border-hairline">
             <!-- Empty State -->
             <div v-if="itensPorEtapa[etapa.value].length === 0" class="px-4 py-6 text-center bg-surface">
-              <span class="material-symbols-outlined text-3xl text-ink-muted block mb-1">playlist_add</span>
+              <ListPlus class="w-8 h-8 text-ink-muted mx-auto mb-1" stroke-width="1.5" />
               <p class="text-[11px] text-ink-muted">Nenhum item nesta etapa.</p>
               <p class="text-[10px] text-ink-muted">Adicione insumos na tabela SINAPI ao lado.</p>
             </div>
@@ -203,11 +287,18 @@ const debouncedUpdateQty = (item) => {
 
                   <!-- Quantity -->
                   <div class="flex items-center gap-1 shrink-0">
-                    <div 
-                      v-if="editingItemId === item.id" 
+                    <AlertTriangle
+                      v-if="item.quantidade == 0 && editingItemId !== item.id"
+                      class="w-4 h-4 text-amber-500"
+                      title="Quantidade não informada — clique no valor para preencher"
+                      stroke-width="1.5"
+                    />
+                    <div
+                      v-if="editingItemId === item.id"
                       class="flex items-center"
                     >
-                      <input 
+                      <input
+                        :ref="el => { if (el) nextTick(() => el.focus()) }"
                         v-model.number="editQty"
                         type="number"
                         min="0.01"
@@ -215,14 +306,17 @@ const debouncedUpdateQty = (item) => {
                         @input="debouncedUpdateQty(item)"
                         @blur="commitEditQty(item)"
                         @keyup.enter="commitEditQty(item)"
+                        @keydown.tab.prevent="tabToNextItem(item)"
                         class="w-16 text-center text-xs font-bold bg-surface border border-brand-primary text-ink rounded-md py-1 focus:outline-none focus:ring-1 focus:ring-brand-primary"
-                        autofocus
                       />
                     </div>
-                    <button 
+                    <button
                       v-else
                       @click="startEditQty(item)"
-                      class="text-xs font-bold text-brand-primary bg-brand-primary/10 px-2.5 py-1 rounded-md border border-transparent hover:border-brand-primary/30 transition-colors cursor-pointer tabular-nums"
+                      class="text-xs font-bold px-2.5 py-1 rounded-md border border-transparent transition-colors cursor-pointer tabular-nums"
+                      :class="item.quantidade == 0
+                        ? 'text-amber-600 bg-amber-50 dark:bg-amber-500/10 hover:border-amber-300'
+                        : 'text-brand-primary bg-brand-primary/10 hover:border-brand-primary/30'"
                     >
                       {{ item.quantidade }} {{ item.unidade }}
                     </button>
@@ -239,7 +333,7 @@ const debouncedUpdateQty = (item) => {
                     class="p-1 rounded-md text-ink-muted hover:text-red-550 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100 shrink-0 cursor-pointer"
                     title="Remover item"
                   >
-                    <span class="material-symbols-outlined text-[16px]">close</span>
+                    <X class="w-4 h-4" stroke-width="1.5" />
                   </button>
                 </div>
               </div>

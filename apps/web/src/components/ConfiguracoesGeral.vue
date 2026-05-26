@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { supabase } from '../supabase'
 import { useProfile } from '../composables/useProfile'
+import { User, Camera, IdCard, Loader2 } from 'lucide-vue-next'
 
 const { refreshProfile } = useProfile()
 
@@ -121,10 +122,10 @@ onMounted(fetchProfile)
         <div class="relative group">
           <div class="h-24 w-24 rounded-2xl overflow-hidden border-2 border-hairline bg-canvas flex items-center justify-center">
             <img v-if="profile.foto_perfil" :src="profile.foto_perfil" class="h-full w-full object-cover" />
-            <span v-else class="material-symbols-outlined text-4xl text-ink-muted">person</span>
+            <User v-else class="w-10 h-10 text-ink-muted" stroke-width="1.5" />
           </div>
-          <label class="absolute -bottom-2 -right-2 bg-surface border border-hairline p-1.5 rounded-lg cursor-pointer hover:bg-canvas transition-colors">
-            <span class="material-symbols-outlined text-[18px] text-ink-muted">photo_camera</span>
+          <label class="absolute -bottom-2 -right-2 bg-surface border border-hairline p-1.5 rounded-lg cursor-pointer hover:bg-canvas transition-colors flex items-center justify-center">
+            <Camera class="w-4 h-4 text-ink-muted" stroke-width="1.5" />
             <input type="file" class="hidden" accept="image/*" @change="handleFileUpload" />
           </label>
         </div>
@@ -142,7 +143,7 @@ onMounted(fetchProfile)
       <div class="bg-surface rounded-2xl border border-hairline overflow-hidden">
         <div class="px-6 py-4 border-b border-hairline bg-canvas/50">
           <h3 class="text-sm font-bold text-ink flex items-center gap-2">
-            <span class="material-symbols-outlined text-[18px]">badge</span>
+            <IdCard class="w-4.5 h-4.5 text-ink" stroke-width="1.5" />
             Informações Pessoais e Profissionais
           </h3>
         </div>
@@ -171,7 +172,7 @@ onMounted(fetchProfile)
 
         <div class="px-6 py-4 bg-canvas/50 border-t border-hairline flex justify-end">
           <button @click="saveProfile" :disabled="isSaving" class="bg-brand-primary hover:bg-brand-hover text-white px-6 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer">
-            <span v-if="isSaving" class="material-symbols-outlined animate-spin text-[18px]">sync</span>
+            <Loader2 v-if="isSaving" class="w-4.5 h-4.5 animate-spin" stroke-width="1.5" />
             {{ isSaving ? 'Salvando...' : 'Salvar Alterações' }}
           </button>
         </div>

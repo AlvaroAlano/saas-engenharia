@@ -7,7 +7,7 @@
         <!-- Left: Logo & Wordmark -->
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 bg-brand-primary/10 rounded-md border border-brand-primary/30 flex items-center justify-center">
-            <span class="material-symbols-outlined text-[20px] text-brand-primary">foundation</span>
+            <Layers class="w-5 h-5 text-brand-primary" stroke-width="1.5" />
           </div>
           <span class="text-[18px] font-semibold text-ink tracking-[-0.4px]">Vértice</span>
           <span class="text-[10px] bg-canvas border border-hairline text-ink-muted px-2 py-0.5 rounded-full font-mono font-medium">v1.0</span>
@@ -34,7 +34,8 @@
               class="p-2 text-ink-muted hover:text-ink hover:bg-surface-hover rounded-md transition-all cursor-pointer flex items-center justify-center focus:outline-none"
               title="Alternar Tema"
             >
-              <span class="material-symbols-outlined text-[20px]">{{ isDark ? 'light_mode' : 'dark_mode' }}</span>
+              <Sun v-if="isDark" class="w-5 h-5" stroke-width="1.5" />
+              <Moon v-else class="w-5 h-5" stroke-width="1.5" />
             </button>
 
             <!-- Client Portal Access (Desktop only: hidden md:inline-flex) -->
@@ -62,8 +63,9 @@
             </router-link>
 
             <!-- Mobile Menu Trigger -->
-            <button @click="toggleMobileMenu" class="md:hidden p-1 text-ink-muted hover:text-ink cursor-pointer">
-              <span class="material-symbols-outlined">{{ mobileMenuOpen ? 'close' : 'menu' }}</span>
+            <button @click="toggleMobileMenu" class="md:hidden p-1 text-ink-muted hover:text-ink cursor-pointer flex items-center">
+              <X v-if="mobileMenuOpen" class="w-5 h-5" stroke-width="1.5" />
+              <Menu v-else class="w-5 h-5" stroke-width="1.5" />
             </button>
           </div>
         </div>
@@ -89,7 +91,8 @@
           @click="toggleTheme" 
           class="w-full py-2.5 bg-canvas border border-hairline text-ink rounded-md text-sm font-medium flex items-center justify-center gap-2 cursor-pointer hover:bg-surface-hover"
         >
-          <span class="material-symbols-outlined text-[18px]">{{ isDark ? 'light_mode' : 'dark_mode' }}</span>
+          <Sun v-if="isDark" class="w-[18px] h-[18px]" stroke-width="1.5" />
+          <Moon v-else class="w-[18px] h-[18px]" stroke-width="1.5" />
           <span>Tema: {{ isDark ? 'Claro' : 'Escuro' }}</span>
         </button>
         <button 
@@ -153,7 +156,7 @@
             </a>
             <router-link to="/auth" class="w-full sm:w-auto inline-flex items-center justify-center bg-brand-primary hover:bg-brand-hover text-white border border-transparent rounded-md text-[14px] font-medium px-6 py-3 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-primary/50">
               Iniciar Teste Gratuito
-              <span class="material-symbols-outlined text-[16px] ml-2">arrow_forward</span>
+              <ArrowRight class="w-4 h-4 ml-2" stroke-width="1.5" />
             </router-link>
           </div>
 
@@ -178,7 +181,7 @@
               :class="activeMockupTab === 'orcamento' ? 'bg-surface text-ink border border-hairline' : 'text-ink-muted hover:text-ink border border-transparent'"
               class="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center gap-2 cursor-pointer"
             >
-              <span class="material-symbols-outlined text-[14px]">payments</span>
+              <DollarSign class="w-3.5 h-3.5" stroke-width="1.5" />
               Orçamento SINAPI
             </button>
             <button 
@@ -186,7 +189,7 @@
               :class="activeMockupTab === 'cronograma' ? 'bg-surface text-ink border border-hairline' : 'text-ink-muted hover:text-ink border border-transparent'"
               class="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center gap-2 cursor-pointer"
             >
-              <span class="material-symbols-outlined text-[14px]">calendar_today</span>
+              <Calendar class="w-3.5 h-3.5" stroke-width="1.5" />
               Cronograma Caixa
             </button>
             <button 
@@ -194,7 +197,7 @@
               :class="activeMockupTab === 'portal' ? 'bg-surface text-ink border border-hairline' : 'text-ink-muted hover:text-ink border border-transparent'"
               class="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center gap-2 cursor-pointer"
             >
-              <span class="material-symbols-outlined text-[14px]">group</span>
+              <Users class="w-3.5 h-3.5" stroke-width="1.5" />
               Portal do Cliente
             </button>
           </div>
@@ -296,7 +299,7 @@
               <span>Mostrando 4 de 124 composições ativas</span>
               <button class="text-brand-primary hover:text-brand-hover font-medium flex items-center gap-1 cursor-pointer">
                 <span>Visualizar árvore de custos completa</span>
-                <span class="material-symbols-outlined text-[14px]">arrow_outward</span>
+                <ArrowUpRight class="w-3.5 h-3.5" stroke-width="1.5" />
               </button>
             </div>
           </div>
@@ -414,7 +417,7 @@
                 <span class="text-[10px] text-ink-muted uppercase block">O que já foi executado</span>
                 <span class="text-xl font-bold text-ink mt-1 block font-mono">R$ 340.500,00</span>
                 <span class="text-[10px] text-semantic-success mt-1 flex items-center gap-1 font-sans">
-                  <span class="material-symbols-outlined text-[12px]">check_circle</span>
+                  <CheckCircle2 class="w-3 h-3 text-semantic-success" stroke-width="1.5" />
                   Orçamento de acordo com o plano
                 </span>
               </div>
@@ -430,15 +433,15 @@
               <span class="text-xs font-semibold text-ink block mb-3">Diário de Obra e Registro Fotográfico</span>
               <div class="grid grid-cols-3 gap-3">
                 <div class="aspect-video bg-surface border border-hairline rounded-md relative flex items-center justify-center overflow-hidden group">
-                  <span class="material-symbols-outlined text-ink-muted group-hover:scale-110 transition-transform">image</span>
+                  <Image class="w-5 h-5 text-ink-muted group-hover:scale-110 transition-transform" stroke-width="1.5" />
                   <div class="absolute bottom-1 left-1.5 bg-surface/80 px-1.5 py-0.5 rounded text-[8px] text-ink">Fundação Concluída</div>
                 </div>
                 <div class="aspect-video bg-surface border border-hairline rounded-md relative flex items-center justify-center overflow-hidden group">
-                  <span class="material-symbols-outlined text-ink-muted group-hover:scale-110 transition-transform">image</span>
+                  <Image class="w-5 h-5 text-ink-muted group-hover:scale-110 transition-transform" stroke-width="1.5" />
                   <div class="absolute bottom-1 left-1.5 bg-surface/80 px-1.5 py-0.5 rounded text-[8px] text-ink">Alvenaria Térrea</div>
                 </div>
                 <div class="aspect-video bg-surface border border-hairline rounded-md relative flex items-center justify-center overflow-hidden group">
-                  <span class="material-symbols-outlined text-ink-muted group-hover:scale-110 transition-transform">image</span>
+                  <Image class="w-5 h-5 text-ink-muted group-hover:scale-110 transition-transform" stroke-width="1.5" />
                   <div class="absolute bottom-1 left-1.5 bg-surface/80 px-1.5 py-0.5 rounded text-[8px] text-ink">Laje concretada</div>
                 </div>
               </div>
@@ -480,11 +483,11 @@
           </p>
           <div class="mt-4 flex flex-col gap-3">
             <div class="flex items-center gap-3">
-              <span class="material-symbols-outlined text-[18px] text-brand-primary">verified</span>
+              <CheckCircle2 class="w-[18px] h-[18px] text-brand-primary" stroke-width="1.5" />
               <span class="text-xs text-ink-muted">Cálculo baseado no CUB (Custo Unitário Básico)</span>
             </div>
             <div class="flex items-center gap-3">
-              <span class="material-symbols-outlined text-[18px] text-brand-primary">verified</span>
+              <CheckCircle2 class="w-[18px] h-[18px] text-brand-primary" stroke-width="1.5" />
               <span class="text-xs text-ink-muted">Fração de custos distribuída conforme curva ABC clássica</span>
             </div>
           </div>
@@ -622,7 +625,7 @@
         <!-- Feature 1 -->
         <div class="bg-surface border border-hairline rounded-lg p-6 text-left flex flex-col gap-4 transition-all duration-200 hover:bg-surface-hover group">
           <div class="w-10 h-10 bg-brand-primary/10 rounded-md flex items-center justify-center border border-brand-primary/20 text-brand-primary group-hover:bg-brand-primary/20 transition-all">
-            <span class="material-symbols-outlined text-[20px]">sync</span>
+            <RefreshCw class="w-5 h-5" stroke-width="1.5" />
           </div>
           <h3 class="text-lg font-semibold text-ink tracking-[-0.4px]">Tabela SINAPI Atualizada</h3>
           <p class="text-xs md:text-sm text-ink-muted leading-[1.5]">
@@ -633,7 +636,7 @@
         <!-- Feature 2 -->
         <div class="bg-surface border border-hairline rounded-lg p-6 text-left flex flex-col gap-4 transition-all duration-200 hover:bg-surface-hover group">
           <div class="w-10 h-10 bg-brand-primary/10 rounded-md flex items-center justify-center border border-brand-primary/20 text-brand-primary group-hover:bg-brand-primary/20 transition-all">
-            <span class="material-symbols-outlined text-[20px]">calendar_today</span>
+            <Calendar class="w-5 h-5" stroke-width="1.5" />
           </div>
           <h3 class="text-lg font-semibold text-ink tracking-[-0.4px]">Cronograma PCI Caixa</h3>
           <p class="text-xs md:text-sm text-ink-muted leading-[1.5]">
@@ -644,7 +647,7 @@
         <!-- Feature 3 -->
         <div class="bg-surface border border-hairline rounded-lg p-6 text-left flex flex-col gap-4 transition-all duration-200 hover:bg-surface-hover group">
           <div class="w-10 h-10 bg-brand-primary/10 rounded-md flex items-center justify-center border border-brand-primary/20 text-brand-primary group-hover:bg-brand-primary/20 transition-all">
-            <span class="material-symbols-outlined text-[20px]">group</span>
+            <Users class="w-5 h-5" stroke-width="1.5" />
           </div>
           <h3 class="text-lg font-semibold text-ink tracking-[-0.4px]">Portal de Clientes Isolado</h3>
           <p class="text-xs md:text-sm text-ink-muted leading-[1.5]">
@@ -655,7 +658,7 @@
         <!-- Feature 4 -->
         <div class="bg-surface border border-hairline rounded-lg p-6 text-left flex flex-col gap-4 transition-all duration-200 hover:bg-surface-hover group">
           <div class="w-10 h-10 bg-brand-primary/10 rounded-md flex items-center justify-center border border-brand-primary/20 text-brand-primary group-hover:bg-brand-primary/20 transition-all">
-            <span class="material-symbols-outlined text-[20px]">description</span>
+            <FileText class="w-5 h-5" stroke-width="1.5" />
           </div>
           <h3 class="text-lg font-semibold text-ink tracking-[-0.4px]">Geração de Contratos</h3>
           <p class="text-xs md:text-sm text-ink-muted leading-[1.5]">
@@ -666,7 +669,7 @@
         <!-- Feature 5 -->
         <div class="bg-surface border border-hairline rounded-lg p-6 text-left flex flex-col gap-4 transition-all duration-200 hover:bg-surface-hover group">
           <div class="w-10 h-10 bg-brand-primary/10 rounded-md flex items-center justify-center border border-brand-primary/20 text-brand-primary group-hover:bg-brand-primary/20 transition-all">
-            <span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+            <Wallet class="w-5 h-5" stroke-width="1.5" />
           </div>
           <h3 class="text-lg font-semibold text-ink tracking-[-0.4px]">Medições Real-Time</h3>
           <p class="text-xs md:text-sm text-ink-muted leading-[1.5]">
@@ -677,7 +680,7 @@
         <!-- Feature 6 -->
         <div class="bg-surface border border-hairline rounded-lg p-6 text-left flex flex-col gap-4 transition-all duration-200 hover:bg-surface-hover group">
           <div class="w-10 h-10 bg-brand-primary/10 rounded-md flex items-center justify-center border border-brand-primary/20 text-brand-primary group-hover:bg-brand-primary/20 transition-all">
-            <span class="material-symbols-outlined text-[20px]">security</span>
+            <Shield class="w-5 h-5" stroke-width="1.5" />
           </div>
           <h3 class="text-lg font-semibold text-ink tracking-[-0.4px]">Isolamento e Segurança B2B</h3>
           <p class="text-xs md:text-sm text-ink-muted leading-[1.5]">
@@ -691,7 +694,7 @@
     <section class="reveal py-24 px-6 border-t border-hairline bg-canvas">
       <div class="max-w-[800px] mx-auto text-center flex flex-col gap-8 items-center">
         <!-- Quote icon -->
-        <span class="material-symbols-outlined text-brand-primary text-[40px]">format_quote</span>
+        <Quote class="w-10 h-10 text-brand-primary" stroke-width="1.5" />
         
         <p class="text-lg md:text-[20px] font-normal text-ink leading-[1.40] tracking-[-0.2px] italic">
           "A automatização do cronograma físico-financeiro e a integração direta com as planilhas da Caixa nos poupou semanas de retrabalho burocrático. O portal do cliente reduziu as ligações e as cobranças de status a zero. Um luxo de experiência para nossa construtora e clientes."
@@ -761,23 +764,23 @@
 
             <ul class="flex flex-col gap-3 text-xs text-ink-muted">
               <li class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-[16px] text-brand-primary">check</span>
+                <Check class="w-4 h-4 text-brand-primary" stroke-width="1.5" />
                 Até 3 obras ativas simultâneas
               </li>
               <li class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-[16px] text-brand-primary">check</span>
+                <Check class="w-4 h-4 text-brand-primary" stroke-width="1.5" />
                 Acesso total à tabela SINAPI estadual
               </li>
               <li class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-[16px] text-brand-primary">check</span>
+                <Check class="w-4 h-4 text-brand-primary" stroke-width="1.5" />
                 Geração de Cronograma Físico-Financeiro
               </li>
               <li class="flex items-center gap-2 opacity-50">
-                <span class="material-symbols-outlined text-[16px]">close</span>
+                <X class="w-4 h-4" stroke-width="1.5" />
                 Portal do Cliente dedicado
               </li>
               <li class="flex items-center gap-2 opacity-50">
-                <span class="material-symbols-outlined text-[16px]">close</span>
+                <X class="w-4 h-4" stroke-width="1.5" />
                 Contratos automatizados e propostas
               </li>
             </ul>
@@ -808,23 +811,23 @@
 
             <ul class="flex flex-col gap-3 text-xs text-ink-muted">
               <li class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-[16px] text-brand-primary">check</span>
+                <Check class="w-4 h-4 text-brand-primary" stroke-width="1.5" />
                 <strong>Obras ilimitadas</strong>
               </li>
               <li class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-[16px] text-brand-primary">check</span>
+                <Check class="w-4 h-4 text-brand-primary" stroke-width="1.5" />
                 Acesso total às tabelas SINAPI (Todos Estados)
               </li>
               <li class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-[16px] text-brand-primary">check</span>
+                <Check class="w-4 h-4 text-brand-primary" stroke-width="1.5" />
                 Cronograma PCI e Físico-Financeiro Caixa
               </li>
               <li class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-[16px] text-brand-primary">check</span>
+                <Check class="w-4 h-4 text-brand-primary" stroke-width="1.5" />
                 <strong>Portal do Cliente ilimitado</strong>
               </li>
               <li class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-[16px] text-brand-primary">check</span>
+                <Check class="w-4 h-4 text-brand-primary" stroke-width="1.5" />
                 Contratos automatizados ilimitados
               </li>
             </ul>
@@ -850,19 +853,19 @@
 
             <ul class="flex flex-col gap-3 text-xs text-ink-muted">
               <li class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-[16px] text-brand-primary">check</span>
+                <Check class="w-4 h-4 text-brand-primary" stroke-width="1.5" />
                 Tudo do plano Profissional
               </li>
               <li class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-[16px] text-brand-primary">check</span>
+                <Check class="w-4 h-4 text-brand-primary" stroke-width="1.5" />
                 Múltiplos usuários e permissões de equipe
               </li>
               <li class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-[16px] text-brand-primary">check</span>
+                <Check class="w-4 h-4 text-brand-primary" stroke-width="1.5" />
                 Suporte dedicado via WhatsApp e SLA prioritário
               </li>
               <li class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-[16px] text-brand-primary">check</span>
+                <Check class="w-4 h-4 text-brand-primary" stroke-width="1.5" />
                 Integrações via API customizada
               </li>
             </ul>
@@ -887,7 +890,7 @@
         </p>
         <router-link to="/auth" class="inline-flex items-center justify-center bg-brand-primary hover:bg-brand-hover text-white rounded-md text-[14px] font-medium px-6 py-3 transition-all duration-200 cursor-pointer mt-4">
           Criar Conta B2B
-          <span class="material-symbols-outlined text-[16px] ml-2">arrow_forward</span>
+          <ArrowRight class="w-4 h-4 ml-2" stroke-width="1.5" />
         </router-link>
       </div>
     </section>
@@ -899,7 +902,7 @@
         <div class="col-span-2 flex flex-col gap-4">
           <div class="flex items-center gap-2">
             <div class="w-6 h-6 bg-brand-primary/10 rounded-md border border-brand-primary/30 flex items-center justify-center">
-              <span class="material-symbols-outlined text-[14px] text-brand-primary">foundation</span>
+              <Layers class="w-3.5 h-3.5 text-brand-primary" stroke-width="1.5" />
             </div>
             <span class="text-sm font-semibold text-ink">Vértice Engenharia</span>
           </div>
@@ -966,13 +969,13 @@
             @click="openClientModal = false" 
             class="absolute top-4 right-4 p-1.5 text-ink-muted hover:text-ink cursor-pointer flex items-center justify-center hover:bg-surface-hover rounded-md transition-all"
           >
-            <span class="material-symbols-outlined text-[18px]">close</span>
+            <X class="w-[18px] h-[18px]" stroke-width="1.5" />
           </button>
 
           <!-- Header -->
           <div class="flex items-center gap-3 mb-4">
             <div class="w-9 h-9 bg-brand-primary/10 rounded-md border border-brand-primary/30 flex items-center justify-center">
-              <span class="material-symbols-outlined text-[18px] text-brand-primary">group</span>
+              <Users class="w-[18px] h-[18px] text-brand-primary" stroke-width="1.5" />
             </div>
             <div>
               <h3 class="text-sm font-bold text-ink">Acesso ao Portal do Cliente</h3>
@@ -1003,7 +1006,7 @@
               class="w-full py-2.5 bg-brand-primary hover:bg-brand-hover text-white rounded-md text-sm font-semibold transition-all duration-200 cursor-pointer flex items-center justify-center gap-2"
             >
               <span>Acessar Portal da Obra</span>
-              <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+              <ArrowRight class="w-4 h-4" stroke-width="1.5" />
             </button>
           </form>
         </div>
@@ -1018,6 +1021,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '../supabase'
 import { isDark, toggleTheme } from '../composables/useTheme'
+import { Layers, Sun, Moon, Menu, X, ArrowRight, ArrowUpRight, DollarSign, Calendar, Users, CheckCircle2, Image, RefreshCw, FileText, Wallet, Shield, Quote, Check } from 'lucide-vue-next'
 
 const router = useRouter()
 

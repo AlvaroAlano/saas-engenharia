@@ -5,7 +5,7 @@
       <div class="w-full max-w-[1280px] mx-auto px-6 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 bg-brand-primary/10 rounded-md border border-brand-primary/30 flex items-center justify-center">
-            <span class="material-symbols-outlined text-[20px] text-brand-primary">foundation</span>
+            <Layers class="w-5 h-5 text-brand-primary" stroke-width="1.5" />
           </div>
           <span class="text-[18px] font-semibold text-ink tracking-[-0.4px]">Vértice</span>
           <span class="text-[10px] bg-canvas border border-hairline text-ink-muted px-2 py-0.5 rounded-full font-mono font-medium">B2C</span>
@@ -18,7 +18,8 @@
             class="p-2 text-ink-muted hover:text-ink hover:bg-surface-hover rounded-md transition-all cursor-pointer flex items-center justify-center focus:outline-none"
             title="Alternar Tema"
           >
-            <span class="material-symbols-outlined text-[20px]">{{ isDark ? 'light_mode' : 'dark_mode' }}</span>
+            <Sun v-if="isDark" class="w-5 h-5" stroke-width="1.5" />
+            <Moon v-else class="w-5 h-5" stroke-width="1.5" />
           </button>
 
           <!-- Back to home/B2B portal link -->
@@ -49,25 +50,25 @@
         </h1>
 
         <p class="text-base md:text-lg text-ink-muted leading-relaxed max-w-xl">
-          Simule o valor total de construção e financiamento da sua casa baseado nas tabelas de referência SINAPI e CUB da sua região. Sem formulários complexos e 100% gratuito.
+          Simule o valor total de construção e financiamento da sua casa baseado das tabelas de referência SINAPI e CUB da sua região. Sem formulários complexos e 100% gratuito.
         </p>
 
         <!-- Bullet Highlights -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
           <div class="flex items-center gap-3">
-            <span class="material-symbols-outlined text-brand-primary text-[20px]">verified</span>
+            <CheckCircle2 class="w-5 h-5 text-brand-primary" stroke-width="1.5" />
             <span class="text-sm text-ink-muted font-medium">Dados atualizados do CUB por UF</span>
           </div>
           <div class="flex items-center gap-3">
-            <span class="material-symbols-outlined text-brand-primary text-[20px]">verified</span>
+            <CheckCircle2 class="w-5 h-5 text-brand-primary" stroke-width="1.5" />
             <span class="text-sm text-ink-muted font-medium">Margem de financiamento da Caixa</span>
           </div>
           <div class="flex items-center gap-3">
-            <span class="material-symbols-outlined text-brand-primary text-[20px]">verified</span>
+            <CheckCircle2 class="w-5 h-5 text-brand-primary" stroke-width="1.5" />
             <span class="text-sm text-ink-muted font-medium">Sem necessidade de cadastro prévio</span>
           </div>
           <div class="flex items-center gap-3">
-            <span class="material-symbols-outlined text-brand-primary text-[20px]">verified</span>
+            <CheckCircle2 class="w-5 h-5 text-brand-primary" stroke-width="1.5" />
             <span class="text-sm text-ink-muted font-medium">Conecte-se com engenheiros locais</span>
           </div>
         </div>
@@ -90,7 +91,7 @@
                 >
                   <option v-for="uf in ufs" :key="uf" :value="uf">{{ uf }}</option>
                 </select>
-                <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-[#8a8f98] pointer-events-none text-[18px]">expand_more</span>
+                <ChevronDown class="w-[18px] h-[18px] absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-[#8a8f98] pointer-events-none" stroke-width="1.5" />
               </div>
             </div>
 
@@ -148,8 +149,8 @@
               :disabled="loading"
               class="w-full bg-[#5e6ad2] hover:bg-[#828fff] text-white py-3 rounded-md text-sm font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50"
             >
-              <span v-if="loading" class="material-symbols-outlined animate-spin text-[18px]">sync</span>
-              <span v-else class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1">calculate</span>
+              <Loader2 v-if="loading" class="w-[18px] h-[18px] animate-spin" stroke-width="1.5" />
+              <Calculator v-else class="w-[18px] h-[18px]" stroke-width="1.5" />
               {{ loading ? 'Calculando estimativa...' : 'Calcular Custo Estimado' }}
             </button>
           </form>
@@ -194,7 +195,7 @@
               class="w-full bg-[#27a644] hover:bg-[#2ecc71] text-white py-3 rounded-md text-sm font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98]"
             >
               <span>Personalizar & Encontrar Engenheiro</span>
-              <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+              <ArrowRight class="w-[18px] h-[18px]" stroke-width="1.5" />
             </button>
           </div>
         </div>
@@ -208,6 +209,7 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { isDark, toggleTheme } from '../composables/useTheme'
+import { Layers, Sun, Moon, CheckCircle2, ChevronDown, Loader2, Calculator, ArrowRight } from 'lucide-vue-next'
 
 const router = useRouter()
 

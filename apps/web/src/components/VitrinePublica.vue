@@ -2,6 +2,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
+import { Building, Frown, User, MapPin, Image, Calculator, ChevronDown, Loader2, AlertTriangle, Handshake } from 'lucide-vue-next'
 
 const route = useRoute()
 const router = useRouter()
@@ -120,7 +121,7 @@ onMounted(fetchEngenheiro)
       <div class="w-full max-w-4xl mx-auto flex items-center justify-between">
         <div class="flex items-center gap-2">
           <div class="w-7 h-7 bg-brand-primary/10 rounded-md border border-brand-primary/30 flex items-center justify-center">
-            <span class="material-symbols-outlined text-[17px] text-brand-primary">foundation</span>
+            <Building class="w-[18px] h-[18px] text-brand-primary" stroke-width="1.5" />
           </div>
           <span class="text-base font-semibold text-ink tracking-tight">Vértice</span>
         </div>
@@ -137,7 +138,7 @@ onMounted(fetchEngenheiro)
 
     <!-- Not Found -->
     <div v-else-if="notFound" class="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center px-6">
-      <span class="material-symbols-outlined text-5xl text-ink-muted">search_off</span>
+      <Frown class="w-12 h-12 text-ink-muted" stroke-width="1.5" />
       <h1 class="text-xl font-bold text-ink">Perfil não encontrado</h1>
       <p class="text-sm text-ink-muted max-w-xs">O endereço <span class="font-mono text-brand-primary">/p/{{ route.params.slug }}</span> não existe ou ainda não foi configurado pelo engenheiro.</p>
       <router-link to="/simulador" class="mt-2 text-sm text-brand-primary hover:underline">Encontre um engenheiro na sua região →</router-link>
@@ -152,7 +153,7 @@ onMounted(fetchEngenheiro)
         <div class="shrink-0">
           <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-2 border-hairline bg-surface flex items-center justify-center">
             <img v-if="engenheiro.foto_perfil" :src="engenheiro.foto_perfil" class="w-full h-full object-cover" />
-            <span v-else class="material-symbols-outlined text-4xl text-ink-muted">person</span>
+            <User v-else class="w-10 h-10 text-ink-muted" stroke-width="1.5" />
           </div>
         </div>
 
@@ -169,7 +170,7 @@ onMounted(fetchEngenheiro)
               :key="cidade"
               class="flex items-center gap-1 text-xs text-ink-muted bg-surface border border-hairline px-2 py-1 rounded-lg"
             >
-              <span class="material-symbols-outlined text-[11px]">location_on</span>
+              <MapPin class="w-3 h-3 text-ink-muted" stroke-width="1.5" />
               {{ cidade }}
             </span>
           </div>
@@ -180,7 +181,7 @@ onMounted(fetchEngenheiro)
       <!-- Galeria de Portfólio -->
       <section v-if="engenheiro.fotos_portfolio?.length">
         <h2 class="text-xs font-bold text-ink-muted uppercase tracking-wider mb-4 flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-[14px]">photo_library</span>
+          <Image class="w-3.5 h-3.5" stroke-width="1.5" />
           Portfólio de Obras
         </h2>
         <!-- Foto em destaque -->
@@ -207,7 +208,7 @@ onMounted(fetchEngenheiro)
           <!-- Header do card -->
           <div class="px-6 py-5 border-b border-hairline bg-brand-primary/5">
             <div class="flex items-center gap-2 mb-1">
-              <span class="material-symbols-outlined text-brand-primary text-[20px]" style="font-variation-settings: 'FILL' 1">calculate</span>
+              <Calculator class="w-5 h-5 text-brand-primary" stroke-width="1.5" />
               <h2 class="text-base font-bold text-ink">Simule sua obra com {{ nomeAbreviado }}</h2>
             </div>
             <p class="text-xs text-ink-muted">Estimativa baseada nas tabelas SINAPI e CUB da sua região. Gratuito e sem compromisso.</p>
@@ -224,7 +225,7 @@ onMounted(fetchEngenheiro)
                   <select v-model="form.uf" class="w-full bg-canvas border border-hairline rounded-xl px-3 py-2.5 text-sm text-ink focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary appearance-none cursor-pointer transition-all">
                     <option v-for="uf in ufs" :key="uf" :value="uf">{{ uf }}</option>
                   </select>
-                  <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[18px]">expand_more</span>
+                  <ChevronDown class="w-[18px] h-[18px] absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" stroke-width="1.5" />
                 </div>
               </div>
 
@@ -268,14 +269,14 @@ onMounted(fetchEngenheiro)
               :disabled="loadingCalculo"
               class="w-full bg-brand-primary hover:bg-brand-hover text-white py-3 rounded-xl text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-50"
             >
-              <span v-if="loadingCalculo" class="material-symbols-outlined animate-spin text-[18px]">sync</span>
-              <span v-else class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1">calculate</span>
+              <Loader2 v-if="loadingCalculo" class="w-[18px] h-[18px] animate-spin" stroke-width="1.5" />
+              <Calculator v-else class="w-[18px] h-[18px]" stroke-width="1.5" />
               {{ loadingCalculo ? 'Calculando...' : 'Calcular Custo Estimado' }}
             </button>
 
             <!-- Erro cálculo -->
             <p v-if="erroCalculo" class="text-xs text-red-500 flex items-center gap-1">
-              <span class="material-symbols-outlined text-[14px]">error</span>{{ erroCalculo }}
+              <AlertTriangle class="w-3.5 h-3.5 text-red-500 inline-block align-text-bottom mr-1" stroke-width="1.5" />{{ erroCalculo }}
             </p>
           </div>
 
@@ -330,17 +331,17 @@ onMounted(fetchEngenheiro)
             </div>
 
             <p v-if="erroSolicitar" class="text-xs text-red-500 flex items-center gap-1">
-              <span class="material-symbols-outlined text-[14px]">error</span>{{ erroSolicitar }}
+              <AlertTriangle class="w-3.5 h-3.5 text-red-500 inline-block align-text-bottom mr-1" stroke-width="1.5" />{{ erroSolicitar }}
             </p>
 
             <!-- Botão principal de conversão -->
             <button
               @click="solicitarOrcamento"
               :disabled="loadingSolicitar"
-              class="w-full bg-green-600 hover:bg-green-500 text-white py-4 rounded-xl text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-50 shadow-lg shadow-green-500/20"
+              class="w-full bg-green-600 hover:bg-green-500 text-white py-4 rounded-xl text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-50 shadow-lg shadow-green-500/20 font-sans"
             >
-              <span v-if="loadingSolicitar" class="material-symbols-outlined animate-spin text-[18px]">sync</span>
-              <span v-else class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1">handshake</span>
+              <Loader2 v-if="loadingSolicitar" class="w-[18px] h-[18px] animate-spin" stroke-width="1.5" />
+              <Handshake v-else class="w-[18px] h-[18px]" stroke-width="1.5" />
               {{ loadingSolicitar ? 'Enviando...' : `Solicitar Orçamento para ${nomeAbreviado}` }}
             </button>
             <p class="text-[11px] text-center text-ink-muted">Sem compromisso. {{ nomeAbreviado }} entrará em contato para agendar uma visita técnica.</p>

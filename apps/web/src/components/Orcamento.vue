@@ -7,9 +7,16 @@ import TopHeader from './TopHeader.vue'
 import SinapiTable from './SinapiTable.vue'
 import EditItemModal from './modals/EditItemModal.vue'
 import SetupOrcamentoModal from './modals/SetupOrcamentoModal.vue'
+import ConfirmarTemplateModal from './modals/ConfirmarTemplateModal.vue'
 import ShareLinkModal from './modals/ShareLinkModal.vue'
 import ArvoreCustos from './ArvoreCustos.vue'
+import ArvoreCustosModal from './modals/ArvoreCustosModal.vue'
 import ManualItemModal from './ManualItemModal.vue'
+import { 
+  HardHat, User, MapPin, Calendar, DollarSign, Percent, Share2, Download, Star, 
+  Settings, ChevronRight, ChevronLeft, Search, GitFork, X, FileText, Table, 
+  Loader2, AlertTriangle, CheckCircle 
+} from 'lucide-vue-next'
 
 const route = useRoute()
 const currentProject = ref(null)
@@ -204,6 +211,37 @@ const showToast = (msg) => {
   setTimeout(() => toastVisible.value = false, 3000)
 }
 
+// --- Exportar Planilha SINAPI ---
+const isExporting = ref(null) // 'pdf' | 'xlsx' | null
+
+const exportarPlanilha = async (formato) => {
+  if (!activeOrcamentoId.value || isExporting.value) return
+  isExporting.value = formato
+  try {
+    const res = await axios.get(`/projetos/${activeOrcamentoId.value}/exportar-sinapi`, {
+      params: { formato },
+      responseType: 'blob',
+    })
+    const mimeType = formato === 'pdf'
+      ? 'application/pdf'
+      : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    const blob = new Blob([res.data], { type: mimeType })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href     = url
+    a.download = `planilha_sinapi_${currentProject.value?.nome_obra || 'obra'}.${formato}`
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    const msg = e.response?.status === 422
+      ? 'Adicione itens ao orçamento antes de exportar.'
+      : 'Erro ao gerar o arquivo. Tente novamente.'
+    showToast(msg)
+  } finally {
+    isExporting.value = null
+  }
+}
+
 const handleAddToCartExpress = (item) => {
   openQuantityModal(item)
 }
@@ -329,6 +367,41 @@ const onSetupSuccess = async () => {
   buscarItens()
 }
 
+// --- Modal: Árvore expandida ---
+const showArvoreCustosModal = ref(false)
+
+// --- Aplicar template padrão (acionado pela ArvoreCustos) ---
+const showConfirmTemplate = ref(false)
+const isApplyingTemplate = ref(false)
+
+const onSolicitarTemplate = () => {
+  if (cartItems.value.length > 0) {
+    showConfirmTemplate.value = true
+  } else {
+    executarAplicarTemplate('mesclar')
+  }
+}
+
+const executarAplicarTemplate = async (modo) => {
+  showConfirmTemplate.value = false
+  const projectId = route.params.id
+  if (!projectId) return
+  isApplyingTemplate.value = true
+  try {
+    const res = await axios.post(`/projetos/${projectId}/aplicar-template-padrao`, { modo })
+    if (res.data?.sem_preco?.length) {
+      console.warn('[Template] Códigos sem preço no SINAPI:', res.data.sem_preco)
+    }
+    showToast(`${res.data.inserted} itens adicionados à árvore!`)
+    await fetchCart()
+  } catch (e) {
+    const detail = e.response?.data?.detail || 'Erro ao aplicar template.'
+    showToast(detail)
+  } finally {
+    isApplyingTemplate.value = false
+  }
+}
+
 watch(isCartOpen, (newVal) => {
   if (newVal) {
     document.body.classList.add('overflow-hidden')
@@ -367,33 +440,33 @@ onUnmounted(() => {
             <!-- Lado Esquerdo: Identificação -->
             <div class="space-y-2">
               <div class="flex items-center gap-3">
-                <div class="bg-brand-primary text-white p-2 rounded-xl">
-                  <span class="material-symbols-outlined text-[24px]">architecture</span>
+                <div class="bg-brand-primary text-white p-2 rounded-xl flex items-center justify-center">
+                  <HardHat class="w-6 h-6 text-white" stroke-width="1.5" />
                 </div>
                 <h1 class="text-2xl font-black text-ink tracking-tight">{{ currentProject.nome_obra }}</h1>
               </div>
               
               <div class="flex flex-col gap-3">
                 <p class="text-sm font-semibold text-ink-muted flex items-center gap-1.5">
-                  <span class="material-symbols-outlined text-[18px]">person</span>
+                  <User class="w-[18px] h-[18px]" stroke-width="1.5" />
                   Cliente: <span class="text-ink">{{ currentProject.cliente_nome || 'Não informado' }}</span>
                 </p>
                 
                 <div class="flex flex-wrap items-center gap-2">
                   <span class="px-2.5 py-1 bg-canvas text-ink-muted text-[10px] font-bold rounded-lg border border-hairline uppercase tracking-wider flex items-center gap-1">
-                    <span class="material-symbols-outlined text-[14px]">map</span>
+                    <MapPin class="w-3.5 h-3.5 text-ink-muted" stroke-width="1.5" />
                     {{ currentProject.uf_obra }}
                   </span>
                   <span class="px-2.5 py-1 bg-canvas text-ink-muted text-[10px] font-bold rounded-lg border border-hairline uppercase tracking-wider flex items-center gap-1">
-                    <span class="material-symbols-outlined text-[14px]">calendar_month</span>
+                    <Calendar class="w-3.5 h-3.5 text-ink-muted" stroke-width="1.5" />
                     {{ currentProject.sinapi_mes_ano }}
                   </span>
                   <span class="px-2.5 py-1 bg-brand-primary/10 text-brand-primary text-[10px] font-bold rounded-lg border border-brand-primary/20 uppercase tracking-wider flex items-center gap-1">
-                    <span class="material-symbols-outlined text-[14px]">payments</span>
+                    <DollarSign class="w-3.5 h-3.5 text-brand-primary" stroke-width="1.5" />
                     {{ currentProject.sinapi_desonerado ? "Desonerado" : "Não Desonerado" }}
                   </span>
                   <span class="px-2.5 py-1 bg-brand-primary/10 text-brand-primary text-[10px] font-bold rounded-lg border border-brand-primary/20 uppercase tracking-wider flex items-center gap-1">
-                    <span class="material-symbols-outlined text-[14px]">percent</span>
+                    <Percent class="w-3.5 h-3.5 text-brand-primary" stroke-width="1.5" />
                     BDI: {{ currentProject.bdi_padrao }}%
                   </span>
                 </div>
@@ -403,19 +476,19 @@ onUnmounted(() => {
             <!-- Lado Direito: Ações -->
             <div class="flex flex-col gap-2 shrink-0 w-full sm:w-auto">
               <div v-if="activeOrcamentoId" class="flex items-center gap-2 w-full">
-                <button @click="abrirShareModal(activeOrcamentoId)" class="flex-1 flex justify-center p-2.5 bg-surface border border-hairline hover:bg-canvas text-ink-muted rounded-xl transition-all group shadow-sm" title="Compartilhar com Cliente">
-                  <span class="material-symbols-outlined text-[22px] text-brand-primary">share</span>
+                <button @click="abrirShareModal(activeOrcamentoId)" class="flex-1 flex justify-center items-center p-2.5 bg-surface border border-hairline hover:bg-canvas text-ink-muted rounded-xl transition-all group shadow-sm cursor-pointer" title="Compartilhar com Cliente">
+                  <Share2 class="w-[22px] h-[22px] text-brand-primary" stroke-width="1.5" />
                 </button>
-                <button @click="abrirImportTemplateModal" class="flex-1 flex justify-center p-2.5 bg-surface border border-hairline hover:bg-canvas text-ink-muted rounded-xl transition-all group shadow-sm" title="Importar Modelo">
-                  <span class="material-symbols-outlined text-[22px]">download</span>
+                <button @click="abrirImportTemplateModal" class="flex-1 flex justify-center items-center p-2.5 bg-surface border border-hairline hover:bg-canvas text-ink-muted rounded-xl transition-all group shadow-sm cursor-pointer" title="Importar Modelo">
+                  <Download class="w-[22px] h-[22px] text-ink-muted" stroke-width="1.5" />
                 </button>
-                <button @click="abrirTemplateModal" class="flex-1 flex justify-center p-2.5 bg-surface border border-hairline hover:bg-canvas text-ink-muted rounded-xl transition-all group shadow-sm" title="Guardar como Modelo">
-                  <span class="material-symbols-outlined text-[22px] text-amber-500">star</span>
+                <button @click="abrirTemplateModal" class="flex-1 flex justify-center items-center p-2.5 bg-surface border border-hairline hover:bg-canvas text-ink-muted rounded-xl transition-all group shadow-sm cursor-pointer" title="Guardar como Modelo">
+                  <Star class="w-[22px] h-[22px] text-amber-500" stroke-width="1.5" />
                 </button>
               </div>
               
-              <button @click="isSetupModalOpen = true" class="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-surface border border-hairline text-ink hover:bg-canvas hover:text-brand-primary hover:border-brand-primary transition-all group font-bold text-sm shadow-sm">
-                <span class="material-symbols-outlined text-[22px] group-hover:rotate-90 transition-transform duration-500">settings</span>
+              <button @click="isSetupModalOpen = true" class="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-surface border border-hairline text-ink hover:bg-canvas hover:text-brand-primary hover:border-brand-primary transition-all group font-bold text-sm shadow-sm cursor-pointer">
+                <Settings class="w-[22px] h-[22px] group-hover:rotate-90 transition-transform duration-500" stroke-width="1.5" />
                 Configurações da Obra
               </button>
             </div>
@@ -426,7 +499,7 @@ onUnmounted(() => {
         <div class="flex items-center justify-between mb-6">
           <div class="flex items-center gap-2 text-[11px] font-bold tracking-widest text-ink-muted uppercase">
             <span>Projetos</span>
-            <span class="material-symbols-outlined text-[12px]">chevron_right</span>
+            <ChevronRight class="w-3 h-3 text-ink-muted" stroke-width="1.5" />
             <span class="text-ink">Planilha de Custos SINAPI</span>
           </div>
         </div>
@@ -435,7 +508,7 @@ onUnmounted(() => {
           <div class="col-span-12 lg:col-span-8 space-y-6 relative min-w-0">
             <div class="bg-surface p-5 rounded-xl border border-hairline space-y-4 shadow-sm">
               <div class="relative flex-1">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted">search</span>
+                <Search class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" stroke-width="1.5" />
                 <input v-model="searchQuery" class="w-full pl-10 pr-4 py-2 bg-canvas border border-hairline rounded-lg text-sm focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all text-ink" placeholder="Filtrar itens da tabela pelo nome ou código..." type="text"/>
               </div>
             </div>
@@ -478,22 +551,51 @@ onUnmounted(() => {
           ]">
             <div class="lg:hidden flex justify-between items-center p-5 border-b border-hairline bg-surface shrink-0">
               <div class="flex items-center gap-2 text-brand-primary font-bold">
-                <span class="material-symbols-outlined">account_tree</span>
+                <GitFork class="w-4 h-4 text-brand-primary" stroke-width="1.5" />
                 Árvore de Custos
               </div>
-              <button @click="isCartOpen = false" class="p-1.5 rounded-lg bg-canvas hover:bg-surface-hover text-ink-muted hover:text-ink transition-colors">
-                <span class="material-symbols-outlined text-[20px]">close</span>
+              <button @click="isCartOpen = false" class="p-1.5 rounded-lg bg-canvas hover:bg-surface-hover text-ink-muted hover:text-ink transition-colors flex items-center justify-center cursor-pointer">
+                <X class="w-5 h-5" stroke-width="1.5" />
               </button>
             </div>
             <div class="p-4 lg:p-0 flex-1 overflow-y-auto lg:overflow-visible">
               <ArvoreCustos
                 :items="cartItems"
                 :bdi="currentProject?.bdi_padrao || 0"
+                :is-applying-template="isApplyingTemplate"
                 @remove-item="handleRemoveFromCart"
                 @update-quantity="handleUpdateQuantity"
                 @add-manual-item="isManualModalOpen = true"
                 @import-template="abrirImportTemplateModal"
+                @aplicar-template-padrao="onSolicitarTemplate"
+                @expandir="showArvoreCustosModal = true"
               />
+
+              <!-- Exportar Planilha SINAPI -->
+              <div v-if="activeOrcamentoId && cartItems.length" class="mt-4 p-4 lg:p-0 space-y-2">
+                <p class="text-[10px] font-bold text-ink-muted uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                  <Download class="w-3.5 h-3.5 text-ink-muted" stroke-width="1.5" />
+                  Exportar Planilha
+                </p>
+                <button
+                  @click="exportarPlanilha('pdf')"
+                  :disabled="!!isExporting"
+                  class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-surface border border-hairline text-ink-muted hover:text-red-600 hover:border-red-300 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all font-semibold text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  <Loader2 v-if="isExporting === 'pdf'" class="w-5 h-5 animate-spin" stroke-width="1.5" />
+                  <FileText v-else class="w-5 h-5" stroke-width="1.5" />
+                  {{ isExporting === 'pdf' ? 'Gerando PDF...' : 'Exportar PDF' }}
+                </button>
+                <button
+                  @click="exportarPlanilha('xlsx')"
+                  :disabled="!!isExporting"
+                  class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-surface border border-hairline text-ink-muted hover:text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition-all font-semibold text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  <Loader2 v-if="isExporting === 'xlsx'" class="w-5 h-5 animate-spin" stroke-width="1.5" />
+                  <Table class="w-5 h-5" stroke-width="1.5" />
+                  {{ isExporting === 'xlsx' ? 'Gerando Excel...' : 'Exportar Excel' }}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -502,11 +604,11 @@ onUnmounted(() => {
         <button 
           v-show="currentProject && !isCartOpen"
           @click="isCartOpen = true"
-          class="lg:hidden fixed top-1/2 -translate-y-1/2 right-0 z-[60] bg-brand-primary text-white py-4 px-1.5 rounded-l-lg hover:bg-brand-hover transition-all duration-300 flex flex-col items-center justify-center group focus:outline-none focus:ring-1 focus:ring-brand-primary/50 border border-brand-primary"
+          class="lg:hidden fixed top-1/2 -translate-y-1/2 right-0 z-[60] bg-brand-primary text-white py-4 px-1.5 rounded-l-lg hover:bg-brand-hover transition-all duration-300 flex flex-col items-center justify-center group focus:outline-none focus:ring-1 focus:ring-brand-primary/50 border border-brand-primary cursor-pointer"
         >
-          <span class="material-symbols-outlined text-2xl group-hover:-translate-x-1 transition-transform">chevron_left</span>
+          <ChevronLeft class="w-6 h-6 text-white group-hover:-translate-x-1 transition-transform" stroke-width="1.5" />
           <div class="relative mt-2">
-            <span class="material-symbols-outlined text-[22px]">account_tree</span>
+            <GitFork class="w-[22px] h-[22px] text-white" stroke-width="1.5" />
             <span v-if="cartItems.length" class="absolute -top-2 -right-2 bg-amber-500 text-white text-[10px] font-extrabold w-5 h-5 rounded-full flex items-center justify-center border border-brand-primary">{{ cartItems.length }}</span>
           </div>
         </button>
@@ -532,11 +634,32 @@ onUnmounted(() => {
     />
 
     <!-- Setup SINAPI Modal (Reutilizado para Edição) -->
-    <SetupOrcamentoModal 
-      :is-open="isSetupModalOpen" 
+    <SetupOrcamentoModal
+      :is-open="isSetupModalOpen"
       :project="currentProject"
+      :cart-items-count="cartItems.length"
+      :hide-template-option="true"
       @close="isSetupModalOpen = false"
       @salvar="onSetupSuccess"
+    />
+
+    <ConfirmarTemplateModal
+      :is-open="showConfirmTemplate"
+      :cart-items-count="cartItems.length"
+      @confirmar="executarAplicarTemplate"
+      @cancelar="showConfirmTemplate = false"
+    />
+
+    <ArvoreCustosModal
+      :is-open="showArvoreCustosModal"
+      :items="cartItems"
+      :bdi="currentProject?.bdi_padrao || 0"
+      :project-id="String(route.params.id)"
+      @close="showArvoreCustosModal = false"
+      @refresh="fetchCart"
+      @remove-item="handleRemoveFromCart"
+      @update-quantity="handleUpdateQuantity"
+      @add-manual-item="isManualModalOpen = true"
     />
 
     <!-- ========== MODAL: COMPARTILHAR B2C ========== -->
@@ -553,17 +676,17 @@ onUnmounted(() => {
         <div class="bg-surface rounded-2xl border border-hairline w-full max-w-md overflow-hidden shadow-sm animate-in zoom-in duration-200">
           <div class="flex items-center justify-between px-6 py-4 border-b border-hairline">
             <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-amber-500">star</span>
+              <Star class="w-5 h-5 text-amber-500" stroke-width="1.5" />
               <h3 class="text-lg font-bold text-ink">Guardar como Modelo</h3>
             </div>
-            <button @click="showTemplateModal = false" class="p-1 rounded-lg hover:bg-surface-hover transition-all">
-              <span class="material-symbols-outlined text-ink-muted">close</span>
+            <button @click="showTemplateModal = false" class="p-1 rounded-lg hover:bg-surface-hover transition-all flex items-center justify-center cursor-pointer">
+              <X class="w-5 h-5 text-ink-muted" stroke-width="1.5" />
             </button>
           </div>
           
           <form @submit.prevent="salvarComoTemplate" class="p-6 space-y-4">
             <div v-if="templateError" class="bg-red-50 dark:bg-red-900/20 border border-red-250 dark:border-red-900/50 text-red-650 dark:text-red-400 text-sm p-3 rounded-lg flex items-start gap-2 border border-red-100 dark:border-red-500/20">
-              <span class="material-symbols-outlined text-base">error</span>
+              <AlertTriangle class="w-4 h-4 text-red-600 dark:text-red-450 shrink-0" stroke-width="1.5" />
               <span>{{ templateError }}</span>
             </div>
             <p class="text-sm text-ink-muted">Este orçamento servirá de base parametrizada para projetos futuros.</p>
@@ -580,8 +703,8 @@ onUnmounted(() => {
             
             <div class="flex gap-3 pt-2 mt-4">
               <button type="button" @click="showTemplateModal = false" class="flex-1 py-2.5 border border-hairline rounded-lg text-sm font-medium text-ink-muted hover:bg-canvas transition-all">Cancelar</button>
-              <button type="submit" :disabled="isSavingTemplate || !templateForm.nome || !templateForm.area_referencia_m2" class="flex-1 py-2.5 bg-brand-primary hover:bg-brand-hover text-white rounded-lg text-sm font-semibold transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-                <span v-if="isSavingTemplate" class="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+              <button type="submit" :disabled="isSavingTemplate || !templateForm.nome || !templateForm.area_referencia_m2" class="flex-1 py-2.5 bg-brand-primary hover:bg-brand-hover text-white rounded-lg text-sm font-semibold transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer">
+                <Loader2 v-if="isSavingTemplate" class="w-3.5 h-3.5 animate-spin" stroke-width="1.5" />
                 {{ isSavingTemplate ? 'Salvando...' : 'Salvar Modelo' }}
               </button>
             </div>
@@ -596,11 +719,11 @@ onUnmounted(() => {
         <div class="bg-surface rounded-2xl border border-hairline w-full max-w-md overflow-hidden shadow-sm animate-in zoom-in duration-200">
           <div class="flex items-center justify-between px-6 py-4 border-b border-hairline">
             <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-brand-primary">download</span>
+              <Download class="w-5 h-5 text-brand-primary" stroke-width="1.5" />
               <h3 class="text-lg font-bold text-ink">Importar Modelo</h3>
             </div>
-            <button @click="showImportTemplateModal = false" class="p-1 rounded-lg hover:bg-surface-hover transition-all">
-              <span class="material-symbols-outlined text-ink-muted">close</span>
+            <button @click="showImportTemplateModal = false" class="p-1 rounded-lg hover:bg-surface-hover transition-all flex items-center justify-center cursor-pointer">
+              <X class="w-5 h-5 text-ink-muted" stroke-width="1.5" />
             </button>
           </div>
           
@@ -624,8 +747,8 @@ onUnmounted(() => {
             
             <div class="flex gap-3 pt-2 mt-4">
               <button type="button" @click="showImportTemplateModal = false" class="flex-1 py-2.5 border border-hairline rounded-lg text-sm font-medium text-ink-muted hover:bg-canvas transition-all">Cancelar</button>
-              <button type="submit" :disabled="isImportingTemplate || !importTemplateForm.template_id" class="flex-1 py-2.5 bg-brand-primary hover:bg-brand-hover text-white rounded-lg text-sm font-semibold transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-                <span v-if="isImportingTemplate" class="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+              <button type="submit" :disabled="isImportingTemplate || !importTemplateForm.template_id" class="flex-1 py-2.5 bg-brand-primary hover:bg-brand-hover text-white rounded-lg text-sm font-semibold transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer">
+                <Loader2 v-if="isImportingTemplate" class="w-3.5 h-3.5 animate-spin" stroke-width="1.5" />
                 {{ isImportingTemplate ? 'Importando...' : 'Importar Modelo' }}
               </button>
             </div>
@@ -636,7 +759,7 @@ onUnmounted(() => {
 
     <!-- Toast Notification -->
     <div v-if="toastVisible" class="fixed bottom-6 right-6 bg-brand-primary text-white px-6 py-3 rounded-xl border border-brand-primary/20 flex items-center gap-3 animate-fade-in-up z-50">
-      <span class="material-symbols-outlined">check_circle</span>
+      <CheckCircle class="w-5 h-5 text-white" stroke-width="1.5" />
       <span class="font-semibold text-sm">{{ toastMessage }}</span>
     </div>
 

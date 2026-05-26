@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { isDark, toggleTheme } from '../../composables/useTheme'
 import { useToast } from '../../composables/useToast'
+import { Sun, Moon, Check } from 'lucide-vue-next'
 
 const { showToast } = useToast()
 const bdiPadrao = ref(Number(localStorage.getItem('bdi_padrao_global') || 25))
@@ -25,7 +26,7 @@ const saveBdi = () => {
   <div class="space-y-5">
 
     <!-- Card: Aparência -->
-    <div class="bg-surface rounded-2xl border border-hairline overflow-hidden">
+    <div class="bg-surface rounded-md border border-hairline overflow-hidden">
       <div class="px-6 py-5 border-b border-hairline">
         <h3 class="text-sm font-bold text-ink">Aparência</h3>
         <p class="text-xs text-ink-muted mt-0.5">Escolha o tema visual da interface.</p>
@@ -36,7 +37,7 @@ const saveBdi = () => {
           <!-- Light Mode -->
           <button
             @click="setTheme('light')"
-            class="relative rounded-xl border-2 p-3.5 text-left transition-all cursor-pointer focus:outline-none"
+            class="relative rounded-md border-2 p-3.5 text-left transition-all cursor-pointer focus:outline-none"
             :class="!isDark ? 'border-brand-primary bg-brand-primary/5' : 'border-hairline hover:border-ink-muted'"
           >
             <!-- Preview -->
@@ -52,18 +53,18 @@ const saveBdi = () => {
               </div>
             </div>
             <span class="text-xs font-semibold text-ink flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-sm">light_mode</span>
+              <Sun class="w-4 h-4" stroke-width="1.5" />
               Claro
             </span>
             <span v-if="!isDark" class="absolute top-2 right-2 w-4 h-4 rounded-full bg-brand-primary flex items-center justify-center">
-              <span class="material-symbols-outlined text-white text-[10px]">check</span>
+              <Check class="w-2.5 h-2.5 text-white" stroke-width="1.5" />
             </span>
           </button>
 
           <!-- Dark Mode -->
           <button
             @click="setTheme('dark')"
-            class="relative rounded-xl border-2 p-3.5 text-left transition-all cursor-pointer focus:outline-none"
+            class="relative rounded-md border-2 p-3.5 text-left transition-all cursor-pointer focus:outline-none"
             :class="isDark ? 'border-brand-primary bg-brand-primary/5' : 'border-hairline hover:border-ink-muted'"
           >
             <!-- Preview -->
@@ -79,11 +80,11 @@ const saveBdi = () => {
               </div>
             </div>
             <span class="text-xs font-semibold text-ink flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-sm">dark_mode</span>
+              <Moon class="w-4 h-4" stroke-width="1.5" />
               Escuro
             </span>
             <span v-if="isDark" class="absolute top-2 right-2 w-4 h-4 rounded-full bg-brand-primary flex items-center justify-center">
-              <span class="material-symbols-outlined text-white text-[10px]">check</span>
+              <Check class="w-2.5 h-2.5 text-white" stroke-width="1.5" />
             </span>
           </button>
 
@@ -92,7 +93,7 @@ const saveBdi = () => {
     </div>
 
     <!-- Card: Padrões de Orçamento -->
-    <div class="bg-surface rounded-2xl border border-hairline overflow-hidden">
+    <div class="bg-surface rounded-md border border-hairline overflow-hidden">
       <div class="px-6 py-5 border-b border-hairline">
         <h3 class="text-sm font-bold text-ink">Padrões de Orçamento</h3>
         <p class="text-xs text-ink-muted mt-0.5">Valores pré-preenchidos ao criar um novo projeto.</p>
@@ -107,7 +108,7 @@ const saveBdi = () => {
               min="0"
               max="100"
               step="0.5"
-              class="w-full bg-canvas border border-hairline text-ink rounded-xl px-4 py-2.5 text-sm focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all"
+              class="w-full bg-canvas border border-hairline text-ink rounded-md px-4 py-2.5 text-sm focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all"
             />
             <span class="text-sm font-bold text-ink-muted shrink-0">%</span>
           </div>
@@ -115,7 +116,7 @@ const saveBdi = () => {
         </div>
       </div>
       <div class="px-6 py-4 bg-canvas/50 border-t border-hairline flex justify-end">
-        <button @click="saveBdi" class="bg-brand-primary hover:bg-brand-hover text-white px-5 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2 cursor-pointer">
+        <button @click="saveBdi" class="bg-brand-primary hover:bg-brand-hover text-white px-5 py-2 rounded-md font-bold text-sm transition-all flex items-center gap-2 cursor-pointer">
           Salvar Preferências
         </button>
       </div>

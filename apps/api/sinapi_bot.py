@@ -39,39 +39,53 @@ class SinapiBot:
         col_codigo = next((c for c in cols if 'CODIGO' in str(c).upper() or 'CÓDIGO' in str(c).upper()), None)
         col_desc = next((c for c in cols if 'DESCRI' in str(c).upper()), None)
         col_unid = next((c for c in cols if 'UNID' in str(c).upper()), None)
-        
+        # Coluna de classificação: "Classificação", "Origem", "Tipo", "Classe" — aceita variantes
+        col_classif = next((
+            c for c in cols if any(kw in str(c).upper() for kw in ('CLASSIF', 'ORIGEM', 'TIPO DE INSUMO', 'CLASSE'))
+        ), None)
+
         if not (col_codigo and col_desc and col_unid):
             raise ValueError("Colunas básicas (Código, Descrição, Unidade) não encontradas.")
-            
+
         # 4. Identificar colunas de estados (tamanho 2, letras maiúsculas)
         estados_cols = [c for c in cols if isinstance(c, str) and len(c.strip()) == 2 and c.strip().upper() == c.strip()]
-        
-        # 5. Melt!
+
+        # 5. Melt — inclui classificacao como id_var se existir
+        id_vars = [col_codigo, col_desc, col_unid]
+        if col_classif:
+            id_vars.append(col_classif)
+
         print("[*] Aplicando pd.melt para transformar matriz em formato tabular...")
         df_melted = pd.melt(
-            df, 
-            id_vars=[col_codigo, col_desc, col_unid], 
+            df,
+            id_vars=id_vars,
             value_vars=estados_cols,
-            var_name='estado', 
+            var_name='estado',
             value_name='preco'
         )
-        
+
         # 6. Renomear para o padrão do banco
-        df_melted = df_melted.rename(columns={
-            col_codigo: 'codigo_item',
-            col_desc: 'descricao',
-            col_unid: 'unidade'
-        })
-        
+        rename_map = {col_codigo: 'codigo_item', col_desc: 'descricao', col_unid: 'unidade'}
+        if col_classif:
+            rename_map[col_classif] = 'classificacao'
+        df_melted = df_melted.rename(columns=rename_map)
+
         # 7. Limpeza e adequação de tipos
         df_melted['preco'] = pd.to_numeric(df_melted['preco'], errors='coerce')
         df_melted = df_melted.dropna(subset=['codigo_item', 'preco'])
-        
+
+        # Normaliza classificacao: mantém valor original ou preenche com NULL
+        if 'classificacao' not in df_melted.columns:
+            df_melted['classificacao'] = None
+        else:
+            df_melted['classificacao'] = df_melted['classificacao'].astype(str).str.strip()
+            df_melted['classificacao'] = df_melted['classificacao'].replace({'nan': None, '': None})
+
         # 8. Adicionar metadados
         df_melted['mes_ano'] = mes_ano
         df_melted['desonerado'] = desonerado
         df_melted['codigo_item'] = df_melted['codigo_item'].astype(str).str.strip()
-        
+
         print(f"[*] Processamento concluído. {len(df_melted)} registros gerados pelo Melt.")
         return df_melted
 

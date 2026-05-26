@@ -5,6 +5,10 @@ import { useSidebar } from '../composables/useSidebar'
 import { useProfile } from '../composables/useProfile'
 import { isDark, toggleTheme } from '../composables/useTheme'
 import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { 
+  Menu, ArrowLeft, Search, Archive, PlusCircle, 
+  Sun, Moon, Bell, LogOut, User, UserCog, Settings 
+} from 'lucide-vue-next'
 
 const router = useRouter()
 const route = useRoute()
@@ -54,26 +58,26 @@ const abrirModalArquivados = () => {
   <header class="h-16 w-full sticky top-0 z-50 bg-surface border-b border-hairline flex items-center justify-between px-4 lg:px-8 gap-4 transition-colors">
     <div class="flex items-center flex-1 gap-2">
       <button @click="toggleSidebar" class="lg:hidden p-2 -ml-2 text-ink-muted hover:bg-surface-hover rounded-md transition-colors flex items-center justify-center cursor-pointer">
-        <span class="material-symbols-outlined">menu</span>
+        <Menu class="w-[18px] h-[18px]" stroke-width="1.5" />
       </button>
       <button
         v-if="route.path.startsWith('/orcamento')"
         @click="router.push('/engenharia')"
         class="hidden sm:flex items-center gap-1 text-sm font-semibold text-ink-muted hover:text-ink transition-colors shrink-0"
       >
-        <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+        <ArrowLeft class="w-[18px] h-[18px]" stroke-width="1.5" />
         Obras
       </button>
       <button
-        v-else-if="route.path === '/configuracoes'"
+        v-else-if="route.path.startsWith('/configuracoes')"
         @click="router.push('/dashboard')"
         class="hidden sm:flex items-center gap-1 text-sm font-semibold text-ink-muted hover:text-ink transition-colors shrink-0"
       >
-        <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+        <ArrowLeft class="w-[18px] h-[18px]" stroke-width="1.5" />
         Dashboard
       </button>
       <div class="relative w-full max-w-md">
-        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted text-lg">search</span>
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted w-[18px] h-[18px]" stroke-width="1.5" />
         <input class="w-full bg-canvas border border-hairline rounded-md py-2 pl-10 pr-4 text-sm text-ink placeholder:text-ink-muted focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/50 transition-colors" placeholder="Buscar cliente ou obra..." type="text"/>
       </div>
     </div>
@@ -85,32 +89,40 @@ const abrirModalArquivados = () => {
         title="Ver Projetos Arquivados"
         class="hidden sm:flex items-center justify-center w-10 h-10 rounded-md border border-hairline bg-surface text-ink-muted hover:bg-surface-hover hover:text-ink transition-colors group"
       >
-        <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform duration-200">archive</span>
+        <Archive class="w-5 h-5 group-hover:scale-110 transition-transform duration-200" stroke-width="1.5" />
       </button>
       <button v-if="!route.path.startsWith('/orcamento')" @click="emit('new-client')" title="Novo Cliente" class="bg-brand-primary hover:bg-brand-hover text-white p-2 sm:px-6 sm:py-2 rounded-md font-medium transition-colors active:opacity-80 text-sm flex items-center justify-center gap-2 cursor-pointer">
-        <span class="material-symbols-outlined text-[20px] sm:text-[18px]">add_circle</span>
+        <PlusCircle class="w-5 h-5 sm:w-[18px] sm:h-[18px]" stroke-width="1.5" />
         <span class="hidden sm:inline">Novo Cliente</span>
       </button>
       <div class="h-8 w-[1px] bg-hairline mx-2"></div>
       <div class="flex items-center gap-3">
         <button @click="toggleTheme" class="text-ink-muted hover:text-ink hover:bg-surface-hover transition-colors flex items-center cursor-pointer p-1.5 rounded-md" title="Alternar Tema">
-          <span class="material-symbols-outlined text-[20px]">{{ isDark ? 'light_mode' : 'dark_mode' }}</span>
+          <Sun v-if="!isDark" class="w-5 h-5" stroke-width="1.5" />
+          <Moon v-else class="w-5 h-5" stroke-width="1.5" />
         </button>
         <button class="text-ink-muted hover:text-ink hover:bg-surface-hover transition-colors flex items-center cursor-pointer p-1.5 rounded-md">
-          <span class="material-symbols-outlined text-[20px]">notifications</span>
+          <Bell class="w-5 h-5" stroke-width="1.5" />
         </button>
         <button @click="handleLogout" class="text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-400 transition-colors flex items-center cursor-pointer p-1.5 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-md" title="Sair (Logout)">
-          <span class="material-symbols-outlined text-[20px]">logout</span>
+          <LogOut class="w-5 h-5" stroke-width="1.5" />
         </button>
         
         <!-- Avatar / Profile Dropdown -->
         <div class="relative" ref="profileRef">
           <button @click="toggleProfile" class="flex items-center focus:outline-none cursor-pointer">
             <img 
+              v-if="profile?.foto_perfil"
               class="h-9 w-9 rounded-full border border-hairline object-cover hover:border-brand-primary transition-colors" 
               alt="User" 
-              :src="profile?.foto_perfil || 'https://ui-avatars.com/api/?name=' + (profile?.nome_completo || 'User')"
+              :src="profile.foto_perfil"
             />
+            <div
+              v-else
+              class="h-9 w-9 rounded-full border border-hairline hover:border-brand-primary transition-colors flex items-center justify-center bg-canvas text-ink-muted hover:text-ink"
+            >
+              <User class="w-5 h-5" stroke-width="1.5" />
+            </div>
           </button>
  
           <!-- Dropdown Menu -->
@@ -137,11 +149,11 @@ const abrirModalArquivados = () => {
               <!-- Menu Items -->
               <div class="py-1">
                 <button @click="router.push('/configuracoes')" class="w-full text-left px-4 py-2.5 text-sm text-ink hover:bg-surface-hover flex items-center gap-3 transition-colors">
-                  <span class="material-symbols-outlined text-[18px] text-ink-muted">person_edit</span>
+                  <UserCog class="w-[18px] h-[18px] text-ink-muted" stroke-width="1.5" />
                   Editar Cadastro
                 </button>
                 <button @click="router.push('/configuracoes')" class="w-full text-left px-4 py-2.5 text-sm text-ink hover:bg-surface-hover flex items-center gap-3 transition-colors">
-                  <span class="material-symbols-outlined text-[18px] text-ink-muted">settings</span>
+                  <Settings class="w-[18px] h-[18px] text-ink-muted" stroke-width="1.5" />
                   Configurações
                 </button>
               </div>
@@ -149,7 +161,7 @@ const abrirModalArquivados = () => {
               <!-- Logout -->
               <div class="border-t border-hairline mt-1 pt-1">
                 <button @click="handleLogout" class="w-full text-left px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center gap-3 transition-colors font-medium">
-                  <span class="material-symbols-outlined text-[18px]">logout</span>
+                  <LogOut class="w-[18px] h-[18px]" stroke-width="1.5" />
                   Sair do Sistema
                 </button>
               </div>

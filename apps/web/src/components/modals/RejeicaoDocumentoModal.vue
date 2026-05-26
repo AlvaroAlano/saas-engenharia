@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import axios from 'axios'
+import { XCircle, X, AlertTriangle, Loader2, Ban } from 'lucide-vue-next'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -63,11 +64,11 @@ const recusarDocumento = async () => {
       <div class="bg-surface border border-hairline w-full max-w-md overflow-hidden animate-in zoom-in duration-200 shadow-sm rounded-xl">
         <div class="flex items-center justify-between px-6 py-4 border-b border-hairline bg-canvas">
           <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-red-500">cancel</span>
+            <XCircle class="w-5 h-5 text-red-500" stroke-width="1.5" />
             <h3 class="text-lg font-bold text-ink">Recusar Documento</h3>
           </div>
-          <button @click="emit('close')" class="p-1 rounded-lg hover:bg-surface-hover transition-all">
-            <span class="material-symbols-outlined text-ink-muted">close</span>
+          <button @click="emit('close')" class="p-1 rounded-lg hover:bg-surface-hover transition-all flex items-center justify-center">
+            <X class="w-4 h-4 text-ink-muted" stroke-width="1.5" />
           </button>
         </div>
 
@@ -77,7 +78,7 @@ const recusarDocumento = async () => {
           </p>
 
           <div v-if="erro" class="bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm p-3 rounded-lg flex items-start gap-2 mb-4">
-            <span class="material-symbols-outlined text-base">error</span>
+            <AlertTriangle class="w-4 h-4 text-red-650 dark:text-red-400 shrink-0 mt-0.5" stroke-width="1.5" />
             <span>{{ erro }}</span>
           </div>
 
@@ -104,8 +105,8 @@ const recusarDocumento = async () => {
               :disabled="carregando || !motivo.trim()"
               class="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              <span v-if="carregando" class="material-symbols-outlined text-lg animate-spin">progress_activity</span>
-              <span v-else class="material-symbols-outlined text-lg">block</span>
+              <Loader2 v-if="carregando" class="w-4 h-4 animate-spin" stroke-width="1.5" />
+              <Ban v-else class="w-4 h-4" stroke-width="1.5" />
               Recusar
             </button>
           </div>

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import axios from 'axios'
+import { Archive, X, Search, Loader2, Calendar, ArchiveRestore, Trash2 } from 'lucide-vue-next'
 
 const props = defineProps({
   isOpen: {
@@ -119,17 +120,17 @@ const closeDrawer = () => {
           <!-- Cabeçalho da Gaveta -->
           <div class="flex items-center justify-between mb-6">
             <div class="flex items-center gap-3">
-              <span class="material-symbols-outlined text-[28px] sm:text-3xl text-ink-muted">archive</span>
+              <Archive class="w-7 h-7 sm:w-8 sm:h-8 text-ink-muted" stroke-width="1.5" />
               <h2 class="text-xl sm:text-2xl font-bold text-ink">Projetos Arquivados</h2>
             </div>
             <button @click="closeDrawer" class="p-2 rounded-xl bg-canvas text-ink-muted hover:bg-surface-hover hover:text-ink transition-colors cursor-pointer">
-              <span class="material-symbols-outlined text-[24px]">close</span>
+              <X class="w-6 h-6" stroke-width="1.5" />
             </button>
           </div>
 
           <!-- Barra de Pesquisa -->
           <div class="mb-6 relative max-w-2xl">
-            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted">search</span>
+            <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted w-5 h-5" stroke-width="1.5" />
             <input 
               v-model="searchQuery" 
               type="text" 
@@ -142,13 +143,13 @@ const closeDrawer = () => {
           <div class="space-y-3">
             <!-- Estado de Carregamento -->
             <div v-if="isLoading" class="text-center py-12 bg-surface rounded-xl border border-hairline">
-              <span class="material-symbols-outlined text-4xl text-brand-primary animate-spin mb-2">refresh</span>
+              <Loader2 class="w-10 h-10 text-brand-primary animate-spin mx-auto mb-2" stroke-width="1.5" />
               <p class="text-ink-muted font-medium">Buscando projetos arquivados...</p>
             </div>
 
             <!-- Estado Vazio -->
             <div v-else-if="projetosFiltrados.length === 0" class="text-center py-12 bg-surface rounded-xl border border-dashed border-hairline">
-              <span class="material-symbols-outlined text-4xl text-ink-muted mb-2">search_off</span>
+              <Search class="w-10 h-10 text-ink-muted mx-auto mb-2" stroke-width="1.5" />
               <p class="text-ink-muted font-medium">Nenhum projeto encontrado com "{{ searchQuery }}".</p>
             </div>
 
@@ -163,7 +164,7 @@ const closeDrawer = () => {
                 <div class="flex items-center gap-2 mt-1 text-sm text-ink-muted">
                   <span class="font-medium">Cliente:</span> {{ projeto.cliente }}
                   <span class="text-ink-muted">•</span>
-                  <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">calendar_month</span> {{ projeto.data }}</span>
+                  <span class="flex items-center gap-1"><Calendar class="w-3.5 h-3.5" stroke-width="1.5" /> {{ projeto.data }}</span>
                 </div>
               </div>
               
@@ -172,14 +173,14 @@ const closeDrawer = () => {
                   @click="restaurarProjeto(projeto.id)"
                   class="flex-1 sm:flex-none px-4 py-2 bg-surface border border-hairline text-ink rounded-lg hover:bg-brand-primary/10 hover:text-brand-primary hover:border-brand-primary/30 transition-colors text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <span class="material-symbols-outlined text-[18px]">unarchive</span>
+                  <ArchiveRestore class="w-[18px] h-[18px]" stroke-width="1.5" />
                   Restaurar
                 </button>
                 <button 
                   @click="excluirDefinitivamente(projeto.id)"
                   class="flex-1 sm:flex-none px-4 py-2 bg-red-50 dark:bg-red-950/20 text-red-655 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/40 hover:text-red-700 dark:hover:text-red-300 transition-colors text-sm font-semibold flex items-center justify-center gap-2 border border-transparent dark:border-red-900/20 cursor-pointer"
                 >
-                  <span class="material-symbols-outlined text-[18px]">delete_forever</span>
+                  <Trash2 class="w-[18px] h-[18px]" stroke-width="1.5" />
                   <span class="hidden sm:inline">Excluir</span>
                 </button>
               </div>

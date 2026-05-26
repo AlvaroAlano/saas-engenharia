@@ -8,6 +8,7 @@ import TopHeader from './TopHeader.vue'
 import ProjectCard from './ProjectCard.vue'
 import NovoClienteModal from './NovoClienteModal.vue'
 import ArchivedProjectsDrawer from './ArchivedProjectsDrawer.vue'
+import { TrendingUp, LineChart, Loader2, Inbox } from 'lucide-vue-next'
 
 const { showToast } = useToast()
 
@@ -173,7 +174,7 @@ const handleClientCreated = () => {
               </div>
             </div>
             <div class="mt-4 flex items-center gap-1 text-brand-primary font-medium text-xs">
-              <span class="material-symbols-outlined text-sm">trending_up</span>
+              <TrendingUp class="w-4 h-4" stroke-width="1.5" />
               <span>+2 esse mês</span>
             </div>
           </div>
@@ -197,7 +198,7 @@ const handleClientCreated = () => {
               <h2 class="text-3xl font-bold text-ink">R$ 4.2M</h2>
             </div>
             <div class="mt-4 flex items-center gap-1 text-brand-primary font-medium text-xs">
-              <span class="material-symbols-outlined text-sm">auto_graph</span>
+              <LineChart class="w-4 h-4" stroke-width="1.5" />
               <span>Alta no semestre</span>
             </div>
           </div>
@@ -206,7 +207,7 @@ const handleClientCreated = () => {
         <!-- Loading State -->
         <div v-if="isLoading" class="flex items-center justify-center py-20">
           <div class="flex flex-col items-center gap-4 text-ink-muted">
-            <span class="material-symbols-outlined text-4xl animate-spin text-brand-primary">sync</span>
+            <Loader2 class="w-10 h-10 animate-spin text-brand-primary" stroke-width="1.5" />
             <p class="font-medium text-sm tracking-wide">Carregando projetos...</p>
           </div>
         </div>
@@ -231,7 +232,7 @@ const handleClientCreated = () => {
               />
 
               <div v-if="kanbanData[col.id].length === 0" key="__empty__" class="flex flex-col items-center justify-center py-10 px-4 text-center border-2 border-dashed border-hairline/30 rounded-lg bg-canvas/30 text-ink-muted">
-                <span class="material-symbols-outlined text-2xl mb-2 text-ink-muted">inbox</span>
+                <Inbox class="w-6 h-6 mb-2 text-ink-muted" stroke-width="1.5" />
                 <p class="text-xs font-medium">Nenhum projeto nesta fase</p>
               </div>
             </TransitionGroup>

@@ -122,6 +122,11 @@ src/
 - ❌ `v-if` + `v-for` no mesmo elemento.
 - ❌ Hardcoded URLs de API. Usar variáveis de ambiente (`VITE_API_URL`).
 
+### 5.4 Padrões de UI/UX e Estilização (Aesthetic)
+- **Ícones:** A biblioteca oficial de ícones é o `lucide-vue-next`. É **obrigatório** o uso da propriedade `stroke-width="1.5"` em todos os ícones para manter uma estética fina, leve e premium. O uso de ícones preenchidos (solid) ou de bibliotecas legadas (Material Symbols, Heroicons) é estritamente proibido.
+- **Navegação e Hover:** O sistema segue o padrão visual minimalista (estilo Vercel). Efeitos de *hover* em menus e sidebars **NÃO** devem ocupar 100% da largura colando nas bordas. Devem ser "flutuantes", utilizando margens laterais (ex: `mx-2`) e arredondamento sutil (`rounded-md`).
+- **Bordas e Volumes:** O design é "flat" e tech. O padrão de arredondamento para cards, inputs e botões é `rounded-md` ou, no máximo, `rounded-lg`. O uso de bordas excessivamente arredondadas (`rounded-xl` ou superior) não é permitido.
+
 ---
 
 ## 6. TABELAS SUPABASE (SCHEMA PRINCIPAL)

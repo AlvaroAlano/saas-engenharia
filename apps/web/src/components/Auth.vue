@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { supabase } from '../supabase'
 import { useRouter } from 'vue-router'
 import { useToast } from '../composables/useToast'
+import { Layers, Loader2 } from 'lucide-vue-next'
 
 const router = useRouter()
 const { showToast } = useToast()
@@ -75,7 +76,7 @@ const handleAuth = async () => {
       <!-- Cabeçalho -->
       <div class="px-8 pt-8 pb-6 text-center border-b border-hairline">
         <div class="w-12 h-12 bg-brand-primary/10 text-brand-primary rounded-lg flex items-center justify-center mx-auto mb-4">
-          <span class="material-symbols-outlined text-2xl">foundation</span>
+          <Layers class="w-6 h-6" stroke-width="1.5" />
         </div>
         <h2 class="text-2xl font-bold text-ink mb-1">
           {{ isLogin ? 'Acesse o Painel' : 'Cadastro de Engenheiro' }}
@@ -128,7 +129,7 @@ const handleAuth = async () => {
           </div>
 
           <button type="submit" :disabled="isLoading" class="w-full bg-brand-primary hover:bg-brand-hover text-white font-medium py-3 px-4 rounded-lg transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer">
-            <span v-if="isLoading" class="material-symbols-outlined animate-spin text-sm">progress_activity</span>
+            <Loader2 v-if="isLoading" class="w-4 h-4 animate-spin" stroke-width="1.5" />
             <span>{{ isLoading ? 'Processando...' : (isLogin ? 'Entrar no Sistema' : 'Criar Tenant B2B') }}</span>
           </button>
         </form>

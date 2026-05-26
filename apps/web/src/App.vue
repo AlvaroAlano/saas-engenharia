@@ -1,7 +1,12 @@
 <template>
   <div class="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 antialiased transition-colors">
-    <router-view v-slot="{ Component }">
-      <transition name="fade-slide" mode="out-in">
+    <router-view v-slot="{ Component, route }">
+      <!-- Rotas autenticadas têm sidebar: sem transição de página para ela não "voar" -->
+      <!-- Rotas públicas (landing, auth, portal) mantêm o fade-slide -->
+      <transition
+        :name="route.matched.some(r => r.meta.requiresAuth) ? '' : 'fade-slide'"
+        mode="out-in"
+      >
         <component :is="Component" />
       </transition>
     </router-view>

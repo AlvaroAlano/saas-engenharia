@@ -1,5 +1,6 @@
 <script setup>
 import { defineProps } from 'vue'
+import { Info, HelpCircle } from 'lucide-vue-next'
 
 const props = defineProps({
   caixaData: {
@@ -33,12 +34,12 @@ const formatCurrency = (val) => {
     <!-- Juros de Obra Estimados (PCI/PFUI) -->
     <div class="bg-brand-primary/5 border border-brand-primary/20 rounded-xl p-4 shadow-sm relative overflow-hidden">
       <div class="flex items-center gap-2 mb-2">
-        <span class="material-symbols-outlined text-brand-primary text-lg">info</span>
+        <Info class="w-[18px] h-[18px] text-brand-primary" stroke-width="1.5" />
         <h4 class="text-xs font-bold text-ink uppercase tracking-wider">Juros de Evolução de Obra</h4>
         
         <!-- Tooltip Educacional Premium -->
         <div class="group relative inline-block cursor-help ml-1">
-          <span class="material-symbols-outlined text-ink-muted text-sm hover:text-ink transition-colors">help</span>
+          <HelpCircle class="w-3.5 h-3.5 text-ink-muted hover:text-ink transition-colors" stroke-width="1.5" />
           <div class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-zinc-950 text-white text-[10px] rounded-lg p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-xl leading-relaxed z-30">
             <span class="font-bold block mb-1">Como funcionam os juros de obra?</span>
             Os juros de evolução de obra são cobrados pela Caixa sobre a fatia do financiamento já liberada para a construção. Eles aumentam à medida que a obra avança e cessam apenas após a emissão e averbação do Habite-se.
@@ -93,7 +94,4 @@ const formatCurrency = (val) => {
 </template>
 
 <style scoped>
-.material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-}
 </style>
