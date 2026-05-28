@@ -3,8 +3,10 @@ import { ref, onMounted } from 'vue'
 import { supabase } from '../supabase'
 import { useProfile } from '../composables/useProfile'
 import { User, Camera, IdCard, Loader2 } from 'lucide-vue-next'
+import { useToast } from '../composables/useToast'
 
 const { refreshProfile } = useProfile()
+const { showToast } = useToast()
 
 const profile = ref({
   nome_completo: '',
@@ -73,7 +75,7 @@ const handleFileUpload = async (event) => {
     setTimeout(() => uploadProgress.value = 0, 2000)
   } catch (error) {
     console.error('Erro no upload:', error)
-    alert('Erro ao enviar imagem.')
+    showToast('Erro ao enviar imagem.', 'error')
     uploadProgress.value = 0
   }
 }
@@ -98,10 +100,10 @@ const saveProfile = async () => {
     if (error) throw error
     // Atualizar o cache do composable para refletir no TopHeader
     await refreshProfile(true)
-    alert('Perfil atualizado com sucesso!')
+    showToast('Perfil atualizado com sucesso!', 'success')
   } catch (error) {
     console.error('Erro ao salvar perfil:', error)
-    alert('Erro ao salvar dados.')
+    showToast('Erro ao salvar dados.', 'error')
   } finally {
     isSaving.value = false
   }

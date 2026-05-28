@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { supabase } from '../../supabase'
 import { useToast } from '../../composables/useToast'
 import { Building, Upload, Loader2 } from 'lucide-vue-next'
+import BaseButton from '../ui/BaseButton.vue'
 
 const { showToast } = useToast()
 const empresa = ref({ nome_fantasia: '', cnpj: '', endereco_completo: '', logo_url: '' })
@@ -116,10 +117,10 @@ onMounted(fetchEmpresa)
         </div>
       </div>
       <div class="px-6 py-4 bg-canvas/50 border-t border-hairline flex justify-end">
-        <button @click="saveEmpresa" :disabled="isSaving" class="bg-brand-primary hover:bg-brand-hover text-white px-5 py-2 rounded-md font-bold text-sm transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer">
+        <BaseButton variant="primary" @click="saveEmpresa" :disabled="isSaving" class="px-5 h-9 font-bold gap-2">
           <Loader2 v-if="isSaving" class="w-4 h-4 animate-spin" stroke-width="1.5" />
           {{ isSaving ? 'Salvando...' : 'Salvar Dados da Empresa' }}
-        </button>
+        </BaseButton>
       </div>
     </div>
 

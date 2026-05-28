@@ -5,6 +5,9 @@ import { useRoute } from 'vue-router'
 import axios from 'axios'
 import { supabase } from '../supabase'
 import { forceLightMode } from '../composables/useTheme'
+import { useToast } from '../composables/useToast'
+
+const { showToast } = useToast()
 import { 
   ArrowLeft, Building, CheckCircle2, Sofa, Utensils, Bed, Bath, 
   CheckCircle, Landmark, ExternalLink, Check, ChevronDown, Loader2, 
@@ -73,13 +76,20 @@ const loadProjectStatus = async () => {
         }
       }
       
-      // Se documentos já foram enviados completamente, entra direto em Sala de Espera
+      // Detecta documentos rejeitados pelo engenheiro
+      const temRejeitados = (res.data.documentos || []).some(doc => doc.status === 'rejeitado')
+
       if (res.data.status === 'docs_completos') {
         isSuccess.value = true
-        isUploadComplete.value = true
-        isWaitingRoom.value = true
+        if (temRejeitados) {
+          // Há rejeições: reabre a tela de upload em vez da sala de espera
+          isUploadComplete.value = false
+          isWaitingRoom.value = false
+        } else {
+          isUploadComplete.value = true
+          isWaitingRoom.value = true
+        }
       } else if (res.data.status === 'docs_incompletos' || res.data.status === 'docs_pendentes' || res.data.coluna === 'contrato_pendente') {
-        // Se já concluiu simulação e está em documentos pendentes, vai direto para tela de upload
         isSuccess.value = true
         isUploadComplete.value = false
       }
@@ -141,6 +151,10 @@ const allDocsReady = computed(() =>
     const slot = docSlots[cat]
     return !!(slot.file || (slot.existingUrl && slot.status !== 'rejeitado'))
   })
+)
+
+const temDocumentosRecusados = computed(() =>
+  Object.values(docSlots).some(slot => slot.status === 'rejeitado')
 )
 const padraoSelecionado = ref(null)
 const simulacaoCaixaConcluida = ref(false)
@@ -235,11 +249,11 @@ const copyPortalLink = () => {
 
 const solicitarOrcamento = async (eng) => {
   if (!dadosContato.value.nome.trim()) {
-    alert('Por favor, informe seu nome completo.')
+    showToast('Por favor, informe seu nome completo.', 'warning')
     return
   }
   if (!dadosContato.value.telefone.trim() || dadosContato.value.telefone.replace(/\D/g, '').length < 10) {
-    alert('Por favor, informe um telefone/WhatsApp válido.')
+    showToast('Por favor, informe um telefone/WhatsApp válido.', 'warning')
     return
   }
 
@@ -264,11 +278,11 @@ const solicitarOrcamento = async (eng) => {
       isSuccess.value = true
       isUploadComplete.value = false // Direciona para o envio de documentos
     } else {
-      alert('Erro ao enviar solicitação de orçamento.')
+      showToast('Erro ao enviar solicitação de orçamento.', 'error')
     }
   } catch (error) {
     console.error('Erro ao solicitar orçamento:', error)
-    alert(error.response?.data?.detail || 'Erro ao enviar dados. Tente novamente.')
+    showToast(error.response?.data?.detail || 'Erro ao enviar dados. Tente novamente.', 'error')
   } finally {
     isSubmittingLead.value = false
   }
@@ -296,7 +310,7 @@ const finishWizard = async () => {
     isSuccess.value = true
   } catch (error) {
     console.error('Erro ao aprovar estimativa:', error)
-    alert('Erro ao processar sua aprovação. Tente novamente.')
+    showToast('Erro ao processar sua aprovação. Tente novamente.', 'error')
   } finally {
     isLoading.value = false
   }
@@ -371,7 +385,7 @@ const uploadFiles = async () => {
     }
   } catch (error) {
     console.error('Erro detalhado no upload:', error)
-    alert(`Erro ao enviar: ${error.message || 'Verifique sua conexão e tente novamente.'}`)
+    showToast(error.message || 'Verifique sua conexão e tente novamente.', 'error')
   } finally {
     isUploading.value = false
   }
@@ -731,13 +745,31 @@ const uploadFiles = async () => {
       <div v-if="isSuccess" class="p-6 md:p-10 flex-1 flex flex-col items-center justify-center animate-in fade-in zoom-in-95 duration-500 w-full overflow-y-auto">
         
         <div v-if="!isUploadComplete" class="w-full flex flex-col items-center">
-          <div class="w-24 h-24 bg-brand-primary/10 text-brand-primary rounded-full flex items-center justify-center mb-6 border border-brand-primary/20">
-            <CheckCircle2 class="w-12 h-12 text-brand-primary" stroke-width="1.5" />
-          </div>
-          <h2 class="text-2xl md:text-3xl font-black text-ink mb-4 tracking-tight text-center">Estimativa Aprovada! 🚀</h2>
-          <p class="text-ink-muted md:text-lg max-w-sm mx-auto leading-relaxed text-center mb-10">
-            O engenheiro responsável foi notificado. O próximo passo é o envio dos documentos para seguirmos com o seu contrato.
-          </p>
+
+          <!-- Header: Documentos recusados (retorno após rejeição) -->
+          <template v-if="temDocumentosRecusados">
+            <div class="w-24 h-24 bg-red-50 dark:bg-red-950/20 rounded-full flex items-center justify-center mb-6 border border-red-100 dark:border-red-900/30">
+              <AlertTriangle class="w-12 h-12 text-red-500" stroke-width="1.5" />
+            </div>
+            <h2 class="text-2xl md:text-3xl font-black text-ink mb-4 tracking-tight text-center">Ação Necessária</h2>
+            <div class="w-full max-w-md mb-8 bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex items-start gap-3">
+              <AlertTriangle class="w-5 h-5 text-red-500 shrink-0 mt-0.5" stroke-width="1.5" />
+              <p class="text-sm text-red-600 dark:text-red-400 leading-relaxed">
+                Alguns documentos foram recusados pela engenharia. Verifique os motivos abaixo e envie novamente.
+              </p>
+            </div>
+          </template>
+
+          <!-- Header: Primeiro envio -->
+          <template v-else>
+            <div class="w-24 h-24 bg-brand-primary/10 text-brand-primary rounded-full flex items-center justify-center mb-6 border border-brand-primary/20">
+              <CheckCircle2 class="w-12 h-12 text-brand-primary" stroke-width="1.5" />
+            </div>
+            <h2 class="text-2xl md:text-3xl font-black text-ink mb-4 tracking-tight text-center">Estimativa Aprovada! 🚀</h2>
+            <p class="text-ink-muted md:text-lg max-w-sm mx-auto leading-relaxed text-center mb-10">
+              O engenheiro responsável foi notificado. O próximo passo é o envio dos documentos para seguirmos com o seu contrato.
+            </p>
+          </template>
 
           <!-- Dropzones por Documento -->
           <div class="w-full max-w-md space-y-3 mb-6">

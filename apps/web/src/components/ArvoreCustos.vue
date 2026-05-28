@@ -148,7 +148,7 @@ const debouncedUpdateQty = (item) => {
         <button
           @click="emit('aplicar-template-padrao')"
           :disabled="isApplyingTemplate"
-          class="flex items-center gap-1.5 px-3 py-1.5 bg-brand-primary/10 border border-brand-primary/20 rounded-lg text-[11px] font-bold text-brand-primary hover:bg-brand-primary/20 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          class="flex items-center gap-1.5 px-3 py-1.5 bg-ink/10 border border-ink/20 rounded-lg text-[11px] font-bold text-ink hover:bg-ink/20 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           title="Preencher a árvore com os insumos padrão para o tipo desta obra"
         >
           <Loader2 v-if="isApplyingTemplate" class="w-4 h-4 animate-spin" stroke-width="1.5" />
@@ -187,7 +187,7 @@ const debouncedUpdateQty = (item) => {
         <button
           @click="emit('aplicar-template-padrao')"
           :disabled="isApplyingTemplate"
-          class="w-full py-2.5 bg-brand-primary hover:bg-brand-hover text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2 group cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          class="w-full py-2.5 bg-ink hover:bg-brand-hover text-canvas rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2 group cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Loader2 v-if="isApplyingTemplate" class="w-4 h-4 animate-spin" stroke-width="1.5" />
           <Sparkles v-else class="w-4 h-4" stroke-width="1.5" />

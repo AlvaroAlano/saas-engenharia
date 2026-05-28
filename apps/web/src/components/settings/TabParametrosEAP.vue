@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useToast } from '../../composables/useToast'
 import { ETAPAS_OBRA } from '../../constants/etapas'
+import BaseButton from '../ui/BaseButton.vue'
 import {
   FilePenLine,
   Lock,
@@ -124,17 +125,16 @@ onMounted(loadTemplates)
 
       <!-- Seletor de padrão -->
       <div class="px-6 py-4 flex items-center gap-2 border-b border-hairline bg-canvas/40">
-        <button
+        <BaseButton
           v-for="p in PADROES"
           :key="p.id"
           @click="activePadrao = p.id"
-          class="px-4 py-1.5 rounded-md text-sm font-semibold transition-all focus:outline-none cursor-pointer"
-          :class="activePadrao === p.id
-            ? 'bg-brand-primary text-white'
-            : 'bg-canvas border border-hairline text-ink-muted hover:text-ink'"
+          :variant="activePadrao === p.id ? 'primary' : 'secondary'"
+          size="sm"
+          class="font-semibold"
         >
           {{ p.label }}
-        </button>
+        </BaseButton>
 
         <div class="ml-auto flex items-center gap-2">
           <span
@@ -213,26 +213,29 @@ onMounted(loadTemplates)
 
       <!-- Rodapé com ações -->
       <div class="px-6 py-4 bg-canvas/50 border-t border-hairline flex items-center justify-between gap-3">
-        <button
+        <BaseButton
           v-if="isCustomizado"
+          variant="ghost"
+          size="sm"
           @click="resetTemplate"
           :disabled="isResetting"
-          class="flex items-center gap-1.5 text-xs text-ink-muted hover:text-ink transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center"
+          class="text-ink-muted flex items-center gap-1.5"
         >
           <RotateCcw class="w-3.5 h-3.5" stroke-width="1.5" />
           Restaurar padrão do sistema
-        </button>
+        </BaseButton>
         <span v-else class="text-xs text-ink-muted italic">Editando os parâmetros criará sua versão personalizada.</span>
 
-        <button
+        <BaseButton
+          variant="primary"
           @click="saveTemplate"
           :disabled="isSaving"
-          class="ml-auto flex items-center gap-2 bg-brand-primary hover:bg-brand-hover text-white px-5 py-2 rounded-md font-bold text-sm transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center"
+          class="px-5 h-9 font-bold gap-2"
         >
           <Loader2 v-if="isSaving" class="w-4 h-4 animate-spin" stroke-width="1.5" />
           <Save v-else class="w-4 h-4" stroke-width="1.5" />
           {{ isCustomizado ? 'Atualizar Parâmetros' : 'Salvar como Personalizado' }}
-        </button>
+        </BaseButton>
       </div>
     </div>
 

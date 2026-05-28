@@ -2,7 +2,6 @@
 import { ref, onMounted, watch, computed, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
-import Sidebar from './Sidebar.vue'
 import TopHeader from './TopHeader.vue'
 import SinapiTable from './SinapiTable.vue'
 import EditItemModal from './modals/EditItemModal.vue'
@@ -417,7 +416,6 @@ onUnmounted(() => {
 
 <template>
   <div class="bg-canvas text-ink font-sans min-h-screen overflow-x-hidden">
-    <Sidebar />
     <main class="ml-0 lg:ml-64 min-h-screen w-full lg:w-[calc(100vw-16rem)] transition-all duration-300">
       <TopHeader />
       <div class="p-8">

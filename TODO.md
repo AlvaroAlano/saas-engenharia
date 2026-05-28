@@ -361,27 +361,27 @@
 > **Contexto:** O sistema tem dois documentos distintos: **Proposta Comercial** (valores do CUB, gerada logo após aceitar o lead) e **Contrato de Construção** (valores reais do SINAPI, gerado após planilha pronta). Hoje os templates são genéricos sem distinção, o que pode causar geração do documento errado na hora errada.
 
 ### P14.1 — Backend: Adicionar campo `tipo` nos templates de contrato
-- [ ] **Criar migration** `006_tipo_template_contrato.sql`: adicionar coluna `tipo text DEFAULT 'proposta' CHECK (tipo IN ('proposta', 'contrato'))` na tabela `templates_contrato`
-- [ ] **Atualizar endpoints** em `routers/integracoes.py`:
+- [x] **Criar migration** `010_tipo_template_contrato.sql`: adicionar coluna `tipo text DEFAULT 'proposta' CHECK (tipo IN ('proposta', 'contrato'))` na tabela `templates_contrato`
+- [x] **Atualizar endpoints** em `routers/integracoes.py`:
   - `POST /contratos-templates` — aceitar campo `tipo` no payload
   - `GET /contratos-templates` — retornar `tipo` em cada template
-  - `GET /contratos-templates/{id}` — retornar `tipo`
-- [ ] **Injetar variáveis SINAPI** no `gerar_contrato()`: buscar `orcamento_itens` do projeto e injetar `{{valor_total_sinapi}}`, `{{mes_referencia_sinapi}}`, `{{bdi}}`, `{{valor_por_m2_sinapi}}` no template antes de gerar o PDF
+  - `GET /contratos-templates/{id}` — retornar `tipo` (já via `select("*")`)
+- [x] **Injetar variáveis SINAPI** no `gerar_contrato()`: buscar `orcamento_itens` do projeto e injetar `{{valor_total_sinapi}}`, `{{mes_referencia_sinapi}}`, `{{bdi}}`, `{{valor_por_m2_sinapi}}` no template antes de gerar o PDF
 
 ### P14.2 — Frontend: Separar lista de templates em `ConfiguracoesContratos.vue`
-- [ ] **Dividir a lista lateral** em dois grupos com separador visual:
+- [x] **Dividir a lista lateral** em dois grupos com separador visual:
   - Grupo "PROPOSTAS COMERCIAIS" — templates com `tipo === 'proposta'`
   - Grupo "CONTRATOS DE CONSTRUÇÃO" — templates com `tipo === 'contrato'`
   - Botão "+ Nova proposta" e "+ Novo contrato" separados
-- [ ] **Editor de template**: ao criar/editar, mostrar apenas as variáveis disponíveis para o tipo selecionado (ver tabela no PRODUTO.md Seção 3.0)
+- [x] **Editor de template**: ao criar/editar, mostrar apenas as variáveis disponíveis para o tipo selecionado
 - [ ] Testar: Criar uma proposta e um contrato — cada um deve aparecer no grupo correto; variáveis disponíveis devem ser as do tipo
 
-### P14.3 — Frontend: Restringir geração de contrato por fase no `ProjectCard.vue`
-- [ ] **Botão "Gerar Proposta Comercial"**: visível a partir de `contrato_pendente` (lead aceitou, docs analisados)
+### P14.3 — Frontend: Restringir geração de contrato por fase no `ProjectCard.vue` [x] *Concluída em 2026-05-28*
+- [x] **Botão "Gerar Proposta Comercial"**: visível a partir de `contrato_pendente` (lead aceitou, docs analisados)
   - Usa template do tipo `proposta`; injeta variáveis do CUB
-- [ ] **Botão "Gerar Contrato de Construção"**: visível apenas quando `coluna === 'engenharia_caixa'` **e** `total_sinapi > 0` (planilha tem itens)
+- [x] **Botão "Gerar Contrato de Construção"**: visível apenas quando `coluna === 'engenharia_caixa'` **e** `total_sinapi > 0` (planilha tem itens)
   - Usa template do tipo `contrato`; injeta variáveis reais do SINAPI
-- [ ] Testar: Projeto em `estimativa_enviada` não deve ter nenhum botão de geração de documento; projeto em `engenharia_caixa` sem itens SINAPI deve ter o botão desabilitado com tooltip explicativo
+- [x] Testar: Projeto em `estimativa_enviada` não deve ter nenhum botão de geração de documento; projeto em `engenharia_caixa` sem itens SINAPI deve ter o botão desabilitado com tooltip explicativo
 
 ---
 

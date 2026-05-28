@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { supabase } from '../../supabase'
 import { useToast } from '../../composables/useToast'
 import axios from 'axios'
+import BaseButton from '../ui/BaseButton.vue'
 import {
   AlertTriangle,
   CheckCircle2,
@@ -225,14 +226,15 @@ onMounted(fetchVitrine)
           Visualizar Vitrine
         </a>
         <span v-else class="text-xs text-ink-muted italic">Salve uma URL para visualizar</span>
-        <button
+        <BaseButton
+          variant="primary"
           @click="saveSlug"
           :disabled="isSavingSlug || !!slugError || !vitrine.slug_vitrine"
-          class="bg-brand-primary hover:bg-brand-hover text-white px-5 py-2 rounded-md font-bold text-sm transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+          class="px-5 h-9 font-bold gap-2"
         >
           <Loader2 v-if="isSavingSlug" class="w-4 h-4 animate-spin" stroke-width="1.5" />
           {{ isSavingSlug ? 'Salvando...' : 'Salvar URL' }}
-        </button>
+        </BaseButton>
       </div>
     </div>
 
@@ -252,14 +254,15 @@ onMounted(fetchVitrine)
         <p class="text-xs text-ink-muted mt-1.5 text-right">{{ vitrine.descricao_vitrine.length }} / 1000 caracteres</p>
       </div>
       <div class="px-6 py-4 bg-canvas/50 border-t border-hairline flex justify-end">
-        <button
+        <BaseButton
+          variant="primary"
           @click="saveBio"
           :disabled="isSavingBio"
-          class="bg-brand-primary hover:bg-brand-hover text-white px-5 py-2 rounded-md font-bold text-sm transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+          class="px-5 h-9 font-bold gap-2"
         >
           <Loader2 v-if="isSavingBio" class="w-4 h-4 animate-spin" stroke-width="1.5" />
           {{ isSavingBio ? 'Salvando...' : 'Salvar Apresentação' }}
-        </button>
+        </BaseButton>
       </div>
     </div>
 
@@ -279,12 +282,14 @@ onMounted(fetchVitrine)
             @keydown.enter.prevent="addCidade"
             @keydown.,.prevent="addCidade"
           />
-          <button
+          <BaseButton
+            variant="primary"
+            size="icon"
             @click="addCidade"
-            class="px-4 py-2.5 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary rounded-md text-sm font-bold transition-colors cursor-pointer flex items-center justify-center"
+            class="h-10 w-10 shrink-0"
           >
             <Plus class="w-4 h-4" stroke-width="1.5" />
-          </button>
+          </BaseButton>
         </div>
         <p class="text-xs text-ink-muted">Pressione Enter ou vírgula para adicionar.</p>
         <div v-if="vitrine.cidades_atuacao.length" class="flex flex-wrap gap-2 pt-1">
@@ -303,14 +308,15 @@ onMounted(fetchVitrine)
         <p v-else class="text-xs text-ink-muted italic">Nenhuma cidade adicionada ainda.</p>
       </div>
       <div class="px-6 py-4 bg-canvas/50 border-t border-hairline flex justify-end">
-        <button
+        <BaseButton
+          variant="primary"
           @click="saveCidades"
           :disabled="isSavingCidades"
-          class="bg-brand-primary hover:bg-brand-hover text-white px-5 py-2 rounded-md font-bold text-sm transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+          class="px-5 h-9 font-bold gap-2"
         >
           <Loader2 v-if="isSavingCidades" class="w-4 h-4 animate-spin" stroke-width="1.5" />
           {{ isSavingCidades ? 'Salvando...' : 'Salvar Cidades' }}
-        </button>
+        </BaseButton>
       </div>
     </div>
 
@@ -330,12 +336,14 @@ onMounted(fetchVitrine)
           >
             <img :src="url" class="h-full w-full object-cover" />
             <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <button
+              <BaseButton
+                variant="danger"
+                size="icon"
                 @click="removePortfolioPhoto(i)"
-                class="p-1.5 bg-red-500 hover:bg-red-600 rounded-lg transition-colors cursor-pointer flex items-center justify-center"
+                class="p-1.5 rounded-lg text-white"
               >
                 <Trash2 class="w-4 h-4 text-white" stroke-width="1.5" />
-              </button>
+              </BaseButton>
             </div>
           </div>
 

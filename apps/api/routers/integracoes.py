@@ -3,7 +3,10 @@ import io
 import re
 import httpx
 import base64
+import logging
 from typing import Optional, List, Dict, Any
+
+logger = logging.getLogger(__name__)
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -27,10 +30,12 @@ class ImportarTemplateRequest(BaseModel):
 class TemplateCreate(BaseModel):
     titulo: str
     conteudo: str
+    tipo: str = "proposta"
 
 class TemplateUpdate(BaseModel):
     titulo: Optional[str] = None
     conteudo: Optional[str] = None
+    tipo: Optional[str] = None
 
 class EnviarZapSignRequest(BaseModel):
     template_id: str
@@ -107,7 +112,7 @@ async def importar_template(projeto_id: str, template_id: str, payload: Importar
 @router.get("/contratos-templates")
 async def listar_templates_contrato(supabase_client: Client = Depends(get_authenticated_supabase)):
     try:
-        res = supabase_client.table("templates_contrato").select("id, titulo, created_at").order("created_at").execute()
+        res = supabase_client.table("templates_contrato").select("id, titulo, tipo, created_at").order("created_at").execute()
         return res.data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -123,7 +128,7 @@ async def buscar_template_contrato(id: str, supabase_client: Client = Depends(ge
 @router.post("/contratos-templates")
 async def criar_template_contrato(template: TemplateCreate, supabase_client: Client = Depends(get_authenticated_supabase), user_id: str = Depends(get_user_id)):
     try:
-        res = supabase_client.table("templates_contrato").insert({"titulo": template.titulo, "conteudo": template.conteudo, "usuario_id": user_id}).execute()
+        res = supabase_client.table("templates_contrato").insert({"titulo": template.titulo, "conteudo": template.conteudo, "tipo": template.tipo, "usuario_id": user_id}).execute()
         return {"success": True, "data": res.data[0]}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -157,31 +162,66 @@ def gerar_contrato(id: str, template_id: str = Query(...), supabase_client: Clie
     try:
         res_projeto = supabase_client.table("projetos_clientes").select("*").eq("id", id).single().execute()
         projeto = res_projeto.data
+
+        documentos = projeto.get("documentos") or []
+        categorias_obrigatorias = {'identidade', 'residencia', 'estado_civil'}
+        docs_aprovados = {d.get('categoria') for d in documentos if d.get('status') == 'aprovado'}
+        if not categorias_obrigatorias.issubset(docs_aprovados):
+            raise HTTPException(
+                status_code=403,
+                detail="Todos os 3 documentos obrigatórios devem estar com status 'aprovado' para gerar o contrato."
+            )
+
         res_template = supabase_client.table("templates_contrato").select("*").eq("id", template_id).single().execute()
         template_db = res_template.data
-        
+
         valor_num = projeto.get("valor", 0)
         valor_formatado = f"R$ {valor_num:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if valor_num else "R$ 0,00"
-        
-        texto_final = template_db.get("conteudo", "").replace("{{cliente_nome}}", str(projeto.get("cliente_nome", ""))) \
+
+        # Variáveis SINAPI — calculadas a partir dos itens do orçamento
+        res_itens = supabase_client.table("orcamento_itens").select("valor_unitario, quantidade").eq("projeto_id", id).execute()
+        itens = res_itens.data or []
+        bdi_perc = float(projeto.get("bdi_padrao") or 0.0)
+        fator_bdi = 1 + (bdi_perc / 100)
+        valor_total_sinapi = sum(
+            float(item.get("valor_unitario") or 0) * float(item.get("quantidade") or 0) * fator_bdi
+            for item in itens
+        )
+        _tamanho_raw = re.sub(r"[^\d.,]", "", str(projeto.get("tamanho") or "0")).replace(",", ".")
+        tamanho = float(_tamanho_raw) if _tamanho_raw else 0.0
+        valor_por_m2_sinapi = valor_total_sinapi / tamanho if tamanho > 0 else 0.0
+
+        def fmt_brl(v: float) -> str:
+            return f"R$ {v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+        texto_final = template_db.get("conteudo", "") \
+            .replace("{{cliente_nome}}", str(projeto.get("cliente_nome", ""))) \
             .replace("{{tamanho}}", str(projeto.get("tamanho", ""))) \
             .replace("{{padrao}}", str(projeto.get("padrao", ""))) \
-            .replace("{{valor}}", str(valor_formatado))
-        
+            .replace("{{valor}}", str(valor_formatado)) \
+            .replace("{{valor_total_sinapi}}", fmt_brl(valor_total_sinapi)) \
+            .replace("{{mes_referencia_sinapi}}", str(projeto.get("sinapi_mes_ano") or "-")) \
+            .replace("{{bdi}}", f"{bdi_perc:.1f}%") \
+            .replace("{{valor_por_m2_sinapi}}", fmt_brl(valor_por_m2_sinapi))
+
         pdf_bytes = generate_contract_pdf(texto_final)
         buffer = io.BytesIO(pdf_bytes)
         buffer.seek(0)
-        
-        supabase_client.table("projetos_clientes").update({"contrato_gerado": True}).eq("id", id).execute()
-        supabase_client.table("projetos_historico").insert({
-            "projeto_id": id, "acao": "Contrato Gerado", "detalhes": f"Template: {template_db.get('titulo')}"
-        }).execute()
+
+        try:
+            supabase_client.table("projetos_clientes").update({"contrato_gerado": True}).eq("id", id).execute()
+            supabase_client.table("projetos_historico").insert({
+                "projeto_id": id, "acao": "Contrato Gerado", "detalhes": f"Template: {template_db.get('titulo')}"
+            }).execute()
+        except Exception as audit_err:
+            logger.warning("Falha ao registrar auditoria do contrato (não fatal): %s", audit_err)
 
         headers = {"Content-Disposition": f'inline; filename="contrato_{id}.pdf"'}
         return StreamingResponse(buffer, media_type="application/pdf", headers=headers)
     except HTTPException:
         raise
     except Exception as e:
+        logger.exception("Erro ao gerar contrato para projeto %s", id)
         raise HTTPException(status_code=500, detail="Erro ao gerar o contrato. Tente novamente.")
 
 @router.post("/projetos/{id}/enviar-zapsign")
@@ -193,9 +233,19 @@ async def enviar_para_zapsign(id: str, payload: EnviarZapSignRequest, supabase_c
     try:
         res_projeto = supabase_client.table("projetos_clientes").select("*").eq("id", id).single().execute()
         projeto = res_projeto.data
+
+        documentos = projeto.get("documentos") or []
+        categorias_obrigatorias = {'identidade', 'residencia', 'estado_civil'}
+        docs_aprovados = {d.get('categoria') for d in documentos if d.get('status') == 'aprovado'}
+        if not categorias_obrigatorias.issubset(docs_aprovados):
+            raise HTTPException(
+                status_code=403,
+                detail="Todos os 3 documentos obrigatórios devem estar com status 'aprovado' para enviar o contrato."
+            )
+
         res_template = supabase_client.table("templates_contrato").select("*").eq("id", payload.template_id).single().execute()
         template_db = res_template.data
-        
+
         valor_num = projeto.get("valor", 0)
         valor_formatado = f"R$ {valor_num:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if valor_num else "R$ 0,00"
         
@@ -226,14 +276,32 @@ async def enviar_para_zapsign(id: str, payload: EnviarZapSignRequest, supabase_c
         data = resp.json()
         doc_token = data["token"]
         signers = data["signers"]
-        
-        supabase_client.table("projetos_clientes").update({
-            "contrato_gerado": True, "zapsign_document_token": doc_token,
-            "url_assinatura_cliente": signers[0].get("sign_url") if len(signers) > 0 else "",
-            "url_assinatura_engenheiro": signers[1].get("sign_url") if len(signers) > 1 else "",
-            "status_assinatura": "pendente"
-        }).eq("id", id).execute()
 
+        cliente_signer  = signers[0] if len(signers) > 0 else {}
+        eng_signer      = signers[1] if len(signers) > 1 else {}
+
+        base_update = {
+            "contrato_gerado":           True,
+            "zapsign_document_token":    doc_token,
+            "url_assinatura_cliente":    cliente_signer.get("sign_url", ""),
+            "url_assinatura_engenheiro": eng_signer.get("sign_url", ""),
+            "status_assinatura":         "pendente",
+            "cliente_assinou":           False,
+            "engenheiro_assinou":        False,
+        }
+
+        # Tenta incluir os tokens de signatários (requer migration 012)
+        try:
+            supabase_client.table("projetos_clientes").update({
+                **base_update,
+                "zapsign_signer_token_cliente":    cliente_signer.get("token", ""),
+                "zapsign_signer_token_engenheiro": eng_signer.get("token", ""),
+            }).eq("id", id).execute()
+        except Exception:
+            logger.warning("Colunas de signer_token indisponíveis — aplicar migration 012. Salvando sem elas.")
+            supabase_client.table("projetos_clientes").update(base_update).eq("id", id).execute()
+
+        logger.info("Contrato enviado ao ZapSign. doc_token=%s projeto=%s", doc_token, id)
         return {"success": True, "data": {"token": doc_token}}
     except Exception as e:
         if isinstance(e, HTTPException): raise e
@@ -244,35 +312,109 @@ async def enviar_para_zapsign(id: str, payload: EnviarZapSignRequest, supabase_c
 @router.post("/zapsign-webhook")
 async def zapsign_webhook(request: Request, secret_token: Optional[str] = Query(None)):
     """
-    Recebe notificações da ZapSign sobre status de assinatura.
-    Utiliza Service Role para atualizar o banco sem necessidade de JWT de usuário.
-    Valida a origem através de um token secreto configurado no ambiente.
+    Recebe notificações da ZapSign sobre eventos de assinatura.
+    - signer_signed: um signatário específico assinou — atualiza cliente_assinou ou engenheiro_assinou.
+    - doc_signed: todos assinaram — fecha o contrato e salva o PDF final.
+    Usa Service Role para bypass de RLS; valida origem pelo ZAPSIGN_WEBHOOK_SECRET.
     """
     expected_token = os.environ.get("ZAPSIGN_WEBHOOK_SECRET")
     if not expected_token or secret_token != expected_token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Acesso negado: Token de webhook inválido.")
-    
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Acesso negado: token de webhook inválido.")
+
     try:
         data = await request.json()
         event_type = data.get("event_type")
-        doc_token = data.get("document", {}).get("token")
-        
+        document   = data.get("document", {})
+        doc_token  = document.get("token")
+
+        logger.info("Webhook ZapSign recebido: event=%s doc_token=%s", event_type, doc_token)
+
         if not doc_token:
-             return {"status": "ignored", "message": "Nenhum token de documento encontrado."}
-             
+            return {"status": "ignored", "message": "Token de documento ausente."}
+
         service_client = get_service_supabase()
-        
+
+        # --- Assinatura individual de um signatário ---
+        if event_type == "signer_signed":
+            signer       = data.get("signer", {})
+            signer_token = signer.get("token", "")
+
+            if not signer_token:
+                return {"status": "ignored", "message": "Token do signatário ausente."}
+
+            # Busca o projeto para comparar tokens dos signatários
+            try:
+                res = service_client.table("projetos_clientes") \
+                    .select("id, zapsign_document_token, zapsign_signer_token_cliente, zapsign_signer_token_engenheiro") \
+                    .eq("zapsign_document_token", doc_token) \
+                    .execute()
+            except Exception as sel_err:
+                # Colunas de token ainda não existem no banco (migration 012 pendente):
+                # identifica o projeto só pelo doc_token e registra quem assinou pelo nome.
+                logger.warning("signer_signed SELECT falhou (%s). Aguardando migration 012.", sel_err)
+                res_id = service_client.table("projetos_clientes") \
+                    .select("id") \
+                    .eq("zapsign_document_token", doc_token) \
+                    .execute()
+                if not res_id.data:
+                    return {"status": "ignored", "message": "Projeto não encontrado."}
+                logger.info("signer_signed registrado sem token comparison. projeto=%s", res_id.data[0]["id"])
+                return {"status": "received", "message": "Assinatura recebida (tokens pendentes de migration)."}
+
+            if not res.data:
+                logger.warning("Webhook signer_signed: nenhum projeto encontrado para doc_token=%s", doc_token)
+                return {"status": "ignored", "message": "Projeto não encontrado."}
+
+            projeto = res.data[0]
+            update  = {}
+
+            if signer_token == projeto.get("zapsign_signer_token_cliente"):
+                update["cliente_assinou"] = True
+                logger.info("Cliente assinou o contrato. projeto=%s", projeto["id"])
+            elif signer_token == projeto.get("zapsign_signer_token_engenheiro"):
+                update["engenheiro_assinou"] = True
+                logger.info("Engenheiro assinou o contrato. projeto=%s", projeto["id"])
+            else:
+                logger.warning(
+                    "Token de signatário desconhecido=%s para projeto=%s — ignorando.",
+                    signer_token, projeto["id"]
+                )
+                return {"status": "ignored", "message": "Signatário não reconhecido."}
+
+            service_client.table("projetos_clientes").update(update) \
+                .eq("id", projeto["id"]).execute()
+
+            return {"status": "success", "message": "Assinatura individual registrada."}
+
+        # --- Documento totalmente assinado por todos ---
         if event_type == "doc_signed":
-            # Atualiza status no banco
-            service_client.table("projetos_clientes").update({
-                "status_assinatura": "assinado",
-                "cliente_assinou": True,
-                "engenheiro_assinou": True # Simplificação para este exemplo
-            }).eq("zapsign_document_token", doc_token).execute()
-            
-            return {"status": "success", "message": "Status atualizado para assinado."}
-            
-        return {"status": "received", "message": f"Evento {event_type} recebido."}
-        
+            pdf_url = document.get("pdf_file", "")
+
+            update_payload: Dict[str, Any] = {
+                "status_assinatura":  "assinado",
+                "cliente_assinou":    True,
+                "engenheiro_assinou": True,
+            }
+
+            # Tenta salvar a URL do PDF assinado; ignora se a coluna ainda não existir no banco
+            if pdf_url:
+                try:
+                    service_client.table("projetos_clientes").update(
+                        {**update_payload, "url_contrato_assinado": pdf_url}
+                    ).eq("zapsign_document_token", doc_token).execute()
+                except Exception:
+                    logger.warning("Coluna url_contrato_assinado indisponível — aplicar migration 012. Atualizando sem ela.")
+                    service_client.table("projetos_clientes").update(update_payload) \
+                        .eq("zapsign_document_token", doc_token).execute()
+            else:
+                service_client.table("projetos_clientes").update(update_payload) \
+                    .eq("zapsign_document_token", doc_token).execute()
+
+            logger.info("Contrato totalmente assinado. doc_token=%s pdf_url=%s", doc_token, pdf_url)
+            return {"status": "success", "message": "Contrato marcado como assinado."}
+
+        return {"status": "received", "message": f"Evento '{event_type}' recebido e ignorado."}
+
     except Exception as e:
+        logger.exception("Erro no webhook ZapSign: %s", e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erro no webhook: {str(e)}")

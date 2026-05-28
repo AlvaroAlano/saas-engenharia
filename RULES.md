@@ -69,7 +69,7 @@ backend-engenharia/
 - **Pydantic v2** para validação de entrada. Usar `model_dump(exclude_unset=True)` para PATCHs parciais.
 - Respostas de **sucesso** seguem: `{"success": True, "data": {...}}`.
 - Respostas de **erro** seguem: `{"success": False, "message": "...", "error_code": "..."}`.
-- **Nunca** usar `async def` para funções que bloqueiam CPU (pandas, fpdf). Mover para ThreadPool ou manter como `def` (FastAPI roda em thread separada automaticamente).
+- **Nunca** usar `async def` para funções que bloqueiam CPU (pandas, fpdf). Manter como `def` (FastAPI delega para thread pool automaticamente).
 
 ### 3.3 Rotas Legadas
 - Existem rotas de compatibilidade (`/api/orcamentos`) que mapeiam para `projetos_clientes`. **NÃO** remover sem migrar o frontend correspondente.
@@ -96,20 +96,27 @@ src/
 ├── main.js              # Setup: Vue, Router, Plugins.
 ├── router.js            # Rotas com guards de autenticação.
 ├── supabase.js          # Client Supabase (anon key via env vars Vite).
-├── style.css            # Global styles.
-├── composables/         # Lógica reativa reutilizável (useProfile, useToast, useSidebar).
-├── components/          # Componentes de página e UI.
-│   └── modals/          # Modais extraídos (EditItemModal, SetupOrcamentoModal, ShareModal, etc).
+├── style.css            # Tokens de design global (@theme, :root, .dark).
+├── composables/
+│   ├── useProfile.js    # Perfil do usuário autenticado.
+│   ├── useToast.js      # Toast global: showToast(msg, type, duration).
+│   ├── useNotificacoes.js # Notificações em tempo real (docs recebidos).
+│   ├── useSidebar.js    # Estado da sidebar.
+│   └── useTheme.js      # Modo claro/escuro.
+├── components/
+│   ├── ui/              # Primitivos: BaseButton.vue, etc.
+│   └── modals/          # BaseModal.vue + todos os modais de ação.
 └── assets/              # Recursos estáticos.
 ```
 
 ### 5.2 Regras de Código
 - **Composition API (`<script setup>`)** é o padrão. Options API está proibida para novos componentes.
 - **Padrão Smart & Dumb Components:**
-  - **Views/Pages** (Dashboard, Orcamento, EngenhariaList): orquestram dados, chamam API, gerenciam estado local. Lógica pesada reside aqui.
-  - **Componentes Dumb** (StatusCard, DocumentCard, ProjectCard): recebem `props`, emitem `events`. Sem chamadas API diretas.
-- **Modais DEVEM ser componentes separados** em `src/components/modals/`. Nunca inline na view. Comunicação via `v-model:show` + `emit`.
-- **Composables** (`composables/`) para lógica reativa compartilhada (perfil, toast, sidebar). Novos composables são encorajados.
+  - **Views/Pages** (Dashboard, Orcamento, EngenhariaList): orquestram dados, chamam API, gerenciam estado local.
+  - **Componentes Dumb** (StatusCard, DocumentCard): recebem `props`, emitem `events`. Sem chamadas API diretas.
+  - **Exceção pragmática:** `ProjectCard.vue` e `DrawerDetalheProjeto.vue` fazem chamadas API internas para ações pontuais (aprovar doc, validar, liberar obra). Isso é aceitável porque extrair para a view geraria prop-drilling excessivo. Não estender esse padrão a novos componentes sem justificativa.
+- **Modais DEVEM ser componentes separados** em `src/components/modals/`. Nunca inline na view. Todo modal usa `BaseModal.vue` como wrapper. Comunicação via `emit('close')` + `emit('update'/'salvar'/'rejeitado')`.
+- **Composables** (`composables/`) para lógica reativa compartilhada. Novos composables são encorajados para qualquer estado compartilhado entre mais de um componente.
 - Chamadas à API backend usam `axios` com interceptor de token. O token JWT Supabase é injetado no header `Authorization: Bearer`.
 - **Tailwind CSS v4** com `@tailwindcss/vite`. Sem `tailwind.config.js` legado.
 - Roteamento usa `createWebHistory()`. O `vercel.json` redireciona tudo para `index.html` (SPA).
@@ -121,15 +128,162 @@ src/
 - ❌ Componentes com mais de 500 linhas sem justificativa. Decompor em sub-componentes.
 - ❌ `v-if` + `v-for` no mesmo elemento.
 - ❌ Hardcoded URLs de API. Usar variáveis de ambiente (`VITE_API_URL`).
+- ❌ `alert()` nativo para feedback de erro. Usar `useToast()`.
+- ❌ Verificar ausência de estado para inferir presença de outro (ex: "nenhum 'em análise' = todos aprovados"). Sempre verificar o estado explicitamente.
+- ❌ Early-return em computed que bypasse a validação real (ex: `if (status === 'X') return true` antes de checar os itens individuais).
 
-### 5.4 Padrões de UI/UX e Estilização (Aesthetic)
-- **Ícones:** A biblioteca oficial de ícones é o `lucide-vue-next`. É **obrigatório** o uso da propriedade `stroke-width="1.5"` em todos os ícones para manter uma estética fina, leve e premium. O uso de ícones preenchidos (solid) ou de bibliotecas legadas (Material Symbols, Heroicons) é estritamente proibido.
-- **Navegação e Hover:** O sistema segue o padrão visual minimalista (estilo Vercel). Efeitos de *hover* em menus e sidebars **NÃO** devem ocupar 100% da largura colando nas bordas. Devem ser "flutuantes", utilizando margens laterais (ex: `mx-2`) e arredondamento sutil (`rounded-md`).
-- **Bordas e Volumes:** O design é "flat" e tech. O padrão de arredondamento para cards, inputs e botões é `rounded-md` ou, no máximo, `rounded-lg`. O uso de bordas excessivamente arredondadas (`rounded-xl` ou superior) não é permitido.
+### 5.4 Sistema de Tokens de Design (CSS Custom Properties)
+O projeto usa um sistema de tokens semânticos definido em `style.css`. **NUNCA** usar classes hardcoded do Tailwind como `bg-neutral-900` ou `text-white` onde um token semântico exista.
+
+| Token | Light | Dark | Uso |
+|---|---|---|---|
+| `bg-canvas` | `#f4f4f5` | `#000000` | Fundo da página, inputs |
+| `bg-surface` | `#ffffff` | `#0a0a0a` | Cards, painéis, headers |
+| `bg-surface-hover` | `#eaeaea` | `#1a1a1a` | Hover de itens interativos |
+| `border-hairline` | `#e5e5e5` | `#1f1f1f` | Bordas sutis universais |
+| `text-ink` | `#000000` | `#ffffff` | Texto primário |
+| `text-ink-muted` | `#666666` | `#888888` | Texto secundário/placeholder |
+| `bg-brand-primary` | `#000000` | `#ffffff` | CTAs principais |
+| `bg-brand-hover` | `#111111` | `#eaeaea` | Hover de CTAs |
+
+Cores semânticas fixas (não variam com tema): `emerald-*` (sucesso), `red-*` (erro/recusa), `amber-*` (atenção/análise), `blue-*` (info/ação), `indigo-*` (engenharia).
+
+### 5.5 Sistema de Arredondamento
+O `style.css` define um sistema de raios com escala explícita. O padrão base é `rounded-md` (8px).
+
+| Classe | Valor | Uso |
+|---|---|---|
+| `rounded-sm` | 6px | Tags, badges, chips |
+| `rounded-md` | 8px | **Padrão base:** botões, inputs, cards compactos |
+| `rounded-lg` | 12px | Cards de conteúdo, dropdowns |
+| `rounded-xl` | 16px | Painéis, drawers, seções internas de modais |
+| `rounded-2xl` | ~24px | Container externo de modais e drawers grandes |
+| `rounded-full` | 9999px | Avatares, dots de status, pills |
+
+Regra prática: quanto maior o elemento na hierarquia visual, maior o raio permitido. Não usar `rounded-xl` em botões ou inputs isolados.
+
+### 5.6 Padrão Visual de Modais (Vercel Style)
+- **Componente Base:** Todo modal DEVE usar `BaseModal.vue` (`src/components/modals/BaseModal.vue`).
+- **Overlay:** `bg-black/45 dark:bg-black/65 backdrop-blur-sm p-4`.
+- **Container:** `bg-surface border border-hairline shadow-2xl overflow-hidden rounded-md` (ou `rounded-xl` para modais grandes/drawers).
+- **Header:** `bg-surface border-b border-hairline`. Botão X: `<X stroke-width="1.25">` com `p-1.5 rounded-md hover:bg-surface-hover transition-colors text-ink-muted hover:text-ink`.
+- **Footer:** `bg-canvas border-t border-hairline px-6 py-4`. Botões alinhados à direita, altura `h-9`, `rounded-md`.
+- **Inputs:** `bg-black/[0.04] dark:bg-neutral-800/60 border border-transparent rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all`.
+
+### 5.7 Padrão Visual de Dashboard e Kanban
+- **Ícones:** Biblioteca oficial: `lucide-vue-next`. `stroke-width="1.5"` obrigatório em todos os ícones. Ícones solid ou de outras bibliotecas são proibidos.
+- **Fundo Global:** Usar tokens (`bg-canvas`, `bg-surface`). Não usar `bg-neutral-*` hardcoded.
+- **Cards de Projetos (ProjectCard):** `bg-surface border border-hairline rounded-md`. Status indicado por dot circular 8px (`w-2 h-2 rounded-full`) na cor correspondente à coluna. Sem bordas laterais coloridas.
+- **Navegação/Hover na Sidebar:** Efeito "flutuante" com `mx-2 rounded-md`. Não ocupar 100% da largura colando nas bordas.
+- **Barras de Progresso:** Altura `h-1.5` ou `h-2`, `rounded-full`.
+- **Empty States:** Toda lista/coluna vazia DEVE ter um estado visual significativo (ícone + texto descritivo). Usar `border-dashed border-hairline rounded-md` para contornos de placeholder.
+- **Colunas Kanban vazias:** `border border-dashed border-hairline/80 rounded-md bg-canvas/10 text-ink-muted`.
+
+### 5.8 UX e Feedback ao Usuário
+
+**Toda ação assíncrona deve seguir este checklist:**
+1. **Loading state:** O botão que dispara a ação deve entrar em estado `disabled` e mostrar um spinner `<Loader2 class="animate-spin">` enquanto aguarda.
+2. **Toast de confirmação:** Ao concluir com sucesso, chamar `showToast('Mensagem.', 'success')` via `useToast()`.
+3. **Toast de erro:** Em catch, chamar `showToast(err.message || 'Erro genérico.', 'error')`. **Nunca** usar `alert()`.
+4. **Otimismo controlado:** Atualizar o estado local (`props.project.X = valor`) após a resposta da API confirmar sucesso, não antes — exceto em ações de baixo risco e sem efeitos colaterais críticos.
+
+**Transições e animações:**
+- Usar `<Transition>` do Vue para toda entrada/saída de elementos no DOM. Nunca usar `v-show` sem transição em elementos visualmente proeminentes.
+- Padrões globais definidos em `style.css`: `page-enter-active` (fade 150ms), `menu-slide` (slide lateral 200ms).
+- Para elementos internos de componente: `transition-all duration-200` ou `transition-colors duration-150` no Tailwind.
+- Animação de loading pulsante: `animate-pulse` (skeleton) para carregamento de conteúdo; `animate-spin` para spinners de ação pontual.
+
+**Confirmação de ações destrutivas:**
+- Ações irreversíveis (arquivar projeto, rejeitar documento, deletar item) DEVEM usar um modal de confirmação — nunca `confirm()` nativo.
+
+**Formulários:**
+- Validação client-side ANTES da chamada à API. Nunca enviar requisição com campos obrigatórios vazios.
+- Campos inválidos devem receber feedback visual imediato (`border-red-400`, mensagem de erro inline).
+
+### 5.9 Propriedades Computadas — Boas Práticas
+
+- **Verificação explícita de estado:** Sempre checar o estado que importa diretamente, nunca inferir por exclusão.
+  ```js
+  // ❌ Frágil: infere "aprovado" pela ausência de "em análise"
+  return !docs.some(d => d.status === null)
+
+  // ✅ Explícito: cada doc deve ter status === 'aprovado'
+  return categorias.every(cat => {
+    const doc = docs.find(d => d.categoria === cat)
+    return doc?.status === 'aprovado'
+  })
+  ```
+- **Sem early-return que bypasse validações reais.** Um `if (project.status === 'X') return true` no início de uma computed pode esconder inconsistências de dados introduzidas depois que o status foi setado.
+- **Computed para visibilidade de UI** deve refletir o estado *atual* dos dados, não o estado histórico (status do projeto).
+- Computeds que calculam elegibilidade para ações críticas (gerar contrato, avançar fase) devem ser **restritivas por padrão**: retornam `false` se qualquer condição não for satisfeita, nunca `true` por atalho.
 
 ---
 
-## 6. TABELAS SUPABASE (SCHEMA PRINCIPAL)
+## 6. REGRAS DE DOMÍNIO DE NEGÓCIO
+
+### 6.1 Fluxo de Colunas do Kanban
+
+```
+estimativa_enviada → contrato_pendente → engenharia_caixa → obra_liberada
+```
+
+| Coluna | Gatilho de Entrada | Status de Projeto Relevante |
+|---|---|---|
+| `estimativa_enviada` | Projeto criado pelo engenheiro | — |
+| `contrato_pendente` | Cliente aprovou estimativa e enviou documentos (`status: 'docs_completos'`) | `docs_validados` (após validação pelo engenheiro) |
+| `engenharia_caixa` | Contrato assinado por ambas as partes (`status_assinatura: 'assinado'`) | — |
+| `obra_liberada` | Engenheiro clica em "Liberar Obra" | `status: 'liberada'` |
+
+### 6.2 Checklist de Documentos (Regra Rígida)
+
+Os 3 documentos obrigatórios são: `identidade`, `residencia`, `estado_civil`.
+
+| Status do doc | Significado | `url` | `status` |
+|---|---|---|---|
+| Enviado / Em Análise | Cliente enviou, engenheiro ainda não avaliou | presente | `null` ou ausente |
+| Aprovado | Engenheiro aprovou explicitamente | presente | `'aprovado'` |
+| Rejeitado | Engenheiro recusou com motivo | `null` (limpo) | `'rejeitado'` |
+
+**Regra inviolável:** O botão "Gerar Contrato" e a seção de contrato comercial só podem ser exibidos quando **todos os 3 documentos** tiverem `status === 'aprovado'`. A verificação correta:
+```js
+['identidade', 'residencia', 'estado_civil'].every(cat => {
+  const doc = docs.find(d => d.categoria === cat)
+  return doc?.status === 'aprovado'
+})
+```
+Esta regra é reforçada também no **backend** (`integracoes.py`): os endpoints `GET /projetos/{id}/contrato` e `POST /projetos/{id}/enviar-zapsign` retornam HTTP 403 se qualquer documento não estiver aprovado.
+
+**O botão "Validar Documentos" / "Aprovar Todos"** só deve aparecer quando houver ao menos um documento com URL e sem avaliação:
+```js
+docs.some(doc => !!doc.url && doc.status !== 'aprovado' && doc.status !== 'rejeitado')
+```
+
+### 6.3 Assinatura de Contratos (ZapSign)
+
+| `status_assinatura` | Significado |
+|---|---|
+| `null` / `'nao_enviado'` | Contrato ainda não enviado |
+| `'pendente'` | Contrato enviado, aguardando assinaturas |
+| `'assinado'` | Ambas as partes assinaram |
+
+O botão "Enviar para ZapSign" só habilita após o engenheiro ter **pré-visualizado** o documento (`foiPrevisualizando === true`). Isso evita envios sem revisão.
+
+### 6.4 Visualizador de Documentos
+
+O visualizador do painel lateral (DrawerDetalheProjeto) bifurca o renderer pelo tipo do arquivo:
+- **Imagens** (`.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`, `.svg`, `.bmp`): usa `<img>` com `transformOrigin: 'center center'`, `max-w-full max-h-full object-contain`, sem `<iframe>`, sem scrollbars.
+- **Outros (PDF, etc.)**: usa `<iframe>` com overlay transparente para captura de eventos de mouse (o iframe bloqueia eventos nativos).
+
+Pan/zoom em imagens usa matemática de `transformOrigin: center`:
+```js
+panX = (mx - cx) * (1 - ratio) + panX * ratio
+panY = (my - cy) * (1 - ratio) + panY * ratio
+```
+Pan/zoom em iframe usa `transformOrigin: '0 0'` (matemática diferente — ver `handleWheel`).
+
+---
+
+## 7. TABELAS SUPABASE (SCHEMA PRINCIPAL)
 
 | Tabela | Propósito | RLS |
 |---|---|---|
@@ -144,7 +298,7 @@ src/
 
 ---
 
-## 7. DEPLOY E AMBIENTE
+## 8. DEPLOY E AMBIENTE
 
 - **Variáveis de ambiente obrigatórias (Backend):**
   - `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
@@ -158,13 +312,15 @@ src/
 
 ---
 
-## 8. INSTRUÇÃO PARA AGENTES DE IA
+## 9. INSTRUÇÃO PARA AGENTES DE IA
 
 - **NUNCA** reescreva um arquivo inteiro a menos que seja explicitamente solicitado. Entregue **apenas os blocos de código (diffs)** que foram alterados.
+- **Leia este arquivo integralmente** no início de cada sessão de trabalho.
 - Antes de criar um novo arquivo, **verifique se já existe** uma implementação que pode ser estendida.
 - Antes de criar uma nova rota, **verifique a tabela acima e o `__init__.py`** dos routers para evitar conflitos de prefixo.
-- **Leia este arquivo integralmente** no início de cada sessão de trabalho.
 - Ao sugerir migrações SQL, incluir **RLS policies** correspondentes. Nunca criar tabela sem política de segurança.
-- Ao criar componentes Vue, **seguir o padrão existente**: `<script setup>` + Tailwind + emits tipados.
+- Ao criar componentes Vue, **seguir o padrão existente**: `<script setup>` + tokens do design system + emits tipados.
 - Ao criar rotas FastAPI, **usar Pydantic models** para request/response e `Depends(get_authenticated_supabase)` para injeção do client.
+- **Ao implementar qualquer verificação de elegibilidade** (exibir botão, avançar fase, gerar documento), usar verificação **explícita e restritiva** do estado atual dos dados — nunca inferir por exclusão ou confiar em campos de status do projeto como atalho.
+- **Ao escrever feedback de UI**, sempre usar `useToast()` para sucesso e erro. Nunca `alert()`. Sempre desabilitar o botão que disparou a ação enquanto a requisição está em andamento.
 - Respostas ao desenvolvedor devem ser **densas e diretas**. Sem redundância. Sem introduções prolixas.

@@ -1,7 +1,8 @@
 <script setup>
 import { ref, computed } from 'vue'
 import axios from 'axios'
-import { XCircle, X, AlertTriangle, Loader2, Ban } from 'lucide-vue-next'
+import { XCircle, AlertTriangle, Loader2, Ban } from 'lucide-vue-next'
+import BaseModal from './BaseModal.vue'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -9,6 +10,10 @@ const props = defineProps({
   documento: {
     type: Object,
     default: () => ({})
+  },
+  documentos: {
+    type: Array,
+    default: () => []
   }
 })
 
@@ -40,16 +45,18 @@ const recusarDocumento = async () => {
   erro.value = ''
   
   try {
-    const res = await axios.post(`/projetos/${props.projetoId}/documentos/rejeitar`, {
-      documento_id: props.documento.categoria,
-      motivo: motivo.value
+    const docsAtualizados = props.documentos.map(d => {
+      if (d.categoria === props.documento.categoria) {
+        return { ...d, status: 'rejeitado', url: null, done: false, motivo: motivo.value.trim() }
+      }
+      return d
     })
-    
-    if (res.data.success) {
-      emit('rejeitado')
-      emit('close')
-      motivo.value = ''
-    }
+
+    await axios.patch(`/projetos/${props.projetoId}`, { documentos: docsAtualizados })
+
+    emit('rejeitado', docsAtualizados)
+    emit('close')
+    motivo.value = ''
   } catch (err) {
     erro.value = err.response?.data?.detail || 'Erro ao rejeitar o documento. Tente novamente.'
   } finally {
@@ -59,59 +66,54 @@ const recusarDocumento = async () => {
 </script>
 
 <template>
-  <Teleport to="body">
-    <div v-if="isOpen" class="fixed inset-0 bg-zinc-950/40 dark:bg-zinc-950/60 backdrop-blur-sm z-[130] flex items-center justify-center p-4" style="z-index: 130;" @click.self="emit('close')">
-      <div class="bg-surface border border-hairline w-full max-w-md overflow-hidden animate-in zoom-in duration-200 shadow-sm rounded-xl">
-        <div class="flex items-center justify-between px-6 py-4 border-b border-hairline bg-canvas">
-          <div class="flex items-center gap-2">
-            <XCircle class="w-5 h-5 text-red-500" stroke-width="1.5" />
-            <h3 class="text-lg font-bold text-ink">Recusar Documento</h3>
-          </div>
-          <button @click="emit('close')" class="p-1 rounded-lg hover:bg-surface-hover transition-all flex items-center justify-center">
-            <X class="w-4 h-4 text-ink-muted" stroke-width="1.5" />
-          </button>
-        </div>
-
-        <div class="p-6">
-          <p class="text-sm text-ink-muted mb-4">
-            Você está rejeitando o documento <strong class="text-ink">{{ nomeDocumento }}</strong>. O cliente será notificado para enviar uma nova versão.
-          </p>
-
-          <div v-if="erro" class="bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm p-3 rounded-lg flex items-start gap-2 mb-4">
-            <AlertTriangle class="w-4 h-4 text-red-650 dark:text-red-400 shrink-0 mt-0.5" stroke-width="1.5" />
-            <span>{{ erro }}</span>
-          </div>
-
-          <div class="mb-4">
-            <label class="block text-xs font-semibold text-ink-muted uppercase tracking-wider mb-2">Motivo da Rejeição</label>
-            <textarea
-              v-model="motivo"
-              rows="4"
-              class="w-full bg-canvas border border-hairline text-ink rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder:text-ink-muted/50"
-              placeholder="Ex: O documento está ilegível ou cortado. Por favor, envie uma foto nítida e completa."
-              required
-            ></textarea>
-          </div>
-
-          <div class="flex gap-3">
-            <button
-              @click="emit('close')"
-              class="flex-1 py-2.5 border border-hairline rounded-xl text-sm font-medium text-ink-muted hover:bg-canvas transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              @click="recusarDocumento"
-              :disabled="carregando || !motivo.trim()"
-              class="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              <Loader2 v-if="carregando" class="w-4 h-4 animate-spin" stroke-width="1.5" />
-              <Ban v-else class="w-4 h-4" stroke-width="1.5" />
-              Recusar
-            </button>
-          </div>
-        </div>
+  <BaseModal :isOpen="isOpen" @close="emit('close')" maxWidthClass="max-w-md" zIndexClass="z-[130]">
+    <template #header>
+      <div class="flex items-center gap-2">
+        <XCircle class="w-5 h-5 text-red-600" stroke-width="1.5" />
+        <h3 class="text-lg font-medium text-ink">Recusar Documento</h3>
       </div>
-    </div>
-  </Teleport>
+    </template>
+
+    <form id="rejeitar-documento-form" @submit.prevent="recusarDocumento" class="space-y-4">
+      <p class="text-sm text-ink-muted leading-relaxed">
+        Você está rejeitando o documento <strong class="text-ink">{{ nomeDocumento }}</strong>. O cliente será notificado para enviar uma nova versão.
+      </p>
+
+      <div v-if="erro" class="bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 text-red-650 dark:text-red-400 text-sm p-3 rounded-md flex items-start gap-2">
+        <AlertTriangle class="w-4 h-4 text-red-650 dark:text-red-400 shrink-0 mt-0.5" stroke-width="1.5" />
+        <span>{{ erro }}</span>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-neutral-500 dark:text-neutral-300 mb-1.5">Motivo da Rejeição</label>
+        <textarea
+          v-model="motivo"
+          rows="4"
+          class="w-full bg-black/[0.04] dark:bg-neutral-800/60 border border-transparent text-ink rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-transparent transition-all placeholder:text-ink-muted/80 font-sans resize-none"
+          placeholder="Ex: O documento está ilegível ou cortado. Por favor, envie uma foto nítida e completa."
+          required
+        ></textarea>
+      </div>
+    </form>
+
+    <template #footer>
+      <button
+        type="button"
+        @click="emit('close')"
+        class="h-9 px-4 text-sm font-medium text-ink-muted hover:text-ink bg-transparent hover:bg-surface-hover rounded-md transition-colors cursor-pointer flex items-center justify-center"
+      >
+        Cancelar
+      </button>
+      <button
+        type="submit"
+        form="rejeitar-documento-form"
+        :disabled="carregando || !motivo.trim()"
+        class="h-9 px-4 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <Loader2 v-if="carregando" class="w-4 h-4 animate-spin" stroke-width="1.5" />
+        <Ban v-else class="w-4 h-4" stroke-width="1.5" />
+        Recusar
+      </button>
+    </template>
+  </BaseModal>
 </template>

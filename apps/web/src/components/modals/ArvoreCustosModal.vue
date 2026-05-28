@@ -245,7 +245,7 @@ const etapaColor = {
     >
       <div
         v-if="isOpen"
-        class="fixed inset-0 bg-zinc-950/60 backdrop-blur-sm flex items-start justify-center p-3 sm:p-5"
+        class="fixed inset-0 bg-black/45 dark:bg-black/65 backdrop-blur-sm flex items-start justify-center p-3 sm:p-5"
         style="z-index: 150;"
         @click.self="emit('close')"
       >
@@ -259,19 +259,19 @@ const etapaColor = {
         >
           <div
             v-if="isOpen"
-            class="bg-surface border border-hairline rounded-2xl shadow-2xl flex flex-col w-full max-w-6xl"
+            class="bg-surface border border-hairline rounded-md shadow-2xl flex flex-col w-full max-w-6xl overflow-hidden"
             style="max-height: calc(100vh - 40px);"
           >
 
             <!-- ===== HEADER ===== -->
-            <div class="flex items-center justify-between px-6 py-4 border-b border-hairline bg-canvas rounded-t-2xl shrink-0 gap-3">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-hairline bg-surface shrink-0 gap-3">
               <div class="flex items-center gap-3 min-w-0">
-                <div class="w-9 h-9 rounded-xl bg-brand-primary/10 flex items-center justify-center shrink-0">
-                  <Network class="w-5 h-5 text-brand-primary" stroke-width="1.5" />
+                <div class="w-9 h-9 rounded-md bg-blue-500/10 flex items-center justify-center shrink-0">
+                  <Network class="w-5 h-5 text-blue-600" stroke-width="1.5" />
                 </div>
                 <div class="min-w-0">
-                  <h2 class="text-sm font-extrabold text-ink uppercase tracking-wider truncate">Árvore de Custos — Visão Completa</h2>
-                  <p class="text-xs text-ink-muted mt-0.5">
+                  <h2 class="text-sm font-semibold text-ink uppercase tracking-wider truncate select-none">Árvore de Custos — Visão Completa</h2>
+                  <p class="text-xs text-ink-muted mt-0.5 select-none font-sans">
                     {{ items.length }} itens
                     <span v-if="itensPendentes > 0" class="text-amber-500 font-semibold"> · {{ itensPendentes }} sem quantidade</span>
                   </p>
@@ -282,9 +282,9 @@ const etapaColor = {
                 <!-- Item Manual -->
                 <button
                   @click="emit('add-manual-item')"
-                  class="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-surface border border-hairline rounded-xl text-[11px] font-bold text-ink hover:bg-canvas hover:text-brand-primary transition-colors cursor-pointer"
+                  class="hidden sm:flex items-center gap-1.5 h-9 px-3.5 bg-surface border border-hairline rounded-md text-xs font-medium text-ink hover:bg-surface-hover hover:text-ink transition-colors cursor-pointer select-none"
                 >
-                  <Plus class="w-3.5 h-3.5" stroke-width="1.5" />
+                  <Plus class="w-4 h-4 text-ink-muted" stroke-width="1.5" />
                   Item Manual
                 </button>
 
@@ -301,7 +301,7 @@ const etapaColor = {
                     v-if="selectedIds.size > 0"
                     @click="excluirSelecionados"
                     :disabled="isDeleting"
-                    class="flex items-center gap-1.5 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl text-xs font-bold transition-colors disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
+                    class="flex items-center gap-1.5 h-9 px-3.5 bg-red-600 hover:bg-red-700 text-white rounded-md text-xs font-medium transition-colors disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed shadow-sm select-none"
                   >
                     <Loader2 v-if="isDeleting" class="w-3.5 h-3.5 animate-spin" stroke-width="1.5" />
                     <Trash2 v-else class="w-3.5 h-3.5" stroke-width="1.5" />
@@ -311,29 +311,29 @@ const etapaColor = {
 
                 <button
                   @click="emit('close')"
-                  class="p-2 rounded-xl text-ink-muted hover:text-ink hover:bg-surface-hover transition-colors cursor-pointer flex items-center justify-center"
+                  class="text-ink-muted hover:text-ink transition-colors p-1.5 rounded-md hover:bg-surface-hover flex items-center justify-center cursor-pointer select-none"
                   title="Fechar (Esc)"
                 >
-                  <X class="w-5 h-5" stroke-width="1.5" />
+                  <X class="w-4 h-4" stroke-width="1.25" />
                 </button>
               </div>
             </div>
 
             <!-- ===== BARRA DE PESQUISA ===== -->
-            <div class="px-4 py-2.5 border-b border-hairline bg-surface shrink-0 flex items-center gap-2">
+            <div class="px-6 py-3 border-b border-hairline bg-surface shrink-0 flex items-center gap-2 select-none">
               <div class="relative flex-1">
                 <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted w-4 h-4 pointer-events-none" stroke-width="1.5" />
                 <input
                   v-model="searchQuery"
                   type="text"
                   placeholder="Pesquisar insumo por descrição ou código SINAPI..."
-                  class="w-full pl-9 pr-4 py-2 bg-canvas border border-hairline rounded-xl text-sm focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all text-ink"
+                  class="w-full pl-9 pr-4 py-2 bg-black/[0.04] dark:bg-neutral-800/60 border border-transparent text-ink rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-transparent transition-all placeholder:text-ink-muted/80 font-sans"
                 />
               </div>
               <button
                 v-if="searchQuery"
                 @click="searchQuery = ''"
-                class="text-xs text-ink-muted hover:text-ink font-semibold px-2.5 py-1.5 rounded-lg hover:bg-canvas transition-colors cursor-pointer shrink-0 flex items-center gap-1"
+                class="text-xs text-ink-muted hover:text-ink font-semibold px-2.5 py-1.5 rounded-md hover:bg-surface-hover transition-colors cursor-pointer shrink-0 flex items-center gap-1 font-sans"
               >
                 <X class="w-3.5 h-3.5" stroke-width="1.5" />
                 Limpar
@@ -341,7 +341,7 @@ const etapaColor = {
               <!-- Botões mobile -->
               <button
                 @click="emit('add-manual-item')"
-                class="sm:hidden p-2 rounded-xl border border-hairline text-ink-muted hover:text-brand-primary hover:bg-canvas transition-colors cursor-pointer shrink-0 flex items-center justify-center"
+                class="sm:hidden p-2 rounded-md border border-hairline text-ink-muted hover:text-ink hover:bg-surface-hover transition-colors cursor-pointer shrink-0 flex items-center justify-center"
                 title="Item Manual"
               >
                 <Plus class="w-4 h-4" stroke-width="1.5" />
@@ -352,35 +352,35 @@ const etapaColor = {
             <div class="flex-1 overflow-y-auto">
 
               <!-- Empty state: sem itens -->
-              <div v-if="items.length === 0" class="flex flex-col items-center justify-center py-20 text-center">
-                <div class="w-16 h-16 rounded-full bg-brand-primary/10 flex items-center justify-center mb-4">
-                  <Package class="w-8 h-8 text-brand-primary" stroke-width="1.5" />
+              <div v-if="items.length === 0" class="flex flex-col items-center justify-center py-20 text-center select-none">
+                <div class="w-16 h-16 rounded-md bg-blue-500/10 flex items-center justify-center mb-4">
+                  <Package class="w-8 h-8 text-blue-600" stroke-width="1.5" />
                 </div>
                 <p class="text-sm font-bold text-ink">Nenhum item na árvore</p>
-                <p class="text-xs text-ink-muted mt-1">Adicione insumos do SINAPI ou aplique um template padrão.</p>
+                <p class="text-xs text-ink-muted mt-1 font-sans">Adicione insumos do SINAPI ou aplique um template padrão.</p>
               </div>
 
               <!-- Empty state: pesquisa sem resultado -->
-              <div v-else-if="etapasComItens.length === 0" class="flex flex-col items-center justify-center py-16 text-center px-4">
+              <div v-else-if="etapasComItens.length === 0" class="flex flex-col items-center justify-center py-16 text-center px-4 select-none">
                 <SearchCode class="w-12 h-12 text-ink-muted mb-3" stroke-width="1.5" />
                 <p class="text-sm font-bold text-ink">Nenhum resultado</p>
-                <p class="text-xs text-ink-muted mt-1">Nenhum insumo encontrado para "<span class="font-semibold">{{ searchQuery }}</span>"</p>
-                <button @click="searchQuery = ''" class="mt-3 text-xs text-brand-primary font-semibold hover:underline cursor-pointer">Limpar pesquisa</button>
+                <p class="text-xs text-ink-muted mt-1 font-sans">Nenhum insumo encontrado para "<span class="font-semibold">{{ searchQuery }}</span>"</p>
+                <button @click="searchQuery = ''" class="mt-3 text-xs text-blue-600 font-semibold hover:underline cursor-pointer font-sans">Limpar pesquisa</button>
               </div>
 
               <!-- Tabela -->
               <table v-else class="w-full text-xs border-collapse">
                 <!-- Cabeçalho fixo -->
-                <thead class="sticky top-0 z-10 bg-canvas border-b border-hairline">
+                <thead class="sticky top-0 z-10 bg-canvas border-b border-hairline select-none">
                   <tr>
                     <th class="py-3 pl-4 pr-2 w-10 text-left">
                       <div
-                        class="w-4 h-4 rounded border-2 flex items-center justify-center cursor-pointer transition-colors"
-                        :class="allSelected ? 'bg-brand-primary border-brand-primary' : someSelected ? 'bg-brand-primary/30 border-brand-primary' : 'border-hairline hover:border-brand-primary/50'"
+                        class="w-4 h-4 rounded border flex items-center justify-center cursor-pointer transition-all"
+                        :class="allSelected ? 'bg-blue-600 border-blue-600' : someSelected ? 'bg-blue-600/30 border-blue-600' : 'border-neutral-400 bg-surface hover:border-blue-500'"
                         @click="toggleAll"
                       >
-                        <Check v-if="allSelected" class="w-3 h-3 text-white" stroke-width="1.5" />
-                        <span v-else-if="someSelected" class="block w-2 h-0.5 bg-brand-primary rounded"></span>
+                        <Check v-if="allSelected" class="w-3 h-3 text-white" stroke-width="2" />
+                        <span v-else-if="someSelected" class="block w-2 h-0.5 bg-blue-600 rounded"></span>
                       </div>
                     </th>
                     <th class="py-3 px-3 text-left font-bold text-ink-muted uppercase tracking-wider text-[10px] w-20">Código</th>
@@ -407,9 +407,9 @@ const etapaColor = {
                         >
                           <div class="flex items-center gap-2.5">
                             <component :is="iconMap[etapa.icon]" class="w-4 h-4" stroke-width="1.5" />
-                            <span class="font-extrabold text-[11px] uppercase tracking-wider">{{ etapa.label }}</span>
+                            <span class="font-bold text-[11px] uppercase tracking-wider">{{ etapa.label }}</span>
                             <span
-                              class="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                              class="text-[10px] font-semibold px-1.5 py-0.5 rounded-md"
                               :class="etapaColor[etapa.color].badge"
                             >{{ filteredItensPorEtapa[etapa.value].length }}</span>
                           </div>
@@ -431,36 +431,36 @@ const etapaColor = {
                       :key="item.id"
                       v-show="expandedEtapas.has(etapa.value)"
                       class="border-b border-hairline transition-colors group"
-                      :class="selectedIds.has(item.id) ? 'bg-brand-primary/5' : 'hover:bg-canvas/60'"
+                      :class="selectedIds.has(item.id) ? 'bg-blue-500/[0.04]' : 'hover:bg-canvas/60'"
                     >
                       <!-- Checkbox -->
                       <td class="py-3 pl-4 pr-2">
                         <div
-                          class="w-4 h-4 rounded border-2 flex items-center justify-center cursor-pointer transition-colors"
-                          :class="selectedIds.has(item.id) ? 'bg-brand-primary border-brand-primary' : 'border-hairline hover:border-brand-primary/50'"
+                          class="w-4 h-4 rounded border flex items-center justify-center cursor-pointer transition-all select-none"
+                          :class="selectedIds.has(item.id) ? 'bg-blue-600 border-blue-600' : 'border-neutral-400 bg-surface hover:border-blue-500'"
                           @click="toggleItem(item.id)"
                         >
-                          <Check v-if="selectedIds.has(item.id)" class="w-3.5 h-3.5 text-white" stroke-width="1.5" />
+                          <Check v-if="selectedIds.has(item.id)" class="w-3 h-3 text-white" stroke-width="2" />
                         </div>
                       </td>
 
                       <!-- Código -->
-                      <td class="py-3 px-3">
+                      <td class="py-3 px-3 select-all">
                         <span
                           v-if="item.codigo_sinapi && item.codigo_sinapi !== 'MANUAL'"
-                          class="font-mono text-[10px] text-ink-muted bg-canvas px-1.5 py-0.5 rounded border border-hairline"
+                          class="font-mono text-[10px] text-ink-muted bg-black/[0.04] dark:bg-neutral-800/60 px-1.5 py-0.5 rounded border border-hairline font-sans"
                         >{{ item.codigo_sinapi }}</span>
-                        <span v-else class="text-[9px] font-bold text-ink-muted bg-canvas border border-hairline px-1.5 py-0.5 rounded uppercase tracking-tighter">Manual</span>
+                        <span v-else class="text-[9px] font-bold text-ink-muted bg-black/[0.04] dark:bg-neutral-800/60 border border-hairline px-1.5 py-0.5 rounded uppercase tracking-tighter font-sans select-none">Manual</span>
                       </td>
 
                       <!-- Descrição -->
-                      <td class="py-3 px-3 max-w-0">
+                      <td class="py-3 px-3 max-w-0 select-text">
                         <p class="font-semibold text-ink truncate" :title="item.descricao">{{ item.descricao }}</p>
                       </td>
 
                       <!-- Quantidade -->
                       <td class="py-3 px-3 text-center">
-                        <div class="flex items-center justify-center gap-1">
+                        <div class="flex items-center justify-center gap-1 select-none">
                           <AlertTriangle
                             v-if="item.quantidade == 0 && editingItemId !== item.id"
                             class="w-3.5 h-3.5 text-amber-500"
@@ -477,26 +477,26 @@ const etapaColor = {
                             @blur="commitEdit(item)"
                             @keyup.enter="commitEdit(item)"
                             @keydown.tab.prevent="tabToNext(item)"
-                            class="w-20 text-center text-xs font-bold bg-surface border border-brand-primary text-ink rounded-lg py-1 focus:outline-none focus:ring-1 focus:ring-brand-primary"
+                            class="w-20 text-center text-xs font-semibold bg-black/[0.04] dark:bg-neutral-800/60 border border-transparent text-ink rounded-md py-1 focus:outline-none focus:ring-2 focus:ring-blue-500/40 font-sans"
                           />
                           <button
                             v-else
                             @click="startEdit(item)"
-                            class="text-xs font-bold px-2 py-1 rounded-lg border border-transparent transition-colors cursor-pointer tabular-nums"
+                            class="text-xs font-medium px-2 py-1 rounded-md border border-transparent transition-colors cursor-pointer tabular-nums font-sans"
                             :class="item.quantidade == 0
-                              ? 'text-amber-600 bg-amber-50 dark:bg-amber-500/10 hover:border-amber-300'
-                              : 'text-brand-primary bg-brand-primary/10 hover:border-brand-primary/30'"
+                              ? 'text-amber-600 bg-amber-500/10 hover:border-amber-300'
+                              : 'text-blue-600 bg-blue-500/10 hover:border-blue-300'"
                           >{{ item.quantidade }} {{ item.unidade }}</button>
                         </div>
                       </td>
 
                       <!-- Preço unit. -->
-                      <td class="py-3 px-3 text-right font-mono tabular-nums text-ink-muted">
+                      <td class="py-3 px-3 text-right font-mono tabular-nums text-ink-muted select-text">
                         {{ formatCurrency(item.valor_unitario) }}
                       </td>
 
                       <!-- Subtotal -->
-                      <td class="py-3 px-3 text-right font-mono tabular-nums font-bold text-ink">
+                      <td class="py-3 px-3 text-right font-mono tabular-nums font-bold text-ink select-text">
                         {{ formatCurrency(item.quantidade * item.valor_unitario) }}
                       </td>
 
@@ -504,7 +504,7 @@ const etapaColor = {
                       <td class="py-3 pl-2 pr-4">
                         <button
                           @click="excluirItem(item.id)"
-                          class="p-1 rounded-lg text-ink-muted hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer flex items-center justify-center"
+                          class="p-1 rounded-md text-ink-muted hover:text-red-600 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 cursor-pointer flex items-center justify-center select-none"
                           title="Excluir item"
                         >
                           <X class="w-3.5 h-3.5" stroke-width="1.5" />
@@ -518,10 +518,10 @@ const etapaColor = {
             </div>
 
             <!-- ===== FOOTER ===== -->
-            <div class="shrink-0 border-t border-hairline px-6 py-4 bg-canvas rounded-b-2xl">
+            <div class="shrink-0 border-t border-hairline px-6 py-4 bg-canvas select-none rounded-b-md">
               <div class="flex items-center justify-between gap-4">
-                <p class="text-xs text-ink-muted">
-                  <span v-if="selectedIds.size > 0" class="font-semibold text-brand-primary">
+                <p class="text-xs text-ink-muted font-sans">
+                  <span v-if="selectedIds.size > 0" class="font-semibold text-blue-600 dark:text-blue-400">
                     {{ selectedIds.size }} {{ selectedIds.size === 1 ? 'item selecionado' : 'itens selecionados' }}
                   </span>
                   <span v-else-if="searchQuery" class="font-semibold">
@@ -530,18 +530,18 @@ const etapaColor = {
                   <span v-else>Clique nos itens para selecionar · clique na fase para recolher</span>
                 </p>
 
-                <div class="flex items-center gap-6 shrink-0">
+                <div class="flex items-center gap-6 shrink-0 font-sans">
                   <div class="text-right">
                     <p class="text-[10px] text-ink-muted uppercase tracking-wider font-bold">Subtotal</p>
-                    <p class="text-sm font-bold text-ink-muted tabular-nums">{{ formatCurrency(totalSemBdi) }}</p>
+                    <p class="text-sm font-semibold text-ink-muted tabular-nums">{{ formatCurrency(totalSemBdi) }}</p>
                   </div>
                   <div class="text-right">
                     <p class="text-[10px] text-ink-muted uppercase tracking-wider font-bold">BDI {{ bdi }}%</p>
-                    <p class="text-sm font-bold text-brand-primary tabular-nums">+ {{ formatCurrency(totalComBdi - totalSemBdi) }}</p>
+                    <p class="text-sm font-semibold text-blue-600 dark:text-blue-400 tabular-nums">+ {{ formatCurrency(totalComBdi - totalSemBdi) }}</p>
                   </div>
                   <div class="text-right pl-4 border-l border-hairline">
                     <p class="text-[10px] text-ink-muted uppercase tracking-wider font-bold">Total Final</p>
-                    <p class="text-xl font-black text-brand-primary tabular-nums">{{ formatCurrency(totalComBdi) }}</p>
+                    <p class="text-xl font-bold text-blue-600 dark:text-blue-400 tabular-nums">{{ formatCurrency(totalComBdi) }}</p>
                   </div>
                 </div>
               </div>

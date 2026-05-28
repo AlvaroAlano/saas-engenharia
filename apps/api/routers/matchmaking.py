@@ -235,7 +235,10 @@ async def update_projeto_publico(id: str, payload: PublicProjetoUpdate):
         update_data = payload.model_dump(exclude_unset=True)
         if not update_data:
             return {"success": True, "message": "Nenhum dado para atualizar."}
-            
+
+        if update_data.get("status") == "docs_completos":
+            update_data["coluna"] = "contrato_pendente"
+
         res = service_client.table("projetos_clientes").update(update_data).eq("id", id).execute()
         if not res.data:
             raise HTTPException(status_code=404, detail="Projeto não encontrado.")

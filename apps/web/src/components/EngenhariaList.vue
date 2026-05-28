@@ -3,7 +3,6 @@ import { ref, onMounted, computed } from 'vue'
 import { formatCurrency } from '../utils/formatters'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
-import Sidebar from './Sidebar.vue'
 import TopHeader from './TopHeader.vue'
 import { Search, Loader2, HardHat, Building } from 'lucide-vue-next'
 
@@ -55,7 +54,6 @@ const goToProject = (id) => {
 
 <template>
   <div class="bg-canvas text-ink font-sans min-h-screen overflow-x-hidden">
-    <Sidebar />
     <main class="ml-0 lg:ml-64 min-h-screen w-full lg:w-[calc(100vw-16rem)] transition-all duration-300">
       <TopHeader />
       

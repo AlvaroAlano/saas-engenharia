@@ -1,29 +1,31 @@
 @import "tailwindcss";
 
 :root {
-  --color-canvas: #f9fafb; /* gray-50 */
-  --color-surface: #ffffff; /* white */
-  --color-surface-hover: #f3f4f6; /* gray-100 */
-  --color-hairline: #e5e7eb; /* gray-200 */
+  /* Vercel Light Mode Colors */
+  --color-canvas: #f4f4f5;
+  --color-surface: #ffffff;
+  --color-surface-hover: #eaeaea;
+  --color-hairline: #e5e5e5;
   
-  --color-brand-primary: #5e6ad2;
-  --color-brand-hover: #828fff;
+  --color-brand-primary: #000000;
+  --color-brand-hover: #111111;
   
-  --color-ink: #111827; /* gray-900 */
-  --color-ink-muted: #6b7280; /* gray-500 */
+  --color-ink: #000000;
+  --color-ink-muted: #666666;
 }
 
 .dark {
-  --color-canvas: #09090b; /* zinc-950 */
-  --color-surface: #18181b; /* zinc-900 */
-  --color-surface-hover: #27272a; /* zinc-800 */
-  --color-hairline: #27272a; /* zinc-800 */
+  /* Vercel Dark Mode Colors */
+  --color-canvas: #000000;
+  --color-surface: #0a0a0a;
+  --color-surface-hover: #1a1a1a;
+  --color-hairline: #1f1f1f;
   
-  --color-brand-primary: #5e6ad2;
-  --color-brand-hover: #828fff;
+  --color-brand-primary: #ffffff;
+  --color-brand-hover: #eaeaea;
   
-  --color-ink: #fafafa; /* zinc-50 */
-  --color-ink-muted: #a1a1aa; /* zinc-400 */
+  --color-ink: #ffffff;
+  --color-ink-muted: #888888;
 }
 
 @theme {
@@ -46,6 +48,8 @@
   --font-linear-text: "Inter", "SF Pro Text", -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
   --font-linear-mono: "JetBrains Mono", "SF Mono", Menlo, ui-monospace, monospace;
 
+  /* Border radius global system - rounded-md is the official base rounded standard */
+  --radius: 8px;
   --radius-xs: 4px;
   --radius-sm: 6px;
   --radius-md: 8px;
@@ -62,8 +66,6 @@
   }
 }
 
-
-
 /* Global Interactive Elements */
 button,
 .cursor-pointer,
@@ -78,4 +80,32 @@ button,
 .hover-lift:hover {
   transform: translateY(-1px);
   opacity: 0.9;
+}
+
+/* Transição de Página (Fade Rápido) */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.15s ease;
+}
+.page-enter-from,
+.page-leave-to {
+  opacity: 0;
+}
+
+/* Animação de Slide Lateral para Itens da Sidebar */
+.menu-slide-enter-active,
+.menu-slide-leave-active {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Estado de entrada (Vindo da direita) */
+.menu-slide-enter-from {
+  opacity: 0;
+  transform: translateX(15px);
+}
+
+/* Estado de saída (Saindo para a esquerda) */
+.menu-slide-leave-to {
+  opacity: 0;
+  transform: translateX(-15px);
 }

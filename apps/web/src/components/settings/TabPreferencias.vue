@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { isDark, toggleTheme } from '../../composables/useTheme'
 import { useToast } from '../../composables/useToast'
 import { Sun, Moon, Check } from 'lucide-vue-next'
+import BaseButton from '../ui/BaseButton.vue'
 
 const { showToast } = useToast()
 const bdiPadrao = ref(Number(localStorage.getItem('bdi_padrao_global') || 25))
@@ -116,9 +117,9 @@ const saveBdi = () => {
         </div>
       </div>
       <div class="px-6 py-4 bg-canvas/50 border-t border-hairline flex justify-end">
-        <button @click="saveBdi" class="bg-brand-primary hover:bg-brand-hover text-white px-5 py-2 rounded-md font-bold text-sm transition-all flex items-center gap-2 cursor-pointer">
+        <BaseButton variant="primary" @click="saveBdi" class="px-5 h-9 font-bold gap-2">
           Salvar Preferências
-        </button>
+        </BaseButton>
       </div>
     </div>
 

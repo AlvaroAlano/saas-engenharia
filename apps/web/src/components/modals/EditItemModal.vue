@@ -1,7 +1,8 @@
 <script setup>
 import { ref, watch, computed } from 'vue'
 import { ETAPAS_OBRA } from '../../constants/etapas'
-import { X, ChevronDown, Loader2, Save, PlusCircle } from 'lucide-vue-next'
+import { ChevronDown, Loader2, Check } from 'lucide-vue-next'
+import BaseModal from './BaseModal.vue'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -44,7 +45,6 @@ const valorTotalCalculado = computed(() => {
 const handleConfirm = () => {
   if (quantidadeInput.value > 0) {
     const payloadData = {
-      // Preserva identificadores
       codigo_sinapi: props.itemData.codigo_item || props.itemData.codigo_sinapi,
       descricao: props.itemData.descricao,
       unidade: props.itemData.unidade,
@@ -61,123 +61,115 @@ const handleConfirm = () => {
 </script>
 
 <template>
-  <Teleport to="body">
-    <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/40 dark:bg-zinc-950/60 backdrop-blur-sm" @click.self="emit('close')">
-      <div class="bg-surface border border-hairline w-full max-w-md overflow-hidden transform transition-all animate-in zoom-in duration-200 shadow-sm">
-        <div class="p-6">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-bold text-ink">
-              {{ isEditing ? 'Editar Quantidade / BDI' : 'Adicionar ao Orçamento' }}
-            </h3>
-            <button @click="emit('close')" class="p-1 rounded-lg hover:bg-surface-hover text-ink-muted transition-all flex items-center justify-center">
-              <X class="w-4 h-4" stroke-width="1.5" />
-            </button>
-          </div>
-          
-          <!-- Card de Resumo do Item -->
-          <div v-if="itemData" class="mb-5 p-4 bg-canvas rounded-xl border border-hairline">
-            <p class="text-xs font-mono text-ink-muted mb-1">
-              Cód. {{ itemData.codigo_item || itemData.codigo_sinapi }}
-            </p>
-            <p class="text-sm font-semibold text-ink line-clamp-2">{{ itemData.descricao }}</p>
-            <div class="flex items-center justify-between mt-3 pt-2 border-t border-hairline">
-              <span class="text-xs text-ink-muted">Custo Unitário Base:</span>
-              <span class="text-xs font-bold text-ink">
-                R$ {{ precoUnitario.toFixed(2).replace('.', ',') }} / {{ itemData.unidade }}
-              </span>
-            </div>
-          </div>
+  <BaseModal :isOpen="isOpen" @close="emit('close')" maxWidthClass="max-w-md" zIndexClass="z-50">
+    <template #header>
+      <h3 class="text-lg font-medium text-ink">
+        {{ isEditing ? 'Editar Quantidade / BDI' : 'Adicionar ao Orçamento' }}
+      </h3>
+    </template>
 
-          <!-- Etapa da Obra -->
-          <div class="space-y-1.5 mb-4">
-            <label class="block text-xs font-bold text-ink-muted uppercase tracking-wider">Etapa da Obra</label>
-            <div class="relative">
-              <select 
-                v-model="etapaObra" 
-                class="w-full bg-canvas border border-hairline rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-brand-primary focus:border-brand-primary appearance-none cursor-pointer font-medium text-ink"
-              >
-                <option v-for="etapa in etapas" :key="etapa.value" :value="etapa.value">{{ etapa.label }}</option>
-              </select>
-              <ChevronDown class="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" stroke-width="1.5" />
-            </div>
-          </div>
-
-          <!-- Grade: Quantidade e BDI -->
-          <div class="grid grid-cols-2 gap-3 mb-5">
-            <!-- Quantidade -->
-            <div class="space-y-1.5">
-              <label class="block text-xs font-bold text-ink-muted uppercase tracking-wider">Quantidade</label>
-              <div class="relative">
-                <input 
-                  v-model.number="quantidadeInput" 
-                  type="number" 
-                  min="0.01" 
-                  step="0.01"
-                  @keypress="(e) => { if (!/[\d,.]/.test(e.key)) e.preventDefault() }"
-                  class="w-full pl-3 pr-10 py-2.5 bg-surface border border-hairline rounded-xl text-ink focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all font-bold text-base"
-                  placeholder="1.0"
-                />
-                <div class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none">
-                  <span class="text-ink-muted font-bold text-xs">{{ itemData?.unidade }}</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- BDI (%) -->
-            <div class="space-y-1.5">
-              <label class="block text-xs font-bold text-ink-muted uppercase tracking-wider">BDI (%)</label>
-              <div class="relative">
-                <input 
-                  v-model.number="bdiInput" 
-                  type="number" 
-                  min="0" 
-                  max="100"
-                  step="0.1"
-                  @keypress="(e) => { if (!/[\d,.]/.test(e.key)) e.preventDefault() }"
-                  class="w-full px-3 py-2.5 bg-surface border border-hairline rounded-xl text-ink focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all font-bold text-base text-right pr-8"
-                  placeholder="20"
-                />
-                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                  <span class="text-ink-muted font-bold text-sm">%</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Cálculo Total Reativo em Tempo Real -->
-          <div class="bg-brand-primary/10 border border-brand-primary/30 rounded-xl p-3.5 flex items-center justify-between">
-            <div>
-              <span class="block text-[10px] font-bold text-brand-primary uppercase tracking-wider">Valor Total Calculado</span>
-              <span class="text-xs text-ink-muted font-medium">Qtd × Preço Base + BDI</span>
-            </div>
-            <span class="font-bold text-base text-brand-primary font-mono">
-              R$ {{ valorTotalCalculado.toFixed(2).replace('.', ',') }}
-            </span>
-          </div>
-        </div>
-        
-        <!-- Rodapé de Ações -->
-        <div class="px-6 py-4 bg-canvas border-t border-hairline flex justify-end gap-3">
-          <button 
-            @click="emit('close')"
-            class="px-5 py-2.5 text-sm font-semibold text-ink-muted hover:text-ink hover:bg-surface-hover rounded-xl transition-colors"
-          >
-            Cancelar
-          </button>
-          <button 
-            @click="handleConfirm"
-            :disabled="isSaving || quantidadeInput <= 0"
-            class="px-6 py-2.5 text-sm font-bold text-white bg-brand-primary hover:bg-brand-hover rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Loader2 v-if="isSaving" class="w-4 h-4 animate-spin" stroke-width="1.5" />
-            <span v-else class="flex items-center">
-              <Save v-if="isEditing" class="w-4 h-4" stroke-width="1.5" />
-              <PlusCircle v-else class="w-4 h-4" stroke-width="1.5" />
-            </span>
-            {{ isSaving ? 'Salvando...' : (isEditing ? 'Salvar Alteração' : 'Adicionar à Etapa') }}
-          </button>
+    <div class="space-y-4">
+      <!-- Card de Resumo do Item -->
+      <div v-if="itemData" class="p-4 bg-canvas rounded-md border border-hairline">
+        <p class="text-xs font-mono text-ink-muted mb-1 select-none">
+          Cód. {{ itemData.codigo_item || itemData.codigo_sinapi }}
+        </p>
+        <p class="text-sm font-semibold text-ink line-clamp-2 select-text">{{ itemData.descricao }}</p>
+        <div class="flex items-center justify-between mt-3 pt-2 border-t border-hairline">
+          <span class="text-xs text-ink-muted select-none">Custo Unitário Base:</span>
+          <span class="text-xs font-bold text-ink tabular-nums">
+            R$ {{ precoUnitario.toFixed(2).replace('.', ',') }} / {{ itemData.unidade }}
+          </span>
         </div>
       </div>
+
+      <!-- Etapa da Obra -->
+      <div>
+        <label class="block text-xs font-semibold text-neutral-500 dark:text-neutral-300 mb-1.5">Etapa da Obra</label>
+        <div class="relative">
+          <select 
+            v-model="etapaObra" 
+            class="w-full bg-black/[0.04] dark:bg-neutral-800/60 border border-transparent text-ink rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-transparent transition-all appearance-none cursor-pointer font-medium font-sans"
+          >
+            <option v-for="etapa in etapas" :key="etapa.value" :value="etapa.value">{{ etapa.label }}</option>
+          </select>
+          <ChevronDown class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" stroke-width="1.5" />
+        </div>
+      </div>
+
+      <!-- Grade: Quantidade e BDI -->
+      <div class="grid grid-cols-2 gap-3">
+        <!-- Quantidade -->
+        <div>
+          <label class="block text-xs font-semibold text-neutral-500 dark:text-neutral-300 mb-1.5">Quantidade</label>
+          <div class="relative">
+            <input 
+              v-model.number="quantidadeInput" 
+              type="number" 
+              min="0.01" 
+              step="0.01"
+              @keypress="(e) => { if (!/[\d,.]/.test(e.key)) e.preventDefault() }"
+              class="w-full pl-3 pr-10 py-2 bg-black/[0.04] dark:bg-neutral-800/60 border border-transparent text-ink rounded-md focus:ring-2 focus:ring-blue-500/40 focus:border-transparent outline-none transition-all font-bold text-base font-sans"
+              placeholder="1.0"
+            />
+            <div class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none select-none">
+              <span class="text-ink-muted font-bold text-xs">{{ itemData?.unidade }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- BDI (%) -->
+        <div>
+          <label class="block text-xs font-semibold text-neutral-500 dark:text-neutral-300 mb-1.5">BDI (%)</label>
+          <div class="relative">
+            <input 
+              v-model.number="bdiInput" 
+              type="number" 
+              min="0" 
+              max="100"
+              step="0.1"
+              @keypress="(e) => { if (!/[\d,.]/.test(e.key)) e.preventDefault() }"
+              class="w-full px-3 py-2 bg-black/[0.04] dark:bg-neutral-800/60 border border-transparent text-ink rounded-md focus:ring-2 focus:ring-blue-500/40 focus:border-transparent outline-none transition-all font-bold text-base text-right pr-8 font-sans"
+              placeholder="20"
+            />
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none select-none">
+              <span class="text-ink-muted font-bold text-sm">%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cálculo Total Reativo em Tempo Real -->
+      <div class="bg-blue-500/10 border border-blue-500/20 rounded-md p-3.5 flex items-center justify-between">
+        <div>
+          <span class="block text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider select-none">Valor Total Calculado</span>
+          <span class="text-xs text-ink-muted font-medium select-none">Qtd × Custo Base + BDI</span>
+        </div>
+        <span class="font-bold text-base text-blue-600 dark:text-blue-400 font-mono tabular-nums">
+          R$ {{ valorTotalCalculado.toFixed(2).replace('.', ',') }}
+        </span>
+      </div>
     </div>
-  </Teleport>
+    
+    <template #footer>
+      <button 
+        type="button"
+        @click="emit('close')"
+        class="h-9 px-4 text-sm font-medium text-ink-muted hover:text-ink bg-transparent hover:bg-surface-hover rounded-md transition-colors cursor-pointer flex items-center justify-center"
+      >
+        Cancelar
+      </button>
+      <button 
+        type="button"
+        @click="handleConfirm"
+        :disabled="isSaving || quantidadeInput <= 0"
+        class="h-9 px-4 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <Loader2 v-if="isSaving" class="w-4 h-4 animate-spin" stroke-width="1.5" />
+        <Check v-else class="w-4 h-4" stroke-width="1.5" />
+        {{ isSaving ? 'Salvando...' : (isEditing ? 'Salvar Alteração' : 'Adicionar à Etapa') }}
+      </button>
+    </template>
+  </BaseModal>
 </template>
+

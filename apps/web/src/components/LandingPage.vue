@@ -50,14 +50,14 @@
             <router-link 
               v-if="hasSession" 
               to="/dashboard" 
-              class="hidden md:inline-flex items-center justify-center bg-brand-primary hover:bg-brand-hover text-white rounded-md text-[13px] font-medium px-4 py-2 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
+              class="hidden md:inline-flex items-center justify-center bg-brand-primary hover:bg-brand-hover text-white dark:text-black rounded-md text-[13px] font-medium px-4 py-2 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
             >
               Entrar no Painel
             </router-link>
             <router-link 
               v-else 
               to="/auth" 
-              class="hidden md:inline-flex items-center justify-center bg-brand-primary hover:bg-brand-hover text-white rounded-md text-[13px] font-medium px-4 py-2 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
+              class="hidden md:inline-flex items-center justify-center bg-brand-primary hover:bg-brand-hover text-white dark:text-black rounded-md text-[13px] font-medium px-4 py-2 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
             >
               Acesso Construtor
             </router-link>
@@ -105,7 +105,7 @@
           v-if="hasSession" 
           to="/dashboard" 
           @click="mobileMenuOpen = false" 
-          class="w-full text-center py-2.5 bg-brand-primary text-white rounded-md text-sm font-medium cursor-pointer block"
+          class="w-full text-center py-2.5 bg-brand-primary text-white dark:text-black rounded-md text-sm font-medium cursor-pointer block"
         >
           Entrar no Painel
         </router-link>
@@ -113,7 +113,7 @@
           v-else 
           to="/auth" 
           @click="mobileMenuOpen = false" 
-          class="w-full text-center py-2.5 bg-brand-primary text-white rounded-md text-sm font-medium cursor-pointer block"
+          class="w-full text-center py-2.5 bg-brand-primary text-white dark:text-black rounded-md text-sm font-medium cursor-pointer block"
         >
           Acesso Construtor
         </router-link>
@@ -154,7 +154,7 @@
             <a href="#demo" class="w-full sm:w-auto inline-flex items-center justify-center bg-surface hover:bg-surface-hover text-ink border border-hairline rounded-md text-[14px] font-medium px-6 py-3 transition-all duration-200 cursor-pointer">
               Simular Custos
             </a>
-            <router-link to="/auth" class="w-full sm:w-auto inline-flex items-center justify-center bg-brand-primary hover:bg-brand-hover text-white border border-transparent rounded-md text-[14px] font-medium px-6 py-3 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-primary/50">
+            <router-link to="/auth" class="w-full sm:w-auto inline-flex items-center justify-center bg-brand-primary hover:bg-brand-hover text-white dark:text-black border border-transparent rounded-md text-[14px] font-medium px-6 py-3 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-primary/50">
               Iniciar Teste Gratuito
               <ArrowRight class="w-4 h-4 ml-2" stroke-width="1.5" />
             </router-link>
@@ -518,21 +518,21 @@
               <div class="grid grid-cols-3 bg-canvas p-1 rounded-md border border-hairline">
                 <button 
                   @click="calcStandard = 'baixo'"
-                  :class="calcStandard === 'baixo' ? 'bg-brand-primary text-white' : 'bg-surface-hover text-ink-muted'"
+                  :class="calcStandard === 'baixo' ? 'bg-brand-primary text-white dark:text-black' : 'bg-surface-hover text-ink-muted'"
                   class="py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer"
                 >
                   Baixo
                 </button>
                 <button 
                   @click="calcStandard = 'medio'"
-                  :class="calcStandard === 'medio' ? 'bg-brand-primary text-white' : 'bg-surface-hover text-ink-muted'"
+                  :class="calcStandard === 'medio' ? 'bg-brand-primary text-white dark:text-black' : 'bg-surface-hover text-ink-muted'"
                   class="py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer"
                 >
                   Médio
                 </button>
                 <button 
                   @click="calcStandard = 'alto'"
-                  :class="calcStandard === 'alto' ? 'bg-brand-primary text-white' : 'bg-surface-hover text-ink-muted'"
+                  :class="calcStandard === 'alto' ? 'bg-brand-primary text-white dark:text-black' : 'bg-surface-hover text-ink-muted'"
                   class="py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer"
                 >
                   Alto
@@ -598,7 +598,7 @@
           </div>
 
           <!-- Bottom Action inside Simulator -->
-          <router-link to="/auth" class="w-full text-center py-2.5 bg-brand-primary hover:bg-brand-hover text-white rounded-md text-[13px] font-semibold transition-all duration-200 cursor-pointer block mt-2">
+          <router-link to="/auth" class="w-full text-center py-2.5 bg-brand-primary hover:bg-brand-hover text-white dark:text-black rounded-md text-[13px] font-semibold transition-all duration-200 cursor-pointer block mt-2">
             Importar no Gerador de Planilhas
           </router-link>
 
@@ -833,7 +833,7 @@
             </ul>
           </div>
 
-          <router-link to="/auth" class="w-full text-center py-2.5 bg-brand-primary hover:bg-brand-hover text-white rounded-md text-[13px] font-semibold transition-all duration-200 cursor-pointer mt-8 block">
+          <router-link to="/auth" class="w-full text-center py-2.5 bg-brand-primary hover:bg-brand-hover text-white dark:text-black rounded-md text-[13px] font-semibold transition-all duration-200 cursor-pointer mt-8 block">
             Começar Teste Gratuito
           </router-link>
         </div>
@@ -888,7 +888,7 @@
         <p class="text-xs md:text-sm text-ink-muted max-w-[500px] leading-[1.5]">
           Acesso instantâneo de 14 dias para teste do plano Profissional. Não requer cartão de crédito.
         </p>
-        <router-link to="/auth" class="inline-flex items-center justify-center bg-brand-primary hover:bg-brand-hover text-white rounded-md text-[14px] font-medium px-6 py-3 transition-all duration-200 cursor-pointer mt-4">
+        <router-link to="/auth" class="inline-flex items-center justify-center bg-brand-primary hover:bg-brand-hover text-white dark:text-black rounded-md text-[14px] font-medium px-6 py-3 transition-all duration-200 cursor-pointer mt-4">
           Criar Conta B2B
           <ArrowRight class="w-4 h-4 ml-2" stroke-width="1.5" />
         </router-link>
@@ -1003,7 +1003,7 @@
 
             <button 
               type="submit" 
-              class="w-full py-2.5 bg-brand-primary hover:bg-brand-hover text-white rounded-md text-sm font-semibold transition-all duration-200 cursor-pointer flex items-center justify-center gap-2"
+              class="w-full py-2.5 bg-brand-primary hover:bg-brand-hover text-white dark:text-black rounded-md text-sm font-semibold transition-all duration-200 cursor-pointer flex items-center justify-center gap-2"
             >
               <span>Acessar Portal da Obra</span>
               <ArrowRight class="w-4 h-4" stroke-width="1.5" />

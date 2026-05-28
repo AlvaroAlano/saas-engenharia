@@ -189,24 +189,24 @@ const formatDate = (isoDate) => {
 
 <template>
   <Teleport to="body">
-    <div v-if="isOpen" class="fixed inset-0 z-[130] flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-sm" style="z-index: 130;" @click.self="emit('close')">
+    <div v-if="isOpen" class="fixed inset-0 z-[130] flex items-end sm:items-center justify-center bg-black/45 dark:bg-black/65 backdrop-blur-sm p-4" style="z-index: 130;" @click.self="emit('close')">
       
       <!-- Container Mobile-First: Sobe do fundo no mobile, centralizado no desktop -->
-      <div class="bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[85vh] overflow-hidden animate-in slide-in-from-bottom duration-300">
+      <div class="bg-surface w-full sm:max-w-lg sm:rounded-md rounded-t-md border border-hairline shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[85vh] overflow-hidden animate-in slide-in-from-bottom duration-300">
         
         <!-- Header Fixo -->
-        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white shrink-0">
+        <div class="px-6 py-4 border-b border-hairline flex items-center justify-between bg-surface shrink-0">
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 bg-indigo-100 rounded-xl flex items-center justify-center">
-              <Camera class="w-5 h-5 text-indigo-600" stroke-width="1.5" />
+            <div class="w-9 h-9 bg-blue-500/10 rounded-md flex items-center justify-center shrink-0">
+              <Camera class="w-5 h-5 text-blue-600" stroke-width="1.5" />
             </div>
             <div>
-              <h3 class="text-sm font-bold text-slate-800">Diário de Obra</h3>
-              <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wide">{{ projectName || 'Projeto' }}</p>
+              <h3 class="text-lg font-medium text-ink leading-tight select-none">Diário de Obra</h3>
+              <p class="text-[10px] text-ink-muted font-bold uppercase tracking-wider mt-0.5 select-none font-sans">{{ projectName || 'Projeto' }}</p>
             </div>
           </div>
-          <button @click="emit('close')" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors flex items-center justify-center">
-            <X class="w-4 h-4" stroke-width="1.5" />
+          <button @click="emit('close')" class="text-ink-muted hover:text-ink transition-colors p-1.5 rounded-md hover:bg-surface-hover flex items-center justify-center cursor-pointer select-none">
+            <X class="w-4 h-4" stroke-width="1.25" />
           </button>
         </div>
 
@@ -214,10 +214,10 @@ const formatDate = (isoDate) => {
         <div class="flex-1 overflow-y-auto">
           
           <!-- Formulário de Novo Post -->
-          <div class="px-5 py-4 border-b border-slate-100 bg-white">
-            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-3 flex items-center gap-1">
+          <div class="p-6 space-y-4 bg-surface border-b border-hairline">
+            <p class="text-[10px] text-ink-muted font-bold uppercase tracking-wider flex items-center gap-1.5 select-none font-sans">
               <SquarePen class="w-3.5 h-3.5" stroke-width="1.5" />
-              Novo Registro
+              Novo Registro de Canteiro
             </p>
             
             <!-- Textarea Descrição -->
@@ -225,36 +225,36 @@ const formatDate = (isoDate) => {
               v-model="descricao"
               rows="3"
               placeholder="O que aconteceu hoje na obra? Ex: Concretagem da laje do térreo concluída..."
-              class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 transition-all resize-none"
+              class="w-full bg-black/[0.04] dark:bg-neutral-800/60 border border-transparent text-ink rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-transparent transition-all placeholder:text-ink-muted/80 font-sans resize-none"
             ></textarea>
 
             <!-- Área de Foto -->
             <div class="mt-3">
               <!-- Preview da imagem comprimida -->
-              <div v-if="imagePreview" class="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
+              <div v-if="imagePreview" class="relative rounded-md overflow-hidden border border-hairline bg-canvas">
                 <img :src="imagePreview" alt="Preview" class="w-full h-48 object-cover" />
                 <!-- Badge de compressão -->
-                <div v-if="compressionInfo" class="absolute bottom-2 left-2 bg-black/70 text-white text-[9px] font-mono px-2 py-1 rounded-md backdrop-blur-sm">
+                <div v-if="compressionInfo" class="absolute bottom-2 left-2 bg-black/70 text-white text-[9px] font-mono px-2 py-1 rounded-md backdrop-blur-sm select-none">
                   {{ compressionInfo.original }} → {{ compressionInfo.compressed }} 
                   <span class="text-emerald-400 font-bold">(−{{ compressionInfo.reduction }}%)</span>
                 </div>
                 <!-- Botão remover -->
-                <button @click="removeImage" class="absolute top-2 right-2 w-7 h-7 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg transition-colors">
+                <button @click="removeImage" class="absolute top-2 right-2 w-7 h-7 bg-red-600 hover:bg-red-700 text-white rounded-md flex items-center justify-center shadow-lg transition-colors cursor-pointer select-none">
                   <X class="w-3.5 h-3.5" stroke-width="1.5" />
                 </button>
               </div>
 
               <!-- Estado de compressão -->
-              <div v-else-if="isCompressing" class="flex items-center justify-center gap-2 py-6 text-slate-500 text-sm border border-dashed border-slate-200 rounded-xl bg-slate-50">
-                <Loader2 class="w-4 h-4 animate-spin text-indigo-500" stroke-width="1.5" />
-                Comprimindo imagem...
+              <div v-else-if="isCompressing" class="flex items-center justify-center gap-2 py-6 text-ink-muted text-sm border border-dashed border-hairline rounded-md bg-black/[0.02] dark:bg-neutral-800/20 select-none font-sans">
+                <Loader2 class="w-4 h-4 animate-spin text-blue-600" stroke-width="1.5" />
+                Processando e comprimindo imagem...
               </div>
 
               <!-- Botões de captura/upload -->
-              <div v-else class="flex gap-2">
-                <label class="flex-1 flex items-center justify-center gap-2 py-3 border-2 border-dashed border-slate-200 hover:border-indigo-300 rounded-xl cursor-pointer bg-slate-50 hover:bg-indigo-50/50 transition-all text-sm text-slate-500 hover:text-indigo-600 group">
-                  <Camera class="w-4 h-4 group-hover:text-indigo-500 transition-colors" stroke-width="1.5" />
-                  <span class="font-medium">Tirar Foto</span>
+              <div v-else class="flex gap-2 select-none">
+                <label class="flex-1 flex items-center justify-center gap-2 py-2 border border-dashed border-hairline hover:border-blue-500/55 rounded-md cursor-pointer bg-black/[0.02] dark:bg-neutral-800/20 hover:bg-blue-500/5 transition-all text-sm text-ink-muted hover:text-ink group font-sans font-medium">
+                  <Camera class="w-4 h-4 text-ink-muted group-hover:text-blue-600 transition-colors" stroke-width="1.5" />
+                  <span>Tirar Foto</span>
                   <input 
                     id="diario-file-input-camera"
                     type="file" 
@@ -264,9 +264,9 @@ const formatDate = (isoDate) => {
                     @change="handleFileSelect"
                   />
                 </label>
-                <label class="flex items-center justify-center gap-1.5 px-4 py-3 border-2 border-dashed border-slate-200 hover:border-indigo-300 rounded-xl cursor-pointer bg-slate-50 hover:bg-indigo-50/50 transition-all text-sm text-slate-500 hover:text-indigo-600 group">
-                  <Image class="w-4 h-4 group-hover:text-indigo-500 transition-colors" stroke-width="1.5" />
-                  <span class="font-medium">Galeria</span>
+                <label class="flex items-center justify-center gap-1.5 px-4 py-2 border border-dashed border-hairline hover:border-blue-500/55 rounded-md cursor-pointer bg-black/[0.02] dark:bg-neutral-800/20 hover:bg-blue-500/5 transition-all text-sm text-ink-muted hover:text-ink group font-sans font-medium">
+                  <Image class="w-4 h-4 text-ink-muted group-hover:text-blue-600 transition-colors" stroke-width="1.5" />
+                  <span>Galeria</span>
                   <input 
                     id="diario-file-input"
                     type="file" 
@@ -282,10 +282,10 @@ const formatDate = (isoDate) => {
             <button
               @click="publicarPost"
               :disabled="!canSubmit"
-              class="w-full mt-4 py-3 rounded-xl font-bold text-sm uppercase tracking-wide transition-all flex items-center justify-center gap-2 shadow-sm active:scale-[0.98]"
+              class="w-full mt-4 h-10 px-4 rounded-md font-medium text-sm transition-all flex items-center justify-center gap-1.5 shadow-sm select-none"
               :class="canSubmit 
-                ? 'bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer' 
-                : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'"
+                ? 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer' 
+                : 'bg-black/[0.04] dark:bg-neutral-800/60 text-ink-muted cursor-not-allowed border border-hairline'"
             >
               <Loader2 v-if="isSubmitting" class="w-4 h-4 animate-spin" stroke-width="1.5" />
               <Send v-else class="w-4 h-4" stroke-width="1.5" />
@@ -294,50 +294,50 @@ const formatDate = (isoDate) => {
           </div>
 
           <!-- Feed / Timeline do Diário -->
-          <div class="px-5 py-4 bg-slate-50/80">
-            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-4 flex items-center gap-1">
+          <div class="px-6 py-5 bg-canvas border-t border-hairline">
+            <p class="text-[10px] text-ink-muted font-bold uppercase tracking-wider mb-4 flex items-center gap-1.5 select-none font-sans">
               <History class="w-3.5 h-3.5" stroke-width="1.5" />
-              Registros Anteriores ({{ feedPosts.length }})
+              Histórico de Canteiro ({{ feedPosts.length }})
             </p>
 
             <!-- Loading -->
-            <div v-if="isLoadingFeed" class="flex items-center justify-center py-8 text-slate-400">
-              <Loader2 class="w-4 h-4 animate-spin mr-2" stroke-width="1.5" />
+            <div v-if="isLoadingFeed" class="flex items-center justify-center py-8 text-ink-muted font-sans select-none">
+              <Loader2 class="w-4 h-4 animate-spin mr-2 text-blue-600" stroke-width="1.5" />
               Carregando registros...
             </div>
 
             <!-- Vazio -->
-            <div v-else-if="feedPosts.length === 0" class="text-center py-8">
-              <div class="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                <Images class="w-6 h-6 text-slate-300" stroke-width="1.5" />
+            <div v-else-if="feedPosts.length === 0" class="text-center py-8 select-none">
+              <div class="w-14 h-14 bg-black/[0.04] dark:bg-neutral-800/60 rounded-md flex items-center justify-center mx-auto mb-3">
+                <Images class="w-6 h-6 text-ink-muted" stroke-width="1.5" />
               </div>
-              <p class="text-xs font-semibold text-slate-500">Nenhum registro ainda</p>
-              <p class="text-[11px] text-slate-400 mt-1">Publique o primeiro registro fotográfico da obra acima.</p>
+              <p class="text-xs font-semibold text-ink">Nenhum registro ainda</p>
+              <p class="text-[11px] text-ink-muted mt-1 font-sans">Publique o primeiro registro fotográfico da obra acima.</p>
             </div>
 
             <!-- Lista de Posts -->
             <div v-else class="space-y-3">
-              <div v-for="post in feedPosts" :key="post.id" class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+              <div v-for="post in feedPosts" :key="post.id" class="bg-surface rounded-md border border-hairline overflow-hidden shadow-sm transition-all">
                 
                 <!-- Imagem do post -->
                 <div v-if="post.imagens && post.imagens.length > 0" class="relative">
-                  <img :src="post.imagens[0]" alt="Foto da obra" class="w-full h-44 object-cover" />
-                  <span v-if="post.imagens.length > 1" class="absolute bottom-2 right-2 bg-black/60 text-white text-[9px] font-bold px-2 py-1 rounded-md">
+                  <img :src="post.imagens[0]" alt="Foto da obra" class="w-full h-44 object-cover select-none" />
+                  <span v-if="post.imagens.length > 1" class="absolute bottom-2 right-2 bg-black/70 text-white text-[9px] font-bold px-2 py-1 rounded-md select-none font-mono">
                     +{{ post.imagens.length - 1 }} fotos
                   </span>
                 </div>
 
                 <!-- Conteúdo -->
-                <div class="p-3.5">
-                  <p class="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">{{ post.descricao }}</p>
-                  <div class="flex items-center justify-between mt-2.5 pt-2 border-t border-slate-100">
-                    <span class="text-[9px] text-slate-400 font-mono flex items-center gap-1">
-                      <Clock class="w-3 h-3 text-slate-400" stroke-width="1.5" />
+                <div class="p-4">
+                  <p class="text-xs text-ink leading-relaxed whitespace-pre-wrap select-text font-sans">{{ post.descricao }}</p>
+                  <div class="flex items-center justify-between mt-3 pt-2.5 border-t border-hairline">
+                    <span class="text-[9px] text-ink-muted font-mono flex items-center gap-1 select-none">
+                      <Clock class="w-3 h-3 text-ink-muted" stroke-width="1.5" />
                       {{ formatDate(post.criado_em) }}
                     </span>
                     <button 
                       @click.stop="deletarPost(post.id)" 
-                      class="text-slate-400 hover:text-red-500 p-1 rounded transition-colors flex items-center justify-center"
+                      class="p-1 rounded-md text-ink-muted hover:text-red-650 hover:bg-red-500/10 transition-all cursor-pointer flex items-center justify-center select-none"
                       title="Excluir registro"
                     >
                       <Trash2 class="w-3.5 h-3.5" stroke-width="1.5" />

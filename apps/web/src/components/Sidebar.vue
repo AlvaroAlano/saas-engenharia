@@ -59,7 +59,7 @@ const settingsNav = [
     isSidebarOpen ? 'translate-x-0' : '-translate-x-full',
     'lg:translate-x-0'
   ]">
-    <div class="flex flex-col justify-between py-6 h-full overflow-y-auto">
+    <div class="flex flex-col justify-between py-6 h-full overflow-y-auto overflow-x-hidden">
       <div>
         <!-- Brand -->
         <div class="px-6 mb-8 flex items-center justify-between">
@@ -75,7 +75,7 @@ const settingsNav = [
           </button>
         </div>
 
-        <Transition name="swap" mode="out-in">
+        <Transition name="menu-slide" mode="out-in">
           <!-- Nav principal -->
           <nav v-if="!isConfigsRoute" key="main" class="space-y-1 nav-container">
             <router-link to="/dashboard" @click="isSidebarOpen = false"
@@ -160,23 +160,6 @@ const settingsNav = [
 </template>
 
 <style scoped>
-/* Transição rápida e leve apenas para os itens, sem animar o container */
-.swap-enter-active {
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.swap-leave-active {
-  transition: all 0.15s ease-in;
-}
-
-.swap-enter-from {
-  opacity: 0;
-  transform: translateX(-8px);
-}
-.swap-leave-to {
-  opacity: 0;
-  transform: translateX(8px);
-}
-
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>

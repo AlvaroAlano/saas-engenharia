@@ -1,10 +1,13 @@
 <script setup>
 import { computed, onBeforeUnmount, watch, ref } from 'vue'
 import { formatCurrency } from '../utils/formatters'
-import { 
-  BarChart2, Maximize2, Plus, Search, Trash2, 
-  CheckCircle2, Loader2, FileDown, FileText, X 
+import {
+  BarChart2, Maximize2, Plus, Search, Trash2,
+  CheckCircle2, Loader2, FileDown, FileText, X
 } from 'lucide-vue-next'
+import { useToast } from '../composables/useToast'
+
+const { showToast } = useToast()
 
 const props = defineProps({
   cartItems: {
@@ -83,7 +86,7 @@ const baixarPropostaPDF = async () => {
         detalheErro = text
       }
     }
-    alert(`Falha ao gerar PDF (Status ${error.response?.status}).\nMensagem do Servidor: ${detalheErro}`)
+    showToast(`Falha ao gerar PDF: ${detalheErro}`, 'error')
   } finally {
     isDownloadingPDF.value = false
   }

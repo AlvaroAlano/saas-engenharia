@@ -2,6 +2,9 @@
 import { ref, onMounted } from 'vue'
 import { supabase } from '../supabase'
 import { Building, Upload, Briefcase, Loader2 } from 'lucide-vue-next'
+import { useToast } from '../composables/useToast'
+
+const { showToast } = useToast()
 
 const empresa = ref({
   nome_fantasia: '',
@@ -61,7 +64,7 @@ const handleFileUpload = async (event) => {
     setTimeout(() => uploadProgress.value = 0, 2000)
   } catch (error) {
     console.error('Erro no upload da logo:', error)
-    alert('Erro ao enviar logo.')
+    showToast('Erro ao enviar logo.', 'error')
     uploadProgress.value = 0
   }
 }
@@ -83,10 +86,10 @@ const saveEmpresa = async () => {
       })
 
     if (error) throw error
-    alert('Dados da empresa salvos com sucesso!')
+    showToast('Dados da empresa salvos com sucesso!', 'success')
   } catch (error) {
     console.error('Erro ao salvar empresa:', error)
-    alert('Erro ao salvar dados.')
+    showToast('Erro ao salvar dados.', 'error')
   } finally {
     isSaving.value = false
   }

@@ -4,6 +4,7 @@ import { supabase } from '../../supabase'
 import { useProfile } from '../../composables/useProfile'
 import { useToast } from '../../composables/useToast'
 import { User, Camera, Loader2 } from 'lucide-vue-next'
+import BaseButton from '../ui/BaseButton.vue'
 
 const { refreshProfile } = useProfile()
 const { showToast } = useToast()
@@ -147,10 +148,10 @@ onMounted(fetchProfile)
         </div>
       </div>
       <div class="px-6 py-4 bg-canvas/50 border-t border-hairline flex justify-end">
-        <button @click="saveProfile" :disabled="isSavingProfile" class="bg-brand-primary hover:bg-brand-hover text-white px-5 py-2 rounded-md font-bold text-sm transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer">
+        <BaseButton variant="primary" @click="saveProfile" :disabled="isSavingProfile" class="px-5 h-9 font-bold gap-2">
           <Loader2 v-if="isSavingProfile" class="w-4 h-4 animate-spin" stroke-width="1.5" />
           {{ isSavingProfile ? 'Salvando...' : 'Salvar Alterações' }}
-        </button>
+        </BaseButton>
       </div>
     </div>
 
@@ -171,10 +172,10 @@ onMounted(fetchProfile)
         </div>
       </div>
       <div class="px-6 py-4 bg-canvas/50 border-t border-hairline flex justify-end">
-        <button @click="savePassword" :disabled="isSavingPassword || !password.nova" class="bg-brand-primary hover:bg-brand-hover text-white px-5 py-2 rounded-md font-bold text-sm transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer">
+        <BaseButton variant="primary" @click="savePassword" :disabled="isSavingPassword || !password.nova" class="px-5 h-9 font-bold gap-2">
           <Loader2 v-if="isSavingPassword" class="w-4 h-4 animate-spin" stroke-width="1.5" />
           {{ isSavingPassword ? 'Alterando...' : 'Alterar Senha' }}
-        </button>
+        </BaseButton>
       </div>
     </div>
 
@@ -190,9 +191,9 @@ onMounted(fetchProfile)
             <p class="text-sm font-semibold text-ink">Excluir Conta</p>
             <p class="text-xs text-ink-muted mt-0.5">Remove permanentemente sua conta e todos os dados associados.</p>
           </div>
-          <button @click="deleteAccount" class="shrink-0 px-4 py-2 rounded-md border border-red-400 dark:border-red-600 text-red-500 dark:text-red-400 text-xs font-bold hover:bg-red-500 hover:text-white dark:hover:bg-red-600 dark:hover:text-white transition-all cursor-pointer">
+          <BaseButton variant="danger" size="sm" @click="deleteAccount" class="shrink-0 font-bold px-4 py-2">
             Excluir Conta
-          </button>
+          </BaseButton>
         </div>
       </div>
     </div>
