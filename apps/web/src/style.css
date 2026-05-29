@@ -40,6 +40,11 @@
   --color-ink: var(--color-ink);
   --color-ink-muted: var(--color-ink-muted);
 
+  --color-brand-blue: #005CA9;
+  --color-brand-blue-hover: #004A88;
+  --color-brand-orange: #F39200;
+  --color-brand-orange-hover: #E08600;
+
   --color-brand-secure: #7a7fad;
   --color-semantic-success: #27a644;
   --color-semantic-overlay: #000000;
@@ -61,6 +66,9 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
   body {
     font-family: var(--font-linear-text);
   }

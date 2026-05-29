@@ -175,6 +175,25 @@ def gerar_contrato(id: str, template_id: str = Query(...), supabase_client: Clie
         res_template = supabase_client.table("templates_contrato").select("*").eq("id", template_id).single().execute()
         template_db = res_template.data
 
+        # Buscar dados da empresa do construtor
+        usuario_id = projeto.get("usuario_id")
+        logo_url = None
+        nome_fantasia = None
+        cnpj_empresa = None
+        endereco_empresa = None
+
+        if usuario_id:
+            try:
+                res_empresa = supabase_client.table("dados_empresa").select("*").eq("usuario_id", usuario_id).execute()
+                if res_empresa.data:
+                    empresa = res_empresa.data[0]
+                    logo_url = empresa.get("logo_url")
+                    nome_fantasia = empresa.get("nome_fantasia")
+                    cnpj_empresa = empresa.get("cnpj")
+                    endereco_empresa = empresa.get("endereco_completo")
+            except Exception as e:
+                logger.warning("Falha ao buscar dados da empresa: %s", e)
+
         valor_num = projeto.get("valor", 0)
         valor_formatado = f"R$ {valor_num:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if valor_num else "R$ 0,00"
 
@@ -202,9 +221,13 @@ def gerar_contrato(id: str, template_id: str = Query(...), supabase_client: Clie
             .replace("{{valor_total_sinapi}}", fmt_brl(valor_total_sinapi)) \
             .replace("{{mes_referencia_sinapi}}", str(projeto.get("sinapi_mes_ano") or "-")) \
             .replace("{{bdi}}", f"{bdi_perc:.1f}%") \
-            .replace("{{valor_por_m2_sinapi}}", fmt_brl(valor_por_m2_sinapi))
+            .replace("{{valor_por_m2_sinapi}}", fmt_brl(valor_por_m2_sinapi)) \
+            .replace("{{logo_empresa}}", str(logo_url or "")) \
+            .replace("{{nome_fantasia_empresa}}", str(nome_fantasia or "")) \
+            .replace("{{cnpj_empresa}}", str(cnpj_empresa or "")) \
+            .replace("{{endereco_empresa}}", str(endereco_empresa or ""))
 
-        pdf_bytes = generate_contract_pdf(texto_final)
+        pdf_bytes = generate_contract_pdf(texto_final, logo_url=logo_url, nome_fantasia=nome_fantasia)
         buffer = io.BytesIO(pdf_bytes)
         buffer.seek(0)
 
@@ -246,15 +269,59 @@ async def enviar_para_zapsign(id: str, payload: EnviarZapSignRequest, supabase_c
         res_template = supabase_client.table("templates_contrato").select("*").eq("id", payload.template_id).single().execute()
         template_db = res_template.data
 
+        # Buscar dados da empresa do construtor
+        usuario_id = projeto.get("usuario_id")
+        logo_url = None
+        nome_fantasia = None
+        cnpj_empresa = None
+        endereco_empresa = None
+
+        if usuario_id:
+            try:
+                res_empresa = supabase_client.table("dados_empresa").select("*").eq("usuario_id", usuario_id).execute()
+                if res_empresa.data:
+                    empresa = res_empresa.data[0]
+                    logo_url = empresa.get("logo_url")
+                    nome_fantasia = empresa.get("nome_fantasia")
+                    cnpj_empresa = empresa.get("cnpj")
+                    endereco_empresa = empresa.get("endereco_completo")
+            except Exception as e:
+                logger.warning("Falha ao buscar dados da empresa: %s", e)
+
         valor_num = projeto.get("valor", 0)
         valor_formatado = f"R$ {valor_num:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if valor_num else "R$ 0,00"
         
-        texto_final = template_db.get("conteudo", "").replace("{{cliente_nome}}", str(projeto.get("cliente_nome", ""))) \
+        # Variáveis SINAPI — calculadas a partir dos itens do orçamento (espelhado de gerar_contrato)
+        res_itens = supabase_client.table("orcamento_itens").select("valor_unitario, quantidade").eq("projeto_id", id).execute()
+        itens = res_itens.data or []
+        bdi_perc = float(projeto.get("bdi_padrao") or 0.0)
+        fator_bdi = 1 + (bdi_perc / 100)
+        valor_total_sinapi = sum(
+            float(item.get("valor_unitario") or 0) * float(item.get("quantidade") or 0) * fator_bdi
+            for item in itens
+        )
+        _tamanho_raw = re.sub(r"[^\d.,]", "", str(projeto.get("tamanho") or "0")).replace(",", ".")
+        tamanho = float(_tamanho_raw) if _tamanho_raw else 0.0
+        valor_por_m2_sinapi = valor_total_sinapi / tamanho if tamanho > 0 else 0.0
+
+        def fmt_brl(v: float) -> str:
+            return f"R$ {v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+        texto_final = template_db.get("conteudo", "") \
+            .replace("{{cliente_nome}}", str(projeto.get("cliente_nome", ""))) \
             .replace("{{tamanho}}", str(projeto.get("tamanho", ""))) \
             .replace("{{padrao}}", str(projeto.get("padrao", ""))) \
-            .replace("{{valor}}", str(valor_formatado))
+            .replace("{{valor}}", str(valor_formatado)) \
+            .replace("{{valor_total_sinapi}}", fmt_brl(valor_total_sinapi)) \
+            .replace("{{mes_referencia_sinapi}}", str(projeto.get("sinapi_mes_ano") or "-")) \
+            .replace("{{bdi}}", f"{bdi_perc:.1f}%") \
+            .replace("{{valor_por_m2_sinapi}}", fmt_brl(valor_por_m2_sinapi)) \
+            .replace("{{logo_empresa}}", str(logo_url or "")) \
+            .replace("{{nome_fantasia_empresa}}", str(nome_fantasia or "")) \
+            .replace("{{cnpj_empresa}}", str(cnpj_empresa or "")) \
+            .replace("{{endereco_empresa}}", str(endereco_empresa or ""))
         
-        pdf_bytes = generate_contract_pdf(texto_final)
+        pdf_bytes = generate_contract_pdf(texto_final, logo_url=logo_url, nome_fantasia=nome_fantasia)
         pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
         
         # Fallback seguro e de altíssimo desempenho sem requisição extra de rede ou tabelas inexistentes
