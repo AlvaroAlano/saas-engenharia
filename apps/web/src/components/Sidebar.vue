@@ -2,16 +2,16 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSidebar } from '../composables/useSidebar'
-import { 
-  Home, 
-  FolderGit2, 
-  Calculator, 
-  Users, 
-  Settings, 
-  ChevronLeft, 
-  ChevronRight, 
-  RefreshCw, 
-  PlusCircle, 
+import {
+  Home,
+  FolderGit2,
+  Calculator,
+  Users,
+  Settings,
+  ChevronLeft,
+  ChevronRight,
+  RefreshCw,
+  PlusCircle,
   HelpCircle,
   Fingerprint,
   Building2,
@@ -21,6 +21,7 @@ import {
   PenTool,
   X
 } from 'lucide-vue-next'
+import VerticeLogo from './VerticeLogo.vue'
 
 const route = useRoute()
 const { isSidebarOpen, toggleSidebar } = useSidebar()
@@ -59,14 +60,11 @@ const settingsNav = [
     isSidebarOpen ? 'translate-x-0' : '-translate-x-full',
     'lg:translate-x-0'
   ]">
-    <div class="flex flex-col justify-between py-6 h-full overflow-y-auto overflow-x-hidden">
+    <div class="flex flex-col justify-between pb-6 h-full overflow-y-auto overflow-x-hidden">
       <div>
         <!-- Brand -->
-        <div class="px-6 mb-8 flex items-center justify-between">
-          <div>
-            <h1 class="text-lg font-bold text-ink tracking-tight">Engenharia</h1>
-            <p class="text-xs text-ink-muted">SaaS Dashboard</p>
-          </div>
+        <div class="px-4 pt-1 mb-6 flex items-center justify-between">
+          <VerticeLogo class="h-[66px] text-ink" />
           <button
             @click="isSidebarOpen = false"
             class="lg:hidden p-1.5 text-ink-muted hover:text-ink hover:bg-surface-hover rounded-md transition-all duration-300 hover:rotate-90 active:rotate-180 active:scale-95 flex items-center justify-center"
@@ -79,40 +77,42 @@ const settingsNav = [
           <!-- Nav principal -->
           <nav v-if="!isConfigsRoute" key="main" class="space-y-1 nav-container">
             <router-link to="/dashboard" @click="isSidebarOpen = false"
-              :class="[route.path === '/dashboard' ? 'bg-neutral-800 text-white' : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800', 'nav-item flex items-center gap-3 mx-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-200']">
-              <Home class="w-[18px] h-[18px]" stroke-width="1.5" />
+              :class="[route.path === '/dashboard' ? 'bg-brand-blue/[0.08] text-brand-blue font-semibold' : 'text-ink-muted hover:text-ink hover:bg-surface-hover', 'nav-item flex items-center gap-3 mx-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-200']">
+              <Home class="w-[18px] h-[18px] text-current" stroke-width="1.5" />
               <span>Início</span>
             </router-link>
 
-            <div class="nav-item flex items-center gap-3 mx-2 px-3 py-1.5 rounded-md text-sm font-medium text-neutral-400 opacity-50 cursor-not-allowed" title="Funcionalidade em desenvolvimento">
-              <FolderGit2 class="w-[18px] h-[18px]" stroke-width="1.5" />
+            <div class="nav-item flex items-center gap-3 mx-2 px-3 py-1.5 rounded-md text-sm font-medium text-ink-muted/50 cursor-not-allowed">
+              <FolderGit2 class="w-[18px] h-[18px] text-current" stroke-width="1.5" />
               <span>Projetos</span>
+              <span class="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-surface-hover text-ink-muted">Em breve</span>
             </div>
 
             <router-link to="/engenharia" @click="isSidebarOpen = false"
-              :class="[route.path.startsWith('/engenharia') || route.path.startsWith('/orcamento') ? 'bg-neutral-800 text-white' : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800', 'nav-item flex items-center gap-3 mx-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-200']">
-              <Calculator class="w-[18px] h-[18px]" stroke-width="1.5" />
+              :class="[route.path.startsWith('/engenharia') || route.path.startsWith('/orcamento') ? 'bg-brand-blue/[0.08] text-brand-blue font-semibold' : 'text-ink-muted hover:text-ink hover:bg-surface-hover', 'nav-item flex items-center gap-3 mx-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-200']">
+              <Calculator class="w-[18px] h-[18px] text-current" stroke-width="1.5" />
               <span>Engenharia</span>
             </router-link>
 
-            <div class="nav-item flex items-center gap-3 mx-2 px-3 py-1.5 rounded-md text-sm font-medium text-neutral-400 opacity-50 cursor-not-allowed" title="Funcionalidade em desenvolvimento">
-              <Users class="w-[18px] h-[18px]" stroke-width="1.5" />
+            <div class="nav-item flex items-center gap-3 mx-2 px-3 py-1.5 rounded-md text-sm font-medium text-ink-muted/50 cursor-not-allowed">
+              <Users class="w-[18px] h-[18px] text-current" stroke-width="1.5" />
               <span>Clientes</span>
+              <span class="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-surface-hover text-ink-muted">Em breve</span>
             </div>
 
             <router-link to="/configuracoes" @click="isSidebarOpen = false"
-              class="group nav-item text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 flex items-center gap-3 mx-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-200">
-              <Settings class="w-[18px] h-[18px]" stroke-width="1.5" />
+              class="group nav-item text-ink-muted hover:text-ink hover:bg-surface-hover flex items-center gap-3 mx-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-200">
+              <Settings class="w-[18px] h-[18px] text-current" stroke-width="1.5" />
               <span>Configurações</span>
-              <ChevronRight class="w-4 h-4 ml-auto text-neutral-500 group-hover:text-neutral-300 transition-colors" stroke-width="1.5" />
+              <ChevronRight class="w-4 h-4 ml-auto text-ink-muted group-hover:text-ink transition-colors" stroke-width="1.5" />
             </router-link>
           </nav>
 
           <!-- Nav de configurações (Substitui o principal) -->
           <nav v-else key="settings" class="space-y-1 nav-container">
             <router-link to="/dashboard" @click="isSidebarOpen = false"
-              class="nav-item text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 flex items-center gap-3 mx-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-200 group">
-              <ChevronLeft class="w-[18px] h-[18px] transition-transform group-hover:-translate-x-1" stroke-width="1.5" />
+              class="nav-item text-ink-muted hover:text-ink hover:bg-surface-hover flex items-center gap-3 mx-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-200 group">
+              <ChevronLeft class="w-[18px] h-[18px] text-current transition-transform group-hover:-translate-x-1" stroke-width="1.5" />
               <span>Configurações</span>
             </router-link>
 
@@ -125,12 +125,12 @@ const settingsNav = [
               @click="isSidebarOpen = false"
               :class="[
                 route.path === item.path
-                  ? 'bg-neutral-800 text-white'
-                  : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800',
+                  ? 'bg-brand-blue/[0.08] text-brand-blue font-semibold'
+                  : 'text-ink-muted hover:text-ink hover:bg-surface-hover',
                 'nav-item flex items-center gap-3 mx-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-200'
               ]"
             >
-              <component :is="item.icon" class="w-[18px] h-[18px]" stroke-width="1.5" />
+              <component :is="item.icon" class="w-[18px] h-[18px] text-current" stroke-width="1.5" />
               <span>{{ item.label }}</span>
             </router-link>
           </nav>
@@ -140,18 +140,25 @@ const settingsNav = [
       <!-- Rodapé -->
       <Transition name="fade" mode="out-in">
         <div v-if="!isConfigsRoute" key="footer" class="mt-auto space-y-1 mb-6">
+          <div class="mx-4 border-t border-hairline my-2"></div>
+
           <router-link to="/admin" @click="isSidebarOpen = false"
-            :class="[route.path === '/admin' ? 'bg-neutral-800 text-white' : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800', 'flex items-center gap-3 mx-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-200']">
-            <RefreshCw class="w-[18px] h-[18px]" stroke-width="1.5" />
+            :class="[route.path === '/admin' ? 'bg-brand-blue/[0.08] text-brand-blue font-semibold' : 'text-ink-muted hover:text-ink hover:bg-surface-hover', 'flex items-center gap-3 mx-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-200']">
+            <RefreshCw class="w-[18px] h-[18px] text-current" stroke-width="1.5" />
             <span>Sincronizar SINAPI</span>
+            <span class="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded bg-canvas border border-hairline text-ink-muted">Admin</span>
           </router-link>
-          <div class="flex items-center justify-center gap-2 mx-2 px-3 py-1.5 rounded-md text-sm font-medium text-neutral-400 border border-neutral-800 opacity-50 cursor-not-allowed transition-colors" title="Funcionalidade em desenvolvimento">
-            <PlusCircle class="w-[18px] h-[18px]" stroke-width="1.5" />
+
+          <div class="flex items-center gap-3 mx-2 px-3 py-1.5 rounded-md text-sm font-medium text-ink-muted/50 cursor-not-allowed">
+            <PlusCircle class="w-[18px] h-[18px] text-current" stroke-width="1.5" />
             <span>Novo Dossiê Caixa</span>
+            <span class="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-surface-hover text-ink-muted">Em breve</span>
           </div>
-          <div class="flex items-center gap-3 mx-2 px-3 py-1.5 rounded-md text-sm font-medium text-neutral-400 opacity-50 cursor-not-allowed" title="Funcionalidade em desenvolvimento">
-            <HelpCircle class="w-[18px] h-[18px]" stroke-width="1.5" />
+
+          <div class="flex items-center gap-3 mx-2 px-3 py-1.5 rounded-md text-sm font-medium text-ink-muted/50 cursor-not-allowed">
+            <HelpCircle class="w-[18px] h-[18px] text-current" stroke-width="1.5" />
             <span>Ajuda</span>
+            <span class="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-surface-hover text-ink-muted">Em breve</span>
           </div>
         </div>
       </Transition>

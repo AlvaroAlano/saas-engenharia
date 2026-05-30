@@ -3,15 +3,15 @@ import { useRouter, useRoute } from 'vue-router'
 import { supabase } from '../supabase'
 import { useSidebar } from '../composables/useSidebar'
 import { useProfile } from '../composables/useProfile'
-import { isDark, toggleTheme } from '../composables/useTheme'
 import { useNotificacoes } from '../composables/useNotificacoes'
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import {
   Menu, ArrowLeft, Search, Archive, PlusCircle,
-  Sun, Moon, Bell, LogOut, User, UserCog, Settings,
-  FileText, RefreshCw, CheckCheck, Check
+  Bell, LogOut, User, UserCog, Settings,
+  FileText, RefreshCw, CheckCheck, Check, X
 } from 'lucide-vue-next'
 import BaseButton from './ui/BaseButton.vue'
+import ThemeToggler from './ThemeToggler.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -63,10 +63,22 @@ watch(() => route.path, () => {
 })
 
 const { toggleSidebar } = useSidebar()
-const emit = defineEmits(['new-client', 'open-archived'])
+const emit = defineEmits(['new-client', 'open-archived', 'search'])
 
 const abrirModalArquivados = () => {
   emit('open-archived')
+}
+
+const searchValue = ref('')
+
+const onSearchInput = (e) => {
+  searchValue.value = e.target.value
+  emit('search', e.target.value)
+}
+
+const clearSearch = () => {
+  searchValue.value = ''
+  emit('search', '')
 }
 
 const formatarTempo = (data) => {
@@ -81,7 +93,7 @@ const formatarTempo = (data) => {
 </script>
 
 <template>
-  <header class="h-16 w-full sticky top-0 z-50 bg-surface border-b border-hairline shadow-sm flex items-center justify-between px-4 lg:px-8 gap-4 transition-colors text-ink select-none">
+  <header class="h-16 w-full sticky top-0 z-50 bg-surface border-b border-hairline shadow-sm flex items-center justify-between px-4 lg:px-8 gap-4 transition-colors text-ink">
     <div class="flex items-center flex-1 gap-2">
       <BaseButton 
         variant="ghost"
@@ -114,14 +126,24 @@ const formatarTempo = (data) => {
         Dashboard
       </BaseButton>
       
-      <!-- Input de busca global Vercel Aesthetic -->
-      <div class="relative w-full max-w-md select-none">
-        <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted w-4.5 h-4.5 pointer-events-none" stroke-width="1.5" />
-        <input 
-          class="w-full bg-canvas border border-hairline rounded-md py-2 pl-10 pr-4 text-sm text-ink placeholder:text-ink-muted focus:outline-none focus:border-neutral-500 focus:ring-1 focus:ring-neutral-500 transition-all font-sans" 
-          placeholder="Buscar cliente ou obra..." 
+      <!-- Busca global -->
+      <div class="relative w-full max-w-md">
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted w-4 h-4 pointer-events-none" stroke-width="1.5" />
+        <input
+          class="w-full bg-canvas border border-hairline rounded-md py-2 pl-10 pr-8 text-sm text-ink placeholder:text-ink-muted focus:outline-none focus:border-brand-blue focus:ring-1 focus:ring-brand-blue/30 transition-all font-sans"
+          placeholder="Buscar cliente ou obra..."
           type="text"
+          :value="searchValue"
+          @input="onSearchInput"
         />
+        <button
+          v-if="searchValue"
+          @click="clearSearch"
+          class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-ink-muted hover:text-ink rounded transition-colors cursor-pointer"
+          aria-label="Limpar busca"
+        >
+          <X class="w-3.5 h-3.5" stroke-width="2" />
+        </button>
       </div>
     </div>
 
@@ -154,15 +176,7 @@ const formatarTempo = (data) => {
       <div class="h-8 w-[1px] bg-hairline mx-2"></div>
 
       <div class="flex items-center gap-3">
-        <BaseButton 
-          variant="ghost"
-          size="icon"
-          @click="toggleTheme" 
-          title="Alternar Tema"
-        >
-          <Sun v-if="!isDark" class="w-5 h-5" stroke-width="1.5" />
-          <Moon v-else class="w-5 h-5" stroke-width="1.5" />
-        </BaseButton>
+        <ThemeToggler />
         
         <!-- Sininho de Notificações -->
         <div class="relative" ref="bellRef">
@@ -174,7 +188,7 @@ const formatarTempo = (data) => {
             <Bell class="w-5 h-5" stroke-width="1.5" />
             <span
               v-if="naoLidas > 0"
-              class="absolute top-1.5 right-1.5 min-w-[16px] h-4 px-1 bg-blue-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none"
+              class="absolute top-1.5 right-1.5 min-w-[16px] h-4 px-1 bg-brand-blue text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none"
             >{{ naoLidas > 9 ? '9+' : naoLidas }}</span>
           </button>
 
@@ -216,10 +230,10 @@ const formatarTempo = (data) => {
                   :class="n.lida ? 'opacity-50' : ''"
                 >
                   <div class="shrink-0 mt-0.5 w-7 h-7 rounded-full flex items-center justify-center"
-                    :class="n.tipo === 'reenvio' ? 'bg-amber-500/10' : 'bg-blue-500/10'"
+                    :class="n.tipo === 'reenvio' ? 'bg-brand-orange/10' : 'bg-brand-blue/10'"
                   >
-                    <RefreshCw v-if="n.tipo === 'reenvio'" class="w-3.5 h-3.5 text-amber-500" stroke-width="2" />
-                    <FileText v-else class="w-3.5 h-3.5 text-blue-500" stroke-width="2" />
+                    <RefreshCw v-if="n.tipo === 'reenvio'" class="w-3.5 h-3.5 text-brand-orange" stroke-width="2" />
+                    <FileText v-else class="w-3.5 h-3.5 text-brand-blue" stroke-width="2" />
                   </div>
                   <div class="flex-1 min-w-0">
                     <p class="text-sm text-ink leading-snug">{{ n.mensagem }}</p>
@@ -229,7 +243,7 @@ const formatarTempo = (data) => {
                     v-if="!n.lida"
                     @click="marcarLida(n.id)"
                     title="Marcar como lida"
-                    class="shrink-0 mt-0.5 w-6 h-6 flex items-center justify-center rounded-md text-ink-muted hover:text-emerald-500 hover:bg-emerald-500/10 transition-colors cursor-pointer"
+                    class="shrink-0 mt-0.5 w-6 h-6 flex items-center justify-center rounded-md text-ink-muted hover:text-semantic-success hover:bg-semantic-success/10 transition-colors cursor-pointer"
                   >
                     <Check class="w-3.5 h-3.5" stroke-width="2.5" />
                   </button>
@@ -271,7 +285,7 @@ const formatarTempo = (data) => {
                 <div class="flex flex-col">
                   <span class="text-sm font-medium text-ink">{{ profile?.nome_completo || 'Usuário' }}</span>
                   <div class="flex items-center gap-1.5 mt-1" v-if="profile?.registro_crea_cau">
-                    <span class="text-[10px] bg-canvas text-blue-500 border border-hairline px-1.5 py-0.5 rounded-md font-bold uppercase tracking-tight">{{ profile.registro_crea_cau }}</span>
+                    <span class="text-[10px] bg-canvas text-brand-blue border border-hairline px-1.5 py-0.5 rounded-md font-bold uppercase tracking-tight">{{ profile.registro_crea_cau }}</span>
                   </div>
                   <span class="text-[11px] text-ink-muted mt-1 font-mono">ID: #{{ profile?.id ? profile.id.slice(0, 4).toUpperCase() : '----' }}</span>
                 </div>

@@ -4,23 +4,13 @@
     <header class="sticky top-0 z-50 w-full h-[56px] bg-surface/80 backdrop-blur-md border-b border-hairline transition-all duration-300 flex items-center">
       <div class="w-full max-w-[1280px] mx-auto px-6 flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 bg-brand-primary/10 rounded-md border border-brand-primary/30 flex items-center justify-center">
-            <Layers class="w-5 h-5 text-brand-primary" stroke-width="1.5" />
-          </div>
-          <span class="text-[18px] font-semibold text-ink tracking-[-0.4px]">Vértice</span>
+          <VerticeLogo class="h-[22px] text-ink" />
           <span class="text-[10px] bg-canvas border border-hairline text-ink-muted px-2 py-0.5 rounded-full font-mono font-medium">B2C</span>
         </div>
         
         <div class="flex items-center gap-4">
           <!-- Theme Toggle -->
-          <button 
-            @click="toggleTheme" 
-            class="p-2 text-ink-muted hover:text-ink hover:bg-surface-hover rounded-md transition-all cursor-pointer flex items-center justify-center focus:outline-none"
-            title="Alternar Tema"
-          >
-            <Sun v-if="isDark" class="w-5 h-5" stroke-width="1.5" />
-            <Moon v-else class="w-5 h-5" stroke-width="1.5" />
-          </button>
+          <ThemeToggler />
 
           <!-- Back to home/B2B portal link -->
           <router-link 
@@ -87,11 +77,11 @@
                 <select 
                   v-model="form.uf" 
                   required
-                  class="w-full bg-canvas border border-hairline rounded-md px-3 py-2.5 text-sm text-ink focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/50 appearance-none cursor-pointer transition-all"
+                  class="w-full bg-canvas border border-hairline rounded-md px-3 py-2.5 text-sm text-ink focus:outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/30 appearance-none cursor-pointer transition-all"
                 >
                   <option v-for="uf in ufs" :key="uf" :value="uf">{{ uf }}</option>
                 </select>
-                <ChevronDown class="w-[18px] h-[18px] absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-[#8a8f98] pointer-events-none" stroke-width="1.5" />
+                <ChevronDown class="w-[18px] h-[18px] absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" stroke-width="1.5" />
               </div>
             </div>
 
@@ -105,7 +95,7 @@
                   min="30" 
                   max="10000" 
                   required
-                  class="w-full bg-canvas border border-hairline text-ink rounded-md py-2.5 px-3 text-sm focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/50 transition-all font-mono"
+                  class="w-full bg-canvas border border-hairline text-ink rounded-md py-2.5 px-3 text-sm focus:outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/30 transition-all font-mono"
                   placeholder="Ex: 120"
                 />
                 <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-muted font-mono pointer-events-none">m²</span>
@@ -119,7 +109,7 @@
                 <button 
                   type="button"
                   @click="form.padrao = 'baixo'"
-                  :class="form.padrao === 'baixo' ? 'bg-[#5e6ad2] text-white font-semibold' : 'bg-surface hover:bg-surface-hover text-ink-muted'"
+                  :class="form.padrao === 'baixo' ? 'bg-brand-blue text-white font-semibold' : 'bg-surface hover:bg-surface-hover text-ink-muted'"
                   class="py-2 text-xs font-medium rounded-md transition-all cursor-pointer border border-transparent"
                 >
                   Popular
@@ -127,7 +117,7 @@
                 <button 
                   type="button"
                   @click="form.padrao = 'medio'"
-                  :class="form.padrao === 'medio' ? 'bg-[#5e6ad2] text-white font-semibold' : 'bg-surface hover:bg-surface-hover text-ink-muted'"
+                  :class="form.padrao === 'medio' ? 'bg-brand-blue text-white font-semibold' : 'bg-surface hover:bg-surface-hover text-ink-muted'"
                   class="py-2 text-xs font-medium rounded-md transition-all cursor-pointer border border-transparent"
                 >
                   Médio
@@ -135,7 +125,7 @@
                 <button 
                   type="button"
                   @click="form.padrao = 'alto'"
-                  :class="form.padrao === 'alto' ? 'bg-[#5e6ad2] text-white font-semibold' : 'bg-surface hover:bg-surface-hover text-ink-muted'"
+                  :class="form.padrao === 'alto' ? 'bg-brand-blue text-white font-semibold' : 'bg-surface hover:bg-surface-hover text-ink-muted'"
                   class="py-2 text-xs font-medium rounded-md transition-all cursor-pointer border border-transparent"
                 >
                   Alto
@@ -147,7 +137,7 @@
             <button 
               type="submit" 
               :disabled="loading"
-              class="w-full bg-[#5e6ad2] hover:bg-[#828fff] text-white py-3 rounded-md text-sm font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50"
+              class="w-full bg-brand-blue hover:bg-brand-blue-hover text-white py-3 rounded-md text-sm font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50"
             >
               <Loader2 v-if="loading" class="w-[18px] h-[18px] animate-spin" stroke-width="1.5" />
               <Calculator v-else class="w-[18px] h-[18px]" stroke-width="1.5" />
@@ -192,7 +182,7 @@
             <!-- Next CTA Action: Go to wizard -->
             <button 
               @click="irParaWizard"
-              class="w-full bg-[#27a644] hover:bg-[#2ecc71] text-white py-3 rounded-md text-sm font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98]"
+              class="w-full bg-semantic-success hover:bg-semantic-success/90 text-white py-3 rounded-md text-sm font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98]"
             >
               <span>Personalizar & Encontrar Engenheiro</span>
               <ArrowRight class="w-[18px] h-[18px]" stroke-width="1.5" />
@@ -208,8 +198,9 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
-import { isDark, toggleTheme } from '../composables/useTheme'
-import { Layers, Sun, Moon, CheckCircle2, ChevronDown, Loader2, Calculator, ArrowRight } from 'lucide-vue-next'
+import { CheckCircle2, ChevronDown, Loader2, Calculator, ArrowRight } from 'lucide-vue-next'
+import ThemeToggler from './ThemeToggler.vue'
+import VerticeLogo from './VerticeLogo.vue'
 
 const router = useRouter()
 
@@ -276,5 +267,6 @@ input::-webkit-inner-spin-button {
 }
 input[type=number] {
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 </style>

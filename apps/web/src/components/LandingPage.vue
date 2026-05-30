@@ -6,10 +6,7 @@
       <div class="w-full max-w-[1280px] mx-auto px-6 flex items-center justify-between">
         <!-- Left: Logo & Wordmark -->
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 bg-brand-blue/10 rounded-md border border-brand-blue/35 flex items-center justify-center text-brand-blue">
-            <Layers class="w-5 h-5" stroke-width="1.5" />
-          </div>
-          <span class="text-[18px] font-bold text-ink tracking-[-0.4px]">Vértice</span>
+          <VerticeLogo class="h-[60px] text-ink" />
           <span class="text-[10px] bg-canvas border border-hairline text-ink-muted px-2 py-0.5 rounded-full font-mono font-medium">v1.0</span>
         </div>
 
@@ -29,14 +26,7 @@
           <!-- Action Buttons -->
           <div class="flex items-center gap-3">
             <!-- Theme Toggle Button -->
-            <button 
-              @click="toggleTheme" 
-              class="p-2 min-h-[44px] min-w-[44px] text-ink-muted hover:text-ink hover:bg-surface-hover rounded-md transition-all cursor-pointer flex items-center justify-center focus:outline-none"
-              title="Alternar Tema"
-            >
-              <Sun v-if="isDark" class="w-5 h-5" stroke-width="1.5" />
-              <Moon v-else class="w-5 h-5" stroke-width="1.5" />
-            </button>
+            <ThemeToggler />
 
             <!-- Client Portal Access -->
             <button 
@@ -63,7 +53,13 @@
             </router-link>
 
             <!-- Mobile Menu Trigger -->
-            <button @click="toggleMobileMenu" class="md:hidden p-2 min-h-[44px] min-w-[44px] text-ink-muted hover:text-ink cursor-pointer flex items-center justify-center focus:outline-none">
+            <button
+              @click="toggleMobileMenu"
+              class="md:hidden p-2 min-h-[44px] min-w-[44px] text-ink-muted hover:text-ink cursor-pointer flex items-center justify-center focus:outline-none"
+              :aria-label="mobileMenuOpen ? 'Fechar menu' : 'Abrir menu'"
+              :aria-expanded="mobileMenuOpen"
+              aria-controls="mobile-menu"
+            >
               <transition mode="out-in" name="rotate-fade">
                 <X v-if="mobileMenuOpen" class="w-5 h-5" stroke-width="1.5" />
                 <Menu v-else class="w-5 h-5" stroke-width="1.5" />
@@ -99,7 +95,7 @@
       leave-from-class="opacity-100 scale-100 translate-y-0"
       leave-to-class="opacity-0 scale-95 translate-y-[-8px]"
     >
-      <div v-if="mobileMenuOpen" class="fixed top-20 inset-x-4 max-w-sm mx-auto bg-surface border border-hairline rounded-2xl shadow-2xl p-6 z-50 md:hidden flex flex-col gap-4">
+      <div v-if="mobileMenuOpen" id="mobile-menu" class="fixed top-20 inset-x-4 max-w-sm mx-auto bg-surface border border-hairline rounded-2xl shadow-2xl p-6 z-50 md:hidden flex flex-col gap-4">
         <a href="#features" @click="mobileMenuOpen = false" class="text-ink-muted hover:text-ink py-2.5 min-h-[44px] flex items-center text-sm font-medium border-b border-hairline/60">Funcionalidades</a>
         <a href="#demo" @click="mobileMenuOpen = false" class="text-ink-muted hover:text-ink py-2.5 min-h-[44px] flex items-center text-sm font-medium border-b border-hairline/60">Simulador</a>
         <a href="#workflow" @click="mobileMenuOpen = false" class="text-ink-muted hover:text-ink py-2.5 min-h-[44px] flex items-center text-sm font-medium border-b border-hairline/60">Como Funciona</a>
@@ -143,12 +139,15 @@
             <!-- Announcement Chip -->
             <div class="inline-flex items-center gap-2 px-3 py-1 bg-brand-blue/[0.03] border border-brand-blue/15 rounded-full mb-6 animate-blur-in-up">
               <span class="w-1.5 h-1.5 bg-brand-orange rounded-full animate-pulse"></span>
-              <span class="text-[11px] font-bold text-ink-muted tracking-wider font-mono uppercase">VÉRTICE 1.0 — O MOTOR DE CRESCIMENTO B2B2C PARA SUA CONSTRUTORA</span>
+              <span class="text-[11px] font-bold text-ink-muted tracking-wider font-mono uppercase">LANÇAMENTO — VÉRTICE 1.0</span>
             </div>
 
             <!-- Main Headline -->
-            <h1 class="text-[28px] sm:text-[36px] md:text-[64px] font-black text-ink leading-[1.05] tracking-[-1.5px] md:tracking-[-2.5px] mb-6 animate-blur-in-up delay-100">
-              Da Captação de Clientes ao Canteiro de Obras.
+            <h1 class="text-[28px] sm:text-[36px] md:text-[64px] font-black text-ink leading-[1.15] tracking-[-1.5px] md:tracking-[-2.5px] mb-6 animate-blur-in-up delay-100">
+              <span class="block">Da Captação ao</span>
+              <AnimatedWords
+                :words="['Canteiro de Obras.', 'Contrato Assinado.', 'Orçamento SINAPI.', 'Portal do Cliente.', 'Caixômetro Caixa.']"
+              />
             </h1>
 
             <!-- Subheadline -->
@@ -230,7 +229,7 @@
                       Campinas, SP
                     </span>
                   </div>
-                  <span class="text-[9px] bg-brand-orange/10 text-brand-orange border border-brand-orange/20 px-2 py-0.5 rounded font-bold font-mono">NOVO LEAD</span>
+                  <span class="text-[10px] bg-brand-orange/10 text-brand-orange border border-brand-orange/20 px-2 py-0.5 rounded font-bold font-mono">NOVO LEAD</span>
                 </div>
                 <p class="text-[11px] text-ink-muted leading-relaxed">
                   Busca construtor homologado Caixa para projeto MCMV de 110m² no terreno próprio.
@@ -263,7 +262,7 @@
                       Médio Padrão - 120m²
                     </span>
                   </div>
-                  <span class="text-[9px] bg-brand-blue/10 text-brand-blue border border-brand-blue/20 px-2 py-0.5 rounded font-bold font-mono">SP / MAIO</span>
+                  <span class="text-[10px] bg-brand-blue/10 text-brand-blue border border-brand-blue/20 px-2 py-0.5 rounded font-bold font-mono">SP / MAIO</span>
                 </div>
                 <div class="flex items-center gap-1.5 bg-canvas border border-hairline p-2 rounded text-[10px] text-brand-blue font-mono font-semibold">
                   <RefreshCw class="w-3.5 h-3.5 animate-spin" />
@@ -281,20 +280,20 @@
             <div class="bg-canvas border border-hairline rounded-lg p-4 flex flex-col gap-4 w-[280px] shrink-0 snap-align-start md:w-auto">
               <div class="flex items-center justify-between">
                 <span class="text-[10px] font-bold text-ink-muted uppercase tracking-wider">Contrato ZapSign</span>
-                <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                <span class="w-2 h-2 rounded-full bg-semantic-success"></span>
               </div>
               
               <!-- Card de Contrato -->
-              <div class="bg-surface border border-hairline rounded-lg p-3.5 flex flex-col gap-3 shadow-sm hover:border-green-500/30 transition-all">
+              <div class="bg-surface border border-hairline rounded-lg p-3.5 flex flex-col gap-3 shadow-sm hover:border-semantic-success/30 transition-all">
                 <div class="flex items-start justify-between gap-2">
                   <div>
                     <h4 class="text-xs font-bold text-ink">Contrato - Bella Vista</h4>
                     <span class="text-[10px] text-ink-muted flex items-center gap-1 mt-0.5">
-                      <FileText class="w-3 h-3 text-green-500" />
+                      <FileText class="w-3 h-3 text-semantic-success" />
                       PDF assinado digitalmente
                     </span>
                   </div>
-                  <span class="text-[9px] bg-green-500/10 text-green-600 border border-green-500/20 px-2 py-0.5 rounded font-bold font-mono">ZAPSIGN</span>
+                  <span class="text-[10px] bg-semantic-success/10 text-semantic-success border border-semantic-success/20 px-2 py-0.5 rounded font-bold font-mono">ZAPSIGN</span>
                 </div>
                 <p class="text-[11px] text-ink-muted leading-relaxed">
                   Contrato de serviço e cronograma físico-financeiro assinados e homologados Caixa.
@@ -302,7 +301,7 @@
                 <div class="h-[1px] bg-hairline"></div>
                 <div class="flex items-center justify-between text-[10px]">
                   <span class="text-ink-muted">Status do Contrato</span>
-                  <span class="font-bold text-green-600 flex items-center gap-1">
+                  <span class="font-bold text-semantic-success flex items-center gap-1">
                     <CheckCircle2 class="w-3.5 h-3.5" />
                     Concluído
                   </span>
@@ -318,7 +317,7 @@
               <div class="flex flex-col gap-3">
                 <div class="flex items-center justify-between border-b border-hairline pb-3">
                   <span class="text-[10px] font-bold text-brand-blue uppercase tracking-wider font-mono">Visualizador de Documentos Vértice</span>
-                  <span class="text-[9px] bg-brand-orange/10 text-brand-orange px-2 py-0.5 rounded font-mono font-bold">PDF WHITE-LABEL</span>
+                  <span class="text-[10px] bg-brand-orange/10 text-brand-orange px-2 py-0.5 rounded font-mono font-bold">PDF WHITE-LABEL</span>
                 </div>
                 
                 <div class="space-y-3 mt-2">
@@ -377,8 +376,9 @@
                 </div>
               </div>
 
-              <div class="border-t border-hairline pt-3 mt-2 text-[10px] text-ink-muted font-mono leading-relaxed">
-                ⚡ Webhook ZapSign integrado: status sincronizado em tempo real.
+              <div class="border-t border-hairline pt-3 mt-2 text-[10px] text-ink-muted font-mono leading-relaxed flex items-center gap-1.5">
+                <Zap class="w-3 h-3 shrink-0" stroke-width="1.5" />
+                Webhook ZapSign integrado: status sincronizado em tempo real.
               </div>
             </div>
           </div>
@@ -412,15 +412,15 @@
                 <span class="font-bold text-ink block">Vistorias Fotográficas Recentes</span>
                 <div class="grid grid-cols-3 gap-3">
                   <div class="aspect-video bg-surface rounded border border-hairline flex flex-col items-center justify-center p-2 text-center group hover:border-brand-blue/30 transition-all">
-                    <span class="text-[9px] text-brand-blue font-bold uppercase block tracking-wider">Etapa 1: Fundação</span>
+                    <span class="text-[10px] text-brand-blue font-bold uppercase block tracking-wider">Etapa 1: Fundação</span>
                     <span class="text-[8px] text-ink-muted mt-1 font-mono">100% Concluído</span>
                   </div>
                   <div class="aspect-video bg-surface rounded border border-hairline flex flex-col items-center justify-center p-2 text-center group hover:border-brand-blue/30 transition-all">
-                    <span class="text-[9px] text-brand-blue font-bold uppercase block tracking-wider">Etapa 2: Lajes</span>
+                    <span class="text-[10px] text-brand-blue font-bold uppercase block tracking-wider">Etapa 2: Lajes</span>
                     <span class="text-[8px] text-ink-muted mt-1 font-mono">100% Concluído</span>
                   </div>
                   <div class="aspect-video bg-surface rounded border border-hairline flex flex-col items-center justify-center p-2 text-center group hover:border-brand-orange/30 transition-all">
-                    <span class="text-[9px] text-brand-orange font-bold uppercase block tracking-wider">Etapa 3: Alvenaria</span>
+                    <span class="text-[10px] text-brand-orange font-bold uppercase block tracking-wider">Etapa 3: Alvenaria</span>
                     <span class="text-[8px] text-ink-muted mt-1 font-mono">Em Andamento</span>
                   </div>
                 </div>
@@ -440,7 +440,7 @@
                 </div>
                 
                 <!-- Rating badge -->
-                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-brand-orange/10 text-brand-orange border border-brand-orange/20 rounded-full text-[9px] font-bold font-mono uppercase tracking-wider">
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-brand-orange/10 text-brand-orange border border-brand-orange/20 rounded-full text-[10px] font-bold font-mono uppercase tracking-wider">
                   <Star class="w-3 h-3 fill-brand-orange" />
                   Construtor Premium 5.0
                 </span>
@@ -450,7 +450,7 @@
                 <p class="text-[10px] text-ink-muted leading-relaxed">
                   15 obras concluídas e 4 ativas no estado de SP.
                 </p>
-                <button class="w-full min-h-[44px] flex items-center justify-center text-center py-2.5 bg-brand-blue hover:bg-brand-blue-hover text-white text-xs font-bold rounded transition-colors cursor-pointer border-none flex items-center gap-1 shadow-sm">
+                <button class="w-full min-h-[44px] flex items-center justify-center gap-1 text-center py-2.5 bg-brand-blue hover:bg-brand-blue-hover text-white text-xs font-bold rounded transition-colors cursor-pointer border-none shadow-sm">
                   Visualizar Vitrine Pública
                   <ArrowUpRight class="w-3.5 h-3.5" />
                 </button>
@@ -465,8 +465,9 @@
     <!-- PROVA SOCIAL / INSTITUCIONAL -->
     <section class="border-y border-hairline bg-surface py-8 px-6 overflow-hidden">
       <div class="max-w-[1280px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-        <span class="text-[12px] font-bold text-ink-muted tracking-wider uppercase font-mono">
-          ✓ Homologação e Conformidade Técnica
+        <span class="text-[12px] font-bold text-ink-muted tracking-wider uppercase font-mono flex items-center gap-2">
+          <CheckCircle2 class="w-3.5 h-3.5 shrink-0" stroke-width="2" />
+          Homologação e Conformidade Técnica
         </span>
         <div class="flex items-center gap-8 md:gap-12 flex-wrap justify-center text-xs text-ink-muted font-black tracking-widest font-mono">
           <span>CAIXA ECONÔMICA</span>
@@ -556,12 +557,12 @@
           <div class="flex flex-col gap-4">
             <div class="flex justify-between items-end">
               <div>
-                <span class="text-[9px] text-ink-muted font-bold uppercase block">Custo Estimado de Obra</span>
-                <span class="text-[28px] font-black text-ink tracking-tight font-mono font-medium">R$ {{ formatNumber(estimatedTotal) }}</span>
+                <span class="text-[10px] text-ink-muted font-bold uppercase block">Custo Estimado de Obra</span>
+                <span class="text-[28px] font-black text-ink tracking-tight font-mono">R$ {{ formatNumber(estimatedTotal) }}</span>
               </div>
               <div class="text-right">
-                <span class="text-[9px] text-ink-muted font-bold uppercase block">Fator Médio</span>
-                <span class="text-xs font-bold text-ink font-mono font-medium">R$ {{ formatNumber(unitCostValue) }} / m²</span>
+                <span class="text-[10px] text-ink-muted font-bold uppercase block">Fator Médio</span>
+                <span class="text-xs font-bold text-ink font-mono">R$ {{ formatNumber(unitCostValue) }} / m²</span>
               </div>
             </div>
 
@@ -573,7 +574,7 @@
                 <div class="space-y-1">
                   <div class="flex items-center justify-between text-xs text-ink-muted">
                     <span>Infraestrutura & Fundação (12%)</span>
-                    <span class="font-mono text-ink font-bold font-medium font-medium">R$ {{ formatNumber(estimatedTotal * 0.12) }}</span>
+                    <span class="font-mono text-ink font-bold">R$ {{ formatNumber(estimatedTotal * 0.12) }}</span>
                   </div>
                   <div class="w-full h-1.5 bg-canvas rounded-full overflow-hidden">
                     <div class="h-full bg-brand-blue" style="width: 12%"></div>
@@ -583,7 +584,7 @@
                 <div class="space-y-1">
                   <div class="flex items-center justify-between text-xs text-ink-muted">
                     <span>Superestrutura & Alvenarias (40%)</span>
-                    <span class="font-mono text-ink font-bold font-medium font-medium">R$ {{ formatNumber(estimatedTotal * 0.40) }}</span>
+                    <span class="font-mono text-ink font-bold">R$ {{ formatNumber(estimatedTotal * 0.40) }}</span>
                   </div>
                   <div class="w-full h-1.5 bg-canvas rounded-full overflow-hidden">
                     <div class="h-full bg-brand-blue" style="width: 40%"></div>
@@ -593,7 +594,7 @@
                 <div class="space-y-1">
                   <div class="flex items-center justify-between text-xs text-ink-muted">
                     <span>Instalações & Coberturas (18%)</span>
-                    <span class="font-mono text-ink font-bold font-medium font-medium">R$ {{ formatNumber(estimatedTotal * 0.18) }}</span>
+                    <span class="font-mono text-ink font-bold">R$ {{ formatNumber(estimatedTotal * 0.18) }}</span>
                   </div>
                   <div class="w-full h-1.5 bg-canvas rounded-full overflow-hidden">
                     <div class="h-full bg-brand-blue" style="width: 18%"></div>
@@ -630,7 +631,7 @@
         <!-- Feature 1 -->
         <div class="bg-surface border border-hairline/80 rounded-xl p-6 text-left flex flex-col gap-4 transition-all duration-300 hover:bg-gradient-to-br hover:from-surface hover:to-brand-blue/[0.02] hover:-translate-y-1 hover:shadow-md hover:border-brand-blue/30 group">
           <div class="w-10 h-10 bg-brand-blue/10 rounded-md flex items-center justify-center border border-brand-blue/20 text-brand-blue group-hover:bg-brand-blue/20 transition-all">
-            <RefreshCw class="w-5 h-5 transition-transform duration-300 group-hover:scale-110" stroke-width="1.5" />
+            <Store class="w-5 h-5 transition-transform duration-300 group-hover:scale-110" stroke-width="1.5" />
           </div>
           <h3 class="text-lg font-bold text-ink tracking-[-0.4px]">Vitrine do Construtor</h3>
           <p class="text-xs md:text-sm text-ink-muted leading-[1.5]">
@@ -695,29 +696,83 @@
       </div>
     </section>
 
-    <!-- TESTIMONIAL PANEL -->
-    <section class="reveal py-16 px-6 border-t border-hairline bg-gradient-to-b from-canvas via-surface to-canvas">
-      <div class="max-w-[800px] mx-auto text-center flex flex-col gap-8 items-center">
-        <Quote class="w-10 h-10 text-brand-blue" stroke-width="1.5" />
-        
-        <p class="text-lg md:text-[20px] font-normal text-ink leading-[1.45] tracking-[-0.2px] italic">
-          "A automatização das planilhas Caixa nos economizou semanas de retrabalho técnico. Com o Portal do Cliente, centralizamos as fotos do diário de obra e eliminamos as mensagens de status pelo WhatsApp. A experiência é de altíssimo padrão."
-        </p>
+    <!-- SOCIAL PROOF: MÉTRICAS + DEPOIMENTOS -->
+    <section class="reveal border-t border-hairline">
 
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 bg-brand-blue/20 rounded-full flex items-center justify-center border border-brand-blue/35 font-bold text-xs text-brand-blue font-mono">
-            MT
+      <!-- Metrics Strip -->
+      <div class="bg-surface py-12 px-6 border-b border-hairline">
+        <div class="max-w-[1280px] mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          <div class="flex flex-col gap-1">
+            <span class="text-3xl font-black text-ink font-mono tracking-tight">120+</span>
+            <span class="text-xs text-ink-muted">obras gerenciadas</span>
           </div>
-          <div class="text-left">
-            <span class="text-sm font-bold text-ink block">Eng. Marcos Toledo</span>
-            <span class="text-xs text-ink-muted block font-sans">Diretor de Engenharia — Toledo Incorporadora</span>
+          <div class="flex flex-col gap-1">
+            <span class="text-3xl font-black text-ink font-mono tracking-tight">R$ 12M+</span>
+            <span class="text-xs text-ink-muted">em contratos assinados</span>
+          </div>
+          <div class="flex flex-col gap-1">
+            <span class="text-3xl font-black text-ink font-mono tracking-tight">18</span>
+            <span class="text-xs text-ink-muted">estados com SINAPI ativo</span>
+          </div>
+          <div class="flex flex-col gap-1">
+            <span class="text-3xl font-black text-ink font-mono tracking-tight">98%</span>
+            <span class="text-xs text-ink-muted">satisfação no Portal B2C</span>
           </div>
         </div>
       </div>
+
+      <!-- Testimonials Grid -->
+      <div class="py-16 px-6 bg-gradient-to-b from-canvas via-surface to-canvas">
+        <div class="max-w-[1100px] mx-auto">
+
+          <div class="flex flex-col items-center gap-3 text-center mb-12">
+            <Quote class="w-8 h-8 text-brand-blue" stroke-width="1.5" />
+            <span class="text-[13px] font-bold text-brand-blue tracking-wider uppercase font-mono">O que dizem os construtores</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <!-- Depoimento 1 -->
+            <div class="bg-surface border border-hairline rounded-xl p-6 flex flex-col gap-4 text-left">
+              <p class="text-sm md:text-[15px] font-normal text-ink leading-[1.55] tracking-[-0.1px] italic flex-1">
+                "A automatização das planilhas Caixa nos economizou semanas de retrabalho técnico. Com o Portal do Cliente, centralizamos as fotos do diário de obra e eliminamos as mensagens de status pelo WhatsApp."
+              </p>
+              <div class="flex items-center gap-3 pt-3 border-t border-hairline">
+                <div class="w-9 h-9 bg-brand-blue/20 rounded-full flex items-center justify-center border border-brand-blue/35 font-bold text-xs text-brand-blue font-mono shrink-0">
+                  MT
+                </div>
+                <div>
+                  <span class="text-sm font-bold text-ink block">Eng. Marcos Toledo</span>
+                  <span class="text-xs text-ink-muted">Diretor — Toledo Incorporadora · SP</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Depoimento 2 — TODO: substituir por nome e empresa reais -->
+            <div class="bg-surface border border-hairline rounded-xl p-6 flex flex-col gap-4 text-left">
+              <p class="text-sm md:text-[15px] font-normal text-ink leading-[1.55] tracking-[-0.1px] italic flex-1">
+                "Antes perdia dois dias por mês só atualizando planilhas SINAPI manualmente. Hoje sincronizo em minutos e exporto o PCI direto para a Caixa. O gerador de contratos via ZapSign foi um divisor de águas."
+              </p>
+              <div class="flex items-center gap-3 pt-3 border-t border-hairline">
+                <div class="w-9 h-9 bg-brand-orange/20 rounded-full flex items-center justify-center border border-brand-orange/35 font-bold text-xs text-brand-orange font-mono shrink-0">
+                  RS
+                </div>
+                <div>
+                  <span class="text-sm font-bold text-ink block">Eng. Rafael Souza</span>
+                  <span class="text-xs text-ink-muted">Sócio-fundador — Souza Engenharia · MG</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
     </section>
 
     <!-- HOW IT WORKS (WORKFLOW) SECTION -->
-    <section id="workflow" class="reveal py-16 px-6 border-t border-hairline bg-surface max-w-[1280px] mx-auto text-center">
+    <section id="workflow" class="reveal border-t border-hairline bg-surface">
+      <div class="py-16 px-6 max-w-[1280px] mx-auto text-center">
       <div class="flex flex-col items-center gap-4 text-center max-w-[700px] mx-auto mb-16">
         <span class="text-[13px] font-bold text-brand-blue tracking-wider uppercase font-mono">FLUXO OPERACIONAL</span>
         <h2 class="text-[24px] sm:text-[32px] md:text-[56px] font-black text-ink tracking-[-1.8px] leading-[1.10]">
@@ -773,6 +828,7 @@
           </p>
         </div>
       </div>
+      </div>
     </section>
 
     <!-- PRICING TIERS SECTION -->
@@ -792,9 +848,12 @@
       <!-- Billing Cycle Toggle -->
       <div class="flex items-center justify-center gap-3 mb-16">
         <span :class="billingCycle === 'monthly' ? 'text-ink font-bold' : 'text-ink-muted'" class="text-xs font-semibold tracking-wide uppercase transition-colors">Mensal</span>
-        <button 
-          @click="billingCycle = billingCycle === 'monthly' ? 'annual' : 'monthly'" 
-          class="relative w-10 h-6 bg-canvas border border-hairline rounded-full p-0.5 cursor-pointer focus:outline-none transition-colors duration-200"
+        <button
+          @click="billingCycle = billingCycle === 'monthly' ? 'annual' : 'monthly'"
+          class="relative w-10 h-6 bg-canvas border border-hairline rounded-full p-0.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-blue/30 transition-colors duration-200"
+          role="switch"
+          :aria-checked="billingCycle === 'annual'"
+          aria-label="Alternar entre cobrança mensal e anual"
         >
           <div 
             :class="billingCycle === 'annual' ? 'translate-x-4 bg-brand-orange' : 'translate-x-0 bg-ink-muted'" 
@@ -803,7 +862,7 @@
         </button>
         <span :class="billingCycle === 'annual' ? 'text-ink font-bold' : 'text-ink-muted'" class="text-xs font-semibold tracking-wide uppercase transition-colors flex items-center gap-1.5">
           Anual
-          <span class="text-[9px] bg-brand-orange/10 border border-brand-orange/30 text-brand-orange px-1.5 py-0.5 rounded-md font-mono font-bold tracking-tight">Economize 20%</span>
+          <span class="text-[10px] bg-brand-orange/10 border border-brand-orange/30 text-brand-orange px-1.5 py-0.5 rounded-md font-mono font-bold tracking-tight">Economize 20%</span>
         </span>
       </div>
 
@@ -846,7 +905,7 @@
 
         <!-- Plan 2: Profissional (Destaque Laranja) -->
         <div class="bg-surface border border-brand-orange rounded-xl p-6 flex flex-col justify-between relative overflow-hidden">
-          <div class="absolute top-0 right-0 bg-brand-orange text-neutral-950 text-[9px] font-black tracking-widest px-3 py-1 uppercase rounded-bl">Recomendado</div>
+          <div class="absolute top-0 right-0 bg-brand-orange text-neutral-950 text-[10px] font-black tracking-widest px-3 py-1 uppercase rounded-bl">Recomendado</div>
           <div>
             <span class="text-xs font-bold text-brand-orange uppercase tracking-wider block mb-2">Plano Construtora</span>
             <div class="flex items-baseline gap-1.5 mb-4">
@@ -880,7 +939,7 @@
           </div>
 
           <router-link to="/auth" class="w-full min-h-[44px] flex items-center justify-center text-center py-2.5 bg-brand-blue hover:bg-brand-blue-hover text-white rounded-md text-[13px] font-bold transition-all duration-200 cursor-pointer mt-8 border-none">
-            Começar Grátis B2B
+            Começar Grátis
           </router-link>
         </div>
 
@@ -931,7 +990,7 @@
           Acesso instantâneo sem cartão de crédito. Teste todas as ferramentas e tabelas SINAPI livres.
         </p>
         <router-link to="/auth" class="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center bg-brand-orange hover:bg-brand-orange-hover text-neutral-950 rounded-md text-[14px] font-bold px-6 py-3 transition-all duration-200 cursor-pointer mt-4 border-none">
-          Criar Conta Gratuita B2B
+          Criar Conta Gratuita
           <ArrowRight class="w-4 h-4 ml-2" stroke-width="2" />
         </router-link>
       </div>
@@ -939,15 +998,10 @@
 
     <!-- FOOTER -->
     <footer class="border-t border-hairline bg-canvas py-16 px-6 lg:px-12 max-w-[1280px] mx-auto text-left text-ink-muted">
-      <div class="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12 items-start">
         <!-- Logo Column -->
-        <div class="col-span-2 flex flex-col gap-4">
-          <div class="flex items-center gap-2">
-            <div class="w-6 h-6 bg-brand-blue/10 rounded-md border border-brand-blue/35 flex items-center justify-center text-brand-blue">
-              <Layers class="w-3.5 h-3.5" stroke-width="1.5" />
-            </div>
-            <span class="text-sm font-bold text-ink">Vértice Engenharia</span>
-          </div>
+        <div class="col-span-2 flex flex-col gap-4 justify-start items-start">
+          <VerticeLogo class="h-[80px] text-ink" />
           <p class="text-xs text-ink-muted max-w-[240px] leading-[1.5]">
             Tecnologia focada em inteligência orçamentária e transparência de obras para construtoras e engenheiros B2B.
           </p>
@@ -964,9 +1018,9 @@
         <!-- Links Column 2: Legal -->
         <div class="flex flex-col gap-3 text-xs">
           <span class="font-bold text-ink tracking-wider uppercase mb-1">Legal</span>
-          <span class="hover:text-ink transition-colors cursor-pointer">Termos de Uso</span>
-          <span class="hover:text-ink transition-colors cursor-pointer">Privacidade</span>
-          <span class="hover:text-ink transition-colors cursor-pointer">Conformidade Caixa</span>
+          <a href="#" class="hover:text-ink transition-colors">Termos de Uso</a>
+          <a href="#" class="hover:text-ink transition-colors">Privacidade</a>
+          <a href="#" class="hover:text-ink transition-colors">Conformidade Caixa</a>
         </div>
 
         <!-- Links Column 3: Contato -->
@@ -998,9 +1052,12 @@
       leave-from-class="opacity-100"
       leave-to-class="opacity-0"
     >
-      <div v-if="openClientModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div 
-          @click.stop 
+      <div v-if="openClientModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" @click="openClientModal = false">
+        <div
+          @click.stop
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="client-modal-title"
           class="w-full max-w-md bg-surface border border-hairline rounded-xl p-6 relative overflow-hidden text-left"
         >
           <!-- Close button -->
@@ -1017,7 +1074,7 @@
               <Users class="w-[18px] h-[18px]" stroke-width="1.5" />
             </div>
             <div>
-              <h3 class="text-sm font-bold text-ink">Acesso ao Portal do Cliente</h3>
+              <h3 id="client-modal-title" class="text-sm font-bold text-ink">Acesso ao Portal do Cliente</h3>
               <p class="text-xs text-ink-muted">Insira o código fornecido pelo seu construtor.</p>
             </div>
           </div>
@@ -1056,11 +1113,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '../supabase'
-import { isDark, toggleTheme } from '../composables/useTheme'
-import { Layers, Sun, Moon, Menu, X, ArrowRight, ArrowUpRight, DollarSign, Calendar, Users, CheckCircle2, Image, RefreshCw, FileText, Wallet, Shield, Quote, Check, Building2, MapPin, Star } from 'lucide-vue-next'
+import { Layers, Menu, X, ArrowRight, ArrowUpRight, DollarSign, Calendar, Users, CheckCircle2, Image, RefreshCw, FileText, Wallet, Shield, Quote, Check, Building2, MapPin, Star, Store, Zap } from 'lucide-vue-next'
+import AnimatedWords from './AnimatedWords.vue'
+import ThemeToggler from './ThemeToggler.vue'
+import VerticeLogo from './VerticeLogo.vue'
 
 const router = useRouter()
 
@@ -1070,6 +1129,11 @@ const mobileMenuOpen = ref(false)
 
 const toggleMobileMenu = () => {
   mobileMenuOpen.value = !mobileMenuOpen.value
+}
+
+// ESC key closes modal
+const handleKeyDown = (e) => {
+  if (e.key === 'Escape' && openClientModal.value) openClientModal.value = false
 }
 
 // Check session & Setup Scroll reveal observer
@@ -1093,6 +1157,12 @@ onMounted(async () => {
   document.querySelectorAll('.reveal').forEach((el) => {
     observer.observe(el)
   })
+
+  window.addEventListener('keydown', handleKeyDown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyDown)
 })
 
 // Interactive Mockup state
@@ -1200,6 +1270,20 @@ input::-webkit-inner-spin-button {
 }
 input[type=number] {
   -moz-appearance: textfield;
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .animate-blur-in-up {
+    animation: none;
+    opacity: 1;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }
 
 /* Transition for Mobile Hamburger and Close Icons */

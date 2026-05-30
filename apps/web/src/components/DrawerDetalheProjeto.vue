@@ -245,10 +245,10 @@ const docCategoriaLabels = {
 }
 
 const statusColunaLabels = {
-  estimativa_enviada: { label: 'Estimativa Enviada', class: 'bg-orange-55/10 text-orange-600 dark:text-orange-400 border-orange-100 dark:border-orange-950/30' },
-  contrato_pendente: { label: 'Contrato Pendente', class: 'bg-blue-55/10 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-950/30' },
-  engenharia_caixa: { label: 'Engenharia & Caixa', class: 'bg-indigo-55/10 text-indigo-600 dark:text-indigo-400 border-indigo-100 dark:border-indigo-950/30' },
-  obra_liberada: { label: 'Obra Liberada', class: 'bg-violet-55/10 text-violet-600 dark:text-violet-400 border-violet-100 dark:border-violet-950/30' }
+  estimativa_enviada: { label: 'Estimativa Enviada', class: 'bg-brand-orange/10 text-brand-orange border-brand-orange/20' },
+  contrato_pendente:  { label: 'Contrato Pendente',  class: 'bg-brand-blue/10 text-brand-blue border-brand-blue/20' },
+  engenharia_caixa:   { label: 'Engenharia & Caixa', class: 'bg-brand-secure/10 text-brand-secure border-brand-secure/20' },
+  obra_liberada:      { label: 'Obra Liberada',       class: 'bg-semantic-success/10 text-semantic-success border-semantic-success/20' },
 }
 
 const qualificacaoUrl = computed(() => {
@@ -280,7 +280,7 @@ const getDocumentStatus = (categoria) => {
   
   if (doc.url) {
     if (props.project.status === 'docs_validados' || doc.status === 'aprovado') {
-      return { text: 'Aprovado', class: 'bg-emerald-55/10 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-950/30', doc }
+      return { text: 'Aprovado', class: 'bg-semantic-success/10 text-semantic-success border-semantic-success/20', doc }
     }
     return { text: 'Em Análise', class: 'bg-amber-55/10 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-950/30', doc }
   }
@@ -314,13 +314,13 @@ const documentsList = computed(() => {
 
 const getContractStatus = computed(() => {
   if (props.project?.status_assinatura === 'assinado') {
-    return { text: 'Assinado', class: 'bg-emerald-55/10 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-950/30' }
+    return { text: 'Assinado', class: 'bg-semantic-success/10 text-semantic-success border-semantic-success/20' }
   }
   if (props.project?.status_assinatura === 'pendente') {
-    return { text: 'Aguardando Assinatura', class: 'bg-blue-55/10 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-950/30' }
+    return { text: 'Aguardando Assinatura', class: 'bg-brand-blue/10 text-brand-blue border-brand-blue/20' }
   }
   if (props.project?.contrato_gerado) {
-    return { text: 'Gerado (Não enviado)', class: 'bg-amber-55/10 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-950/30' }
+    return { text: 'Gerado (Não enviado)', class: 'bg-brand-orange/10 text-brand-orange border-brand-orange/20' }
   }
   return { text: 'Não Gerado', class: 'bg-slate-50 text-slate-500 border-slate-200 dark:bg-zinc-800/50 dark:text-zinc-400 dark:border-zinc-800' }
 })
@@ -560,11 +560,16 @@ watch(() => props.isOpen, (newVal) => {
           <div class="w-full lg:w-[600px] shrink-0 flex flex-col h-full bg-canvas">
           <!-- Header -->
           <div class="px-6 py-5 border-b border-hairline bg-surface shrink-0 flex items-center justify-between">
-            <div>
-              <span class="text-[10px] font-bold text-ink-muted uppercase tracking-wider block">Detalhamento do Projeto</span>
-              <h2 class="text-lg font-bold text-ink truncate max-w-[320px] mt-0.5" :title="project.titulo_projeto || project.cliente_nome">
-                {{ project.titulo_projeto || 'Sem título' }}
-              </h2>
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 bg-brand-blue/10 rounded-md border border-brand-blue/30 flex items-center justify-center text-brand-blue shrink-0">
+                <HardHat class="w-[18px] h-[18px]" stroke-width="1.5" />
+              </div>
+              <div>
+                <span class="text-[10px] font-bold text-brand-blue uppercase tracking-wider block">Detalhamento do Projeto</span>
+                <h2 class="text-base font-bold text-ink truncate max-w-[300px] mt-0.5" :title="project.titulo_projeto || project.cliente_nome">
+                  {{ project.titulo_projeto || 'Sem título' }}
+                </h2>
+              </div>
             </div>
             <button @click="closeDrawer" class="p-2 rounded-xl bg-canvas text-ink-muted hover:bg-surface-hover hover:text-ink transition-colors cursor-pointer flex items-center justify-center">
               <X class="w-5 h-5" stroke-width="1.5" />
@@ -628,7 +633,7 @@ watch(() => props.isOpen, (newVal) => {
               
               <div class="pt-3 border-t border-hairline flex items-center justify-between">
                 <p class="text-xs text-ink-muted">Valor Total Estimado</p>
-                <p class="text-base font-bold text-ink">{{ formatCurrency(project.valor, 'Aguardando preenchimento') }}</p>
+                <p class="text-base font-bold text-brand-blue">{{ formatCurrency(project.valor, 'Aguardando preenchimento') }}</p>
               </div>
             </div>
 
@@ -638,7 +643,7 @@ watch(() => props.isOpen, (newVal) => {
               <button 
                 v-if="project.coluna === 'engenharia_caixa' || project.coluna === 'obra_liberada'"
                 @click="irParaOrcamento"
-                class="w-full py-3 bg-ink hover:bg-brand-hover text-canvas rounded-xl font-semibold text-sm transition-all shadow-md flex items-center justify-center gap-2 group cursor-pointer"
+                class="w-full py-3 bg-brand-blue hover:bg-brand-blue-hover text-white rounded-xl font-semibold text-sm transition-all shadow-md flex items-center justify-center gap-2 group cursor-pointer"
               >
                 <HardHat class="w-4 h-4 group-hover:translate-x-0.5 transition-transform" stroke-width="1.5" />
                 Acessar Orçamento Completo
@@ -661,7 +666,7 @@ watch(() => props.isOpen, (newVal) => {
               <!-- B2C Jornada de Qualificação -->
               <div v-if="project.coluna === 'estimativa_enviada' || project.coluna === 'contrato_pendente'" class="bg-surface border border-hairline p-4 rounded-xl shadow-sm space-y-3">
                 <div class="flex items-center gap-2">
-                  <UserCheck class="w-4 h-4 text-blue-600" stroke-width="1.5" />
+                  <UserCheck class="w-4 h-4 text-brand-blue" stroke-width="1.5" />
                   <span class="text-xs font-bold text-ink uppercase tracking-wider">Jornada de Qualificação (B2C)</span>
                 </div>
                 <p class="text-xs text-ink-muted leading-relaxed">
@@ -677,7 +682,7 @@ watch(() => props.isOpen, (newVal) => {
                       class="p-2 rounded-lg bg-canvas border border-hairline hover:bg-surface-hover text-ink-muted hover:text-ink transition-colors cursor-pointer flex items-center justify-center shrink-0"
                       title="Copiar Link"
                     >
-                      <Check v-if="isQualificacaoCopied" class="w-4 h-4 text-emerald-600" stroke-width="1.5" />
+                      <Check v-if="isQualificacaoCopied" class="w-4 h-4 text-semantic-success" stroke-width="1.5" />
                       <Copy v-else class="w-4 h-4" stroke-width="1.5" />
                     </button>
                   </div>
@@ -696,7 +701,7 @@ watch(() => props.isOpen, (newVal) => {
               <!-- B2C Portal de Acompanhamento (Obra Liberada) -->
               <div v-if="project.coluna === 'obra_liberada'" class="bg-surface border border-hairline p-4 rounded-xl shadow-sm space-y-3">
                 <div class="flex items-center gap-2">
-                  <Share2 class="w-4 h-4 text-indigo-600" stroke-width="1.5" />
+                  <Share2 class="w-4 h-4 text-brand-blue" stroke-width="1.5" />
                   <span class="text-xs font-bold text-ink uppercase tracking-wider">Portal de Acompanhamento</span>
                 </div>
                 <p class="text-xs text-ink-muted leading-relaxed">
@@ -716,7 +721,7 @@ watch(() => props.isOpen, (newVal) => {
                       class="p-2 rounded-lg bg-canvas border border-hairline hover:bg-surface-hover text-ink-muted hover:text-ink transition-colors cursor-pointer flex items-center justify-center shrink-0"
                       title="Copiar Link"
                     >
-                      <Check v-if="isPortalCopied" class="w-4 h-4 text-emerald-600" stroke-width="1.5" />
+                      <Check v-if="isPortalCopied" class="w-4 h-4 text-semantic-success" stroke-width="1.5" />
                       <Copy v-else class="w-4 h-4" stroke-width="1.5" />
                     </button>
                   </div>
@@ -764,11 +769,11 @@ watch(() => props.isOpen, (newVal) => {
             <div class="bg-surface border border-hairline p-5 rounded-xl shadow-sm space-y-4">
               <div class="flex items-center justify-between gap-2">
                 <div class="flex items-center gap-2">
-                  <FolderOpen class="w-4 h-4 text-blue-600" stroke-width="1.5" />
+                  <FolderOpen class="w-4 h-4 text-brand-blue" stroke-width="1.5" />
                   <span class="text-xs font-bold text-ink uppercase tracking-wider">Cofre de Documentos</span>
                   <span 
                     v-if="temDocumentosPendentesRevisao" 
-                    class="w-2 h-2 rounded-full bg-blue-500 animate-pulse shrink-0 cursor-help"
+                    class="w-2 h-2 rounded-full bg-brand-blue animate-pulse shrink-0 cursor-help"
                     title="Documento pendente de visualização"
                   ></span>
                 </div>
@@ -791,7 +796,7 @@ watch(() => props.isOpen, (newVal) => {
                 >
                   <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
-                      <component :is="iconMap[doc.icon]" class="w-4 h-4 text-blue-500" stroke-width="1.5" />
+                      <component :is="iconMap[doc.icon]" class="w-4 h-4 text-brand-blue" stroke-width="1.5" />
                       <span class="text-xs font-bold text-ink">{{ doc.label }}</span>
                     </div>
                     <span :class="['text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider', doc.status.class]">
@@ -842,7 +847,7 @@ watch(() => props.isOpen, (newVal) => {
                 
                 <!-- Header da seção -->
                 <div class="flex items-center gap-2">
-                  <FileText class="w-4 h-4 text-blue-600 shrink-0" stroke-width="1.5" />
+                  <FileText class="w-4 h-4 text-brand-blue shrink-0" stroke-width="1.5" />
                   <span class="text-xs font-bold text-ink uppercase tracking-wider">Contrato Comercial</span>
                   <span class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded border bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/40 uppercase tracking-wider shrink-0">
                     Docs Validados ✓
@@ -874,7 +879,7 @@ watch(() => props.isOpen, (newVal) => {
                       <span>Nenhuma proposta comercial cadastrada.</span>
                       <button 
                         @click="router.push('/configuracoes/contratos'); emit('close')" 
-                        class="text-[11px] text-blue-500 hover:text-blue-600 font-semibold flex items-center gap-1.5 cursor-pointer hover:underline border-0 bg-transparent p-0"
+                        class="text-[11px] text-brand-blue hover:text-brand-blue font-semibold flex items-center gap-1.5 cursor-pointer hover:underline border-0 bg-transparent p-0"
                       >
                         <Pen class="w-3.5 h-3.5" stroke-width="1.5" />
                         Configurar Templates
@@ -884,7 +889,7 @@ watch(() => props.isOpen, (newVal) => {
                       <select
                         v-model="selectedTemplateId"
                         @change="foiPrevisualizando = false"
-                        class="w-full bg-canvas border border-hairline text-ink rounded-lg py-2 px-3 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/30 appearance-none cursor-pointer font-medium"
+                        class="w-full bg-canvas border border-hairline text-ink rounded-lg py-2 px-3 text-xs focus:outline-none focus:ring-2 focus:ring-brand-blue/30 appearance-none cursor-pointer font-medium"
                       >
                         <option v-for="t in templatesContrato" :key="t.id" :value="t.id">{{ t.titulo }}</option>
                       </select>
@@ -910,7 +915,7 @@ watch(() => props.isOpen, (newVal) => {
                       @click="enviarParaZapSign"
                       :disabled="!foiPrevisualizando || isEnviandoZapSign"
                       :title="!foiPrevisualizando ? 'Pré-visualize o contrato antes de enviar' : ''"
-                      class="flex-1 py-2 flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 dark:disabled:bg-blue-900/40 disabled:cursor-not-allowed text-white text-xs font-semibold transition-colors cursor-pointer"
+                      class="flex-1 py-2 flex items-center justify-center gap-1.5 rounded-lg bg-brand-blue hover:bg-brand-blue-hover disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold transition-colors cursor-pointer"
                     >
                       <Loader2 v-if="isEnviandoZapSign" class="w-3.5 h-3.5 animate-spin" stroke-width="1.5" />
                       <Send v-else class="w-3.5 h-3.5" stroke-width="1.5" />
@@ -926,7 +931,7 @@ watch(() => props.isOpen, (newVal) => {
 
                 <!-- ESTADO 2: Aguardando assinaturas -->
                 <template v-else-if="project.status_assinatura === 'pendente'">
-                  <div class="flex items-center gap-2 text-blue-600">
+                  <div class="flex items-center gap-2 text-brand-blue">
                     <Loader2 class="w-4 h-4 animate-spin" stroke-width="1.5" />
                     <span class="text-xs font-semibold">Aguardando Assinaturas via ZapSign</span>
                   </div>
@@ -941,7 +946,7 @@ watch(() => props.isOpen, (newVal) => {
                       </div>
                       <span class="text-[10px] font-bold px-2 py-0.5 rounded border"
                         :class="project.engenheiro_assinou
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          ? 'bg-semantic-success/10 text-semantic-success border-semantic-success/30'
                           : 'bg-amber-50 text-amber-600 border-amber-200'">
                         {{ project.engenheiro_assinou ? 'Assinou ✓' : 'Pendente' }}
                       </span>
@@ -953,7 +958,7 @@ watch(() => props.isOpen, (newVal) => {
                       </div>
                       <span class="text-[10px] font-bold px-2 py-0.5 rounded border"
                         :class="project.cliente_assinou
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          ? 'bg-semantic-success/10 text-semantic-success border-semantic-success/30'
                           : 'bg-amber-50 text-amber-600 border-amber-200'">
                         {{ project.cliente_assinou ? 'Assinou ✓' : 'Pendente' }}
                       </span>
@@ -1013,7 +1018,7 @@ watch(() => props.isOpen, (newVal) => {
             <!-- 4. Contrato de Serviço (apenas em Engenharia & Caixa / Obra Liberada) -->
             <div v-if="project.coluna === 'engenharia_caixa' || project.coluna === 'obra_liberada'" class="bg-surface border border-hairline p-5 rounded-xl shadow-sm space-y-4">
               <div class="flex items-center gap-2">
-                <FileText class="w-4 h-4 text-emerald-600" stroke-width="1.5" />
+                <FileText class="w-4 h-4 text-semantic-success" stroke-width="1.5" />
                 <span class="text-xs font-bold text-ink uppercase tracking-wider">Contrato de Serviço</span>
               </div>
 
@@ -1054,7 +1059,7 @@ watch(() => props.isOpen, (newVal) => {
                       <span>Nenhum template de contrato cadastrado.</span>
                       <button 
                         @click="router.push('/configuracoes/contratos'); emit('close')" 
-                        class="text-[11px] text-blue-500 hover:text-blue-600 font-semibold flex items-center gap-1.5 cursor-pointer hover:underline border-0 bg-transparent p-0"
+                        class="text-[11px] text-brand-blue hover:text-brand-blue font-semibold flex items-center gap-1.5 cursor-pointer hover:underline border-0 bg-transparent p-0"
                       >
                         <Pen class="w-3.5 h-3.5" stroke-width="1.5" />
                         Configurar Templates
@@ -1065,7 +1070,7 @@ watch(() => props.isOpen, (newVal) => {
                       <select
                         v-model="selectedTemplateId"
                         @change="foiPrevisualizando = false"
-                        class="w-full bg-canvas border border-hairline text-ink rounded-lg py-2 px-3 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/30 appearance-none cursor-pointer font-medium"
+                        class="w-full bg-canvas border border-hairline text-ink rounded-lg py-2 px-3 text-xs focus:outline-none focus:ring-2 focus:ring-brand-blue/30 appearance-none cursor-pointer font-medium"
                       >
                         <option v-for="t in templatesContrato" :key="t.id" :value="t.id">{{ t.titulo }}</option>
                       </select>
@@ -1091,7 +1096,7 @@ watch(() => props.isOpen, (newVal) => {
                       @click="enviarParaZapSign"
                       :disabled="!foiPrevisualizando || isEnviandoZapSign"
                       :title="!foiPrevisualizando ? 'Pré-visualize o contrato antes de enviar' : ''"
-                      class="flex-1 py-2 flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 dark:disabled:bg-blue-900/40 disabled:cursor-not-allowed text-white text-xs font-semibold transition-colors cursor-pointer"
+                      class="flex-1 py-2 flex items-center justify-center gap-1.5 rounded-lg bg-brand-blue hover:bg-brand-blue-hover disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold transition-colors cursor-pointer"
                     >
                       <Loader2 v-if="isEnviandoZapSign" class="w-3.5 h-3.5 animate-spin" stroke-width="1.5" />
                       <Send v-else class="w-3.5 h-3.5" stroke-width="1.5" />
@@ -1121,7 +1126,7 @@ watch(() => props.isOpen, (newVal) => {
                     </div>
                     <span class="text-[10px] font-bold px-2 py-0.5 rounded border"
                       :class="project.engenheiro_assinou
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/40'
+                        ? 'bg-semantic-success/10 text-semantic-success border-semantic-success/30'
                         : 'bg-amber-50 text-amber-600 border-amber-200'">
                       {{ project.engenheiro_assinou ? 'Assinou ✓' : 'Pendente' }}
                     </span>
@@ -1133,7 +1138,7 @@ watch(() => props.isOpen, (newVal) => {
                     </div>
                     <span class="text-[10px] font-bold px-2 py-0.5 rounded border"
                       :class="project.cliente_assinou
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/40'
+                        ? 'bg-semantic-success/10 text-semantic-success border-semantic-success/30'
                         : 'bg-amber-50 text-amber-600 border-amber-200'">
                       {{ project.cliente_assinou ? 'Assinou ✓' : 'Pendente' }}
                     </span>
@@ -1157,7 +1162,7 @@ watch(() => props.isOpen, (newVal) => {
             <!-- 5. Histórico de Auditoria & Notas -->
             <div class="bg-surface border border-hairline p-5 rounded-xl shadow-sm space-y-4">
               <div class="flex items-center gap-2">
-                <History class="w-4 h-4 text-indigo-600" stroke-width="1.5" />
+                <History class="w-4 h-4 text-brand-blue" stroke-width="1.5" />
                 <span class="text-xs font-bold text-ink uppercase tracking-wider">Histórico Recente (Últimos 5)</span>
               </div>
 
@@ -1176,7 +1181,7 @@ watch(() => props.isOpen, (newVal) => {
               <div v-else class="relative border-l-2 border-hairline ml-3 space-y-5 py-1">
                 <div v-for="item in historico" :key="item.id" class="relative pl-6">
                   <!-- Dot -->
-                  <div class="absolute -left-[7px] top-1.5 w-3 h-3 bg-brand-primary rounded-full ring-4 ring-surface"></div>
+                  <div class="absolute -left-[7px] top-1.5 w-3 h-3 bg-brand-blue rounded-full ring-4 ring-surface"></div>
                   <div class="space-y-0.5">
                     <div class="flex items-center justify-between text-[10px] text-ink-muted">
                       <span class="font-bold text-ink">{{ item.autor }}</span>
