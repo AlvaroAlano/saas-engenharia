@@ -18,7 +18,7 @@ const route = useRoute()
 
       <!-- Demais seções: scrollável, centrado, padrão cards -->
       <div v-else class="flex-1 overflow-y-auto">
-        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-6 py-8">
           <router-view />
         </div>
       </div>

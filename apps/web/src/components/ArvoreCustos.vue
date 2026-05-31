@@ -73,13 +73,6 @@ const totalComBdi = computed(() => {
   return totalGeral.value * (1 + (props.bdi / 100))
 })
 
-const colorClasses = {
-  amber: { bg: 'bg-amber-50 dark:bg-amber-500/10', border: 'border-amber-200 dark:border-amber-500/30', text: 'text-amber-700 dark:text-amber-400', icon: 'text-amber-500 dark:text-amber-400', badge: 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400', ring: 'ring-amber-500/20' },
-  orange: { bg: 'bg-orange-50 dark:bg-orange-500/10', border: 'border-orange-200 dark:border-orange-500/30', text: 'text-orange-700 dark:text-orange-400', icon: 'text-orange-500 dark:text-orange-400', badge: 'bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400', ring: 'ring-orange-500/20' },
-  blue: { bg: 'bg-blue-50 dark:bg-blue-500/10', border: 'border-blue-200 dark:border-blue-500/30', text: 'text-blue-700 dark:text-blue-400', icon: 'text-blue-500 dark:text-blue-400', badge: 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400', ring: 'ring-blue-500/20' },
-  violet: { bg: 'bg-violet-50 dark:bg-violet-500/10', border: 'border-violet-200 dark:border-violet-500/30', text: 'text-violet-700 dark:text-violet-400', icon: 'text-violet-500 dark:text-violet-400', badge: 'bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-400', ring: 'ring-violet-500/20' },
-  emerald: { bg: 'bg-emerald-50 dark:bg-emerald-500/10', border: 'border-emerald-200 dark:border-emerald-500/30', text: 'text-emerald-700 dark:text-emerald-400', icon: 'text-emerald-500 dark:text-emerald-400', badge: 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400', ring: 'ring-emerald-500/20' }
-}
 
 // Inline quantity editing
 const editingItemId = ref(null)
@@ -212,34 +205,35 @@ const debouncedUpdateQty = (item) => {
 
     <!-- Accordions -->
     <template v-else>
-      <div 
-        v-for="etapa in etapas" 
-        :key="etapa.value" 
+      <div
+        v-for="etapa in etapas"
+        :key="etapa.value"
         class="rounded-xl border overflow-hidden transition-colors"
-        :class="expandedEtapas.has(etapa.value) ? [colorClasses[etapa.color].border] : 'border-hairline'"
+        :class="expandedEtapas.has(etapa.value) ? 'border-brand-primary/25' : 'border-hairline'"
       >
         <!-- Accordion Header -->
-        <button 
+        <button
           @click="toggleEtapa(etapa.value)"
-          class="w-full flex items-center justify-between px-4 py-3 transition-colors hover:bg-canvas/50 cursor-pointer"
-          :class="expandedEtapas.has(etapa.value) ? colorClasses[etapa.color].bg : 'bg-surface'"
+          class="w-full flex items-center justify-between px-4 py-3 transition-colors hover:bg-canvas/50 cursor-pointer bg-surface"
         >
           <div class="flex items-center gap-3">
-            <component 
-              :is="iconMap[etapa.icon]" 
-              class="w-5 h-5" 
-              :class="colorClasses[etapa.color].icon"
+            <component
+              :is="iconMap[etapa.icon]"
+              class="w-5 h-5 transition-colors"
+              :class="expandedEtapas.has(etapa.value) ? 'text-brand-primary' : 'text-neutral-400'"
               stroke-width="1.5"
             />
             <span class="text-sm font-bold text-ink">{{ etapa.label }}</span>
-            <span 
-              class="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
-              :class="colorClasses[etapa.color].badge"
-            >{{ itensPorEtapa[etapa.value].length }}</span>
+            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-300">
+              {{ itensPorEtapa[etapa.value].length }}
+            </span>
           </div>
           <div class="flex items-center gap-3">
-            <span class="text-xs font-bold text-ink-muted font-mono">{{ formatCurrency(subtotalEtapa(etapa.value)) }}</span>
-            <ChevronDown 
+            <span
+              class="text-xs font-bold font-mono transition-colors"
+              :class="expandedEtapas.has(etapa.value) ? 'text-brand-blue' : 'text-ink-muted'"
+            >{{ formatCurrency(subtotalEtapa(etapa.value)) }}</span>
+            <ChevronDown
               class="w-5 h-5 text-ink-muted transition-transform duration-300"
               :class="{ 'rotate-180': expandedEtapas.has(etapa.value) }"
               stroke-width="1.5"
@@ -307,7 +301,7 @@ const debouncedUpdateQty = (item) => {
                         @blur="commitEditQty(item)"
                         @keyup.enter="commitEditQty(item)"
                         @keydown.tab.prevent="tabToNextItem(item)"
-                        class="w-16 text-center text-xs font-bold bg-surface border border-brand-primary text-ink rounded-md py-1 focus:outline-none focus:ring-1 focus:ring-brand-primary"
+                        class="w-16 text-center text-xs font-bold bg-surface border border-brand-blue text-ink rounded-md py-1 focus:outline-none focus:ring-1 focus:ring-brand-blue"
                       />
                     </div>
                     <button
@@ -316,7 +310,7 @@ const debouncedUpdateQty = (item) => {
                       class="text-xs font-bold px-2.5 py-1 rounded-md border border-transparent transition-colors cursor-pointer tabular-nums"
                       :class="item.quantidade == 0
                         ? 'text-amber-600 bg-amber-50 dark:bg-amber-500/10 hover:border-amber-300'
-                        : 'text-brand-primary bg-brand-primary/10 hover:border-brand-primary/30'"
+                        : 'text-brand-blue bg-brand-blue/10 hover:border-brand-blue/30'"
                     >
                       {{ item.quantidade }} {{ item.unidade }}
                     </button>
@@ -350,11 +344,11 @@ const debouncedUpdateQty = (item) => {
         </div>
         <div class="flex items-center justify-between mb-3">
           <span class="text-xs text-ink-muted font-medium">BDI aplicado</span>
-          <span class="text-sm font-bold text-brand-primary tabular-nums">+ {{ bdi }}%</span>
+          <span class="text-sm font-bold text-brand-orange tabular-nums">+ {{ bdi }}%</span>
         </div>
         <div class="border-t border-hairline pt-3 flex items-center justify-between">
           <span class="text-sm font-bold text-ink uppercase tracking-wider">Total Final</span>
-          <span class="text-xl font-black text-brand-primary tabular-nums">{{ formatCurrency(totalComBdi) }}</span>
+          <span class="text-xl font-black text-brand-blue tabular-nums">{{ formatCurrency(totalComBdi) }}</span>
         </div>
       </div>
     </template>

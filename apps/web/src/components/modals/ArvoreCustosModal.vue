@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import axios from 'axios'
 import { formatCurrency } from '../../utils/formatters'
 import { ETAPAS_OBRA } from '../../constants/etapas'
@@ -209,6 +209,11 @@ const debouncedUpdate = (item) => {
   }, 600)
 }
 
+// --- ESC para fechar ---
+const onKeydown = (e) => { if (e.key === 'Escape' && props.isOpen) emit('close') }
+onMounted(()   => document.addEventListener('keydown', onKeydown))
+onUnmounted(() => document.removeEventListener('keydown', onKeydown))
+
 // --- Totais ---
 const subtotalEtapa = (key) =>
   itensPorEtapa.value[key].reduce((s, i) => s + i.quantidade * i.valor_unitario, 0)
@@ -218,6 +223,12 @@ const totalSemBdi = computed(() =>
 )
 const totalComBdi    = computed(() => totalSemBdi.value * (1 + props.bdi / 100))
 const itensPendentes = computed(() => props.items.filter(i => i.quantidade == 0).length)
+
+const selectedSubtotal = computed(() =>
+  props.items
+    .filter(i => selectedIds.value.has(i.id))
+    .reduce((s, i) => s + i.quantidade * i.valor_unitario, 0)
+)
 
 const totalFiltrados = computed(() =>
   etapasComItens.value.reduce((n, e) => n + filteredItensPorEtapa.value[e.value].length, 0)
@@ -245,29 +256,28 @@ const etapaColor = {
     >
       <div
         v-if="isOpen"
-        class="fixed inset-0 bg-black/45 dark:bg-black/65 backdrop-blur-sm flex items-start justify-center p-3 sm:p-5"
+        class="fixed inset-0 bg-black/45 dark:bg-black/65 backdrop-blur-sm flex items-stretch lg:items-start lg:justify-center lg:p-5"
         style="z-index: 150;"
         @click.self="emit('close')"
       >
         <Transition
           enter-active-class="transition-all duration-300 ease-out"
-          leave-active-class="transition-all duration-200 ease-in"
-          enter-from-class="opacity-0 scale-95 translate-y-4"
-          enter-to-class="opacity-100 scale-100 translate-y-0"
-          leave-from-class="opacity-100 scale-100 translate-y-0"
-          leave-to-class="opacity-0 scale-95 translate-y-4"
+          leave-active-class="transition-all duration-250 ease-in"
+          enter-from-class="opacity-0 translate-y-full lg:translate-y-4 lg:scale-95"
+          enter-to-class="opacity-100 translate-y-0 lg:scale-100"
+          leave-from-class="opacity-100 translate-y-0 lg:scale-100"
+          leave-to-class="opacity-0 translate-y-full lg:translate-y-4 lg:scale-95"
         >
           <div
             v-if="isOpen"
-            class="bg-surface border border-hairline rounded-md shadow-2xl flex flex-col w-full max-w-6xl overflow-hidden"
-            style="max-height: calc(100vh - 40px);"
+            class="bg-surface lg:border lg:border-hairline rounded-none lg:rounded-md lg:shadow-2xl flex flex-col w-full lg:max-w-6xl overflow-hidden h-full lg:h-auto lg:max-h-[calc(100vh-40px)]"
           >
 
             <!-- ===== HEADER ===== -->
             <div class="flex items-center justify-between px-6 py-4 border-b border-hairline bg-surface shrink-0 gap-3">
               <div class="flex items-center gap-3 min-w-0">
-                <div class="w-9 h-9 rounded-md bg-blue-500/10 flex items-center justify-center shrink-0">
-                  <Network class="w-5 h-5 text-blue-600" stroke-width="1.5" />
+                <div class="w-9 h-9 rounded-md bg-brand-blue/10 flex items-center justify-center shrink-0">
+                  <Network class="w-5 h-5 text-brand-blue" stroke-width="1.5" />
                 </div>
                 <div class="min-w-0">
                   <h2 class="text-sm font-semibold text-ink uppercase tracking-wider truncate select-none">Árvore de Custos — Visão Completa</h2>
@@ -353,8 +363,8 @@ const etapaColor = {
 
               <!-- Empty state: sem itens -->
               <div v-if="items.length === 0" class="flex flex-col items-center justify-center py-20 text-center select-none">
-                <div class="w-16 h-16 rounded-md bg-blue-500/10 flex items-center justify-center mb-4">
-                  <Package class="w-8 h-8 text-blue-600" stroke-width="1.5" />
+                <div class="w-16 h-16 rounded-md bg-brand-blue/10 flex items-center justify-center mb-4">
+                  <Package class="w-8 h-8 text-brand-blue" stroke-width="1.5" />
                 </div>
                 <p class="text-sm font-bold text-ink">Nenhum item na árvore</p>
                 <p class="text-xs text-ink-muted mt-1 font-sans">Adicione insumos do SINAPI ou aplique um template padrão.</p>
@@ -376,11 +386,11 @@ const etapaColor = {
                     <th class="py-3 pl-4 pr-2 w-10 text-left">
                       <div
                         class="w-4 h-4 rounded border flex items-center justify-center cursor-pointer transition-all"
-                        :class="allSelected ? 'bg-blue-600 border-blue-600' : someSelected ? 'bg-blue-600/30 border-blue-600' : 'border-neutral-400 bg-surface hover:border-blue-500'"
+                        :class="allSelected ? 'bg-brand-blue border-brand-blue' : someSelected ? 'bg-brand-blue/30 border-brand-blue' : 'border-neutral-400 bg-surface hover:border-brand-blue'"
                         @click="toggleAll"
                       >
                         <Check v-if="allSelected" class="w-3 h-3 text-white" stroke-width="2" />
-                        <span v-else-if="someSelected" class="block w-2 h-0.5 bg-blue-600 rounded"></span>
+                        <span v-else-if="someSelected" class="block w-2 h-0.5 bg-brand-blue rounded"></span>
                       </div>
                     </th>
                     <th class="py-3 px-3 text-left font-bold text-ink-muted uppercase tracking-wider text-[10px] w-20">Código</th>
@@ -430,15 +440,19 @@ const etapaColor = {
                       v-for="item in filteredItensPorEtapa[etapa.value]"
                       :key="item.id"
                       v-show="expandedEtapas.has(etapa.value)"
-                      class="border-b border-hairline transition-colors group"
-                      :class="selectedIds.has(item.id) ? 'bg-blue-500/[0.04]' : 'hover:bg-canvas/60'"
+                      class="border-b border-hairline transition-colors group cursor-pointer"
+                      :class="editingItemId === item.id
+                        ? 'bg-brand-blue/[0.06] ring-1 ring-inset ring-brand-blue/15'
+                        : selectedIds.has(item.id)
+                          ? 'bg-brand-blue/[0.04]'
+                          : 'hover:bg-canvas/60'"
+                      @click="toggleItem(item.id)"
                     >
                       <!-- Checkbox -->
-                      <td class="py-3 pl-4 pr-2">
+                      <td class="py-3 pl-4 pr-2" @click.stop="toggleItem(item.id)">
                         <div
                           class="w-4 h-4 rounded border flex items-center justify-center cursor-pointer transition-all select-none"
-                          :class="selectedIds.has(item.id) ? 'bg-blue-600 border-blue-600' : 'border-neutral-400 bg-surface hover:border-blue-500'"
-                          @click="toggleItem(item.id)"
+                          :class="selectedIds.has(item.id) ? 'bg-brand-blue border-brand-blue' : 'border-neutral-400 bg-surface hover:border-brand-blue'"
                         >
                           <Check v-if="selectedIds.has(item.id)" class="w-3 h-3 text-white" stroke-width="2" />
                         </div>
@@ -459,7 +473,7 @@ const etapaColor = {
                       </td>
 
                       <!-- Quantidade -->
-                      <td class="py-3 px-3 text-center">
+                      <td class="py-3 px-3 text-center" @click.stop>
                         <div class="flex items-center justify-center gap-1 select-none">
                           <AlertTriangle
                             v-if="item.quantidade == 0 && editingItemId !== item.id"
@@ -477,7 +491,7 @@ const etapaColor = {
                             @blur="commitEdit(item)"
                             @keyup.enter="commitEdit(item)"
                             @keydown.tab.prevent="tabToNext(item)"
-                            class="w-20 text-center text-xs font-semibold bg-black/[0.04] dark:bg-neutral-800/60 border border-transparent text-ink rounded-md py-1 focus:outline-none focus:ring-2 focus:ring-blue-500/40 font-sans"
+                            class="w-20 text-center text-xs font-semibold bg-black/[0.04] dark:bg-neutral-800/60 border border-transparent text-ink rounded-md py-1 focus:outline-none focus:ring-2 focus:ring-brand-blue/40 font-sans"
                           />
                           <button
                             v-else
@@ -485,7 +499,7 @@ const etapaColor = {
                             class="text-xs font-medium px-2 py-1 rounded-md border border-transparent transition-colors cursor-pointer tabular-nums font-sans"
                             :class="item.quantidade == 0
                               ? 'text-amber-600 bg-amber-500/10 hover:border-amber-300'
-                              : 'text-blue-600 bg-blue-500/10 hover:border-blue-300'"
+                              : 'text-brand-blue bg-brand-blue/10 hover:border-brand-blue/30'"
                           >{{ item.quantidade }} {{ item.unidade }}</button>
                         </div>
                       </td>
@@ -501,10 +515,10 @@ const etapaColor = {
                       </td>
 
                       <!-- Excluir -->
-                      <td class="py-3 pl-2 pr-4">
+                      <td class="py-3 pl-2 pr-4" @click.stop>
                         <button
                           @click="excluirItem(item.id)"
-                          class="p-1 rounded-md text-ink-muted hover:text-red-600 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 cursor-pointer flex items-center justify-center select-none"
+                          class="p-1 rounded-md text-ink-muted/40 hover:text-red-600 hover:bg-red-500/10 group-hover:text-ink-muted transition-all cursor-pointer flex items-center justify-center select-none"
                           title="Excluir item"
                         >
                           <X class="w-3.5 h-3.5" stroke-width="1.5" />
@@ -521,27 +535,42 @@ const etapaColor = {
             <div class="shrink-0 border-t border-hairline px-6 py-4 bg-canvas select-none rounded-b-md">
               <div class="flex items-center justify-between gap-4">
                 <p class="text-xs text-ink-muted font-sans">
-                  <span v-if="selectedIds.size > 0" class="font-semibold text-blue-600 dark:text-blue-400">
+                  <span v-if="selectedIds.size > 0" class="font-semibold text-brand-blue">
                     {{ selectedIds.size }} {{ selectedIds.size === 1 ? 'item selecionado' : 'itens selecionados' }}
                   </span>
                   <span v-else-if="searchQuery" class="font-semibold">
                     {{ totalFiltrados }} de {{ items.length }} itens visíveis
                   </span>
-                  <span v-else>Clique nos itens para selecionar · clique na fase para recolher</span>
+                  <span v-else class="hidden sm:inline">Clique nos itens para selecionar · clique na fase para recolher</span>
                 </p>
 
-                <div class="flex items-center gap-6 shrink-0 font-sans">
-                  <div class="text-right">
+                <div class="flex items-center gap-4 sm:gap-6 shrink-0 font-sans">
+                  <!-- Subtotal dos selecionados (aparece ao selecionar) -->
+                  <Transition
+                    enter-active-class="transition-all duration-200"
+                    enter-from-class="opacity-0 scale-90"
+                    enter-to-class="opacity-100 scale-100"
+                    leave-active-class="transition-all duration-150"
+                    leave-from-class="opacity-100 scale-100"
+                    leave-to-class="opacity-0 scale-90"
+                  >
+                    <div v-if="selectedIds.size > 0" class="text-right pr-4 border-r border-hairline">
+                      <p class="text-[10px] text-ink-muted uppercase tracking-wider font-bold">Selecionados</p>
+                      <p class="text-sm font-semibold text-brand-blue tabular-nums">{{ formatCurrency(selectedSubtotal) }}</p>
+                    </div>
+                  </Transition>
+
+                  <div class="text-right hidden lg:block">
                     <p class="text-[10px] text-ink-muted uppercase tracking-wider font-bold">Subtotal</p>
                     <p class="text-sm font-semibold text-ink-muted tabular-nums">{{ formatCurrency(totalSemBdi) }}</p>
                   </div>
-                  <div class="text-right">
+                  <div class="text-right hidden lg:block">
                     <p class="text-[10px] text-ink-muted uppercase tracking-wider font-bold">BDI {{ bdi }}%</p>
-                    <p class="text-sm font-semibold text-blue-600 dark:text-blue-400 tabular-nums">+ {{ formatCurrency(totalComBdi - totalSemBdi) }}</p>
+                    <p class="text-sm font-semibold text-brand-orange tabular-nums">+ {{ formatCurrency(totalComBdi - totalSemBdi) }}</p>
                   </div>
                   <div class="text-right pl-4 border-l border-hairline">
                     <p class="text-[10px] text-ink-muted uppercase tracking-wider font-bold">Total Final</p>
-                    <p class="text-xl font-bold text-blue-600 dark:text-blue-400 tabular-nums">{{ formatCurrency(totalComBdi) }}</p>
+                    <p class="text-xl font-bold text-brand-blue tabular-nums">{{ formatCurrency(totalComBdi) }}</p>
                   </div>
                 </div>
               </div>

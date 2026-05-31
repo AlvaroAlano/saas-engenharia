@@ -1,9 +1,9 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import axios from 'axios'
 import {
   Archive, X, Search, Loader2, Calendar, ArchiveRestore, Trash2,
-  AlertTriangle, CheckCircle2, CheckSquare, Square, FolderOpen, Eye
+  AlertTriangle, Check, CheckCircle2, CheckSquare, Minus, Square, FolderOpen, Eye
 } from 'lucide-vue-next'
 import { useToast } from '../composables/useToast'
 import DrawerDetalheProjeto from './DrawerDetalheProjeto.vue'
@@ -40,6 +40,15 @@ const carregarArquivados = async () => {
 
 watch(() => props.isOpen, (v) => { if (v) carregarArquivados() })
 
+const onKeydown = (e) => {
+  if (e.key === 'Escape' && props.isOpen) {
+    if (deleteModal.value.isOpen) fecharModalExclusao()
+    else emit('close')
+  }
+}
+onMounted(() => document.addEventListener('keydown', onKeydown))
+onUnmounted(() => document.removeEventListener('keydown', onKeydown))
+
 // ─── computed ─────────────────────────────────────────────────────────────────
 const projetosFiltrados = computed(() => {
   if (!searchQuery.value) return projetosArquivados.value
@@ -51,12 +60,12 @@ const projetosFiltrados = computed(() => {
 })
 
 const totalSelecionados = computed(() => selectedIds.value.size)
-const todosSelcionados  = computed(() =>
+const todosSelecionados  = computed(() =>
   projetosFiltrados.value.length > 0 &&
   projetosFiltrados.value.every(p => selectedIds.value.has(p.id))
 )
 const algunsSelecionados = computed(() =>
-  totalSelecionados.value > 0 && !todosSelcionados.value
+  totalSelecionados.value > 0 && !todosSelecionados.value
 )
 
 // ─── selection ────────────────────────────────────────────────────────────────
@@ -67,7 +76,7 @@ const toggleSelect = (id) => {
 }
 
 const toggleSelectAll = () => {
-  if (todosSelcionados.value) {
+  if (todosSelecionados.value) {
     selectedIds.value = new Set()
   } else {
     selectedIds.value = new Set(projetosFiltrados.value.map(p => p.id))
@@ -76,22 +85,14 @@ const toggleSelectAll = () => {
 
 const limparSelecao = () => { selectedIds.value = new Set() }
 
-// ─── helpers ──────────────────────────────────────────────────────────────────
-const statusDeRestauracao = (coluna) => {
-  if (coluna === 'contrato_pendente') return 'docs_validados'
-  if (coluna === 'engenharia_caixa')  return 'em_analise_caixa'
-  if (coluna === 'obra_liberada')      return 'liberada'
-  return 'aguardando_cliente'
-}
-
 // ─── actions: restore ─────────────────────────────────────────────────────────
-const isRestoring = ref(false)
+const isRestoring  = ref(false)
+const restoringId  = ref(null)
 
 const restaurarProjeto = async (id) => {
-  const p = projetosArquivados.value.find(x => x.id === id)
-  const coluna = p?.coluna || 'estimativa_enviada'
+  restoringId.value = id
   try {
-    await axios.patch(`/projetos/${id}`, { status: statusDeRestauracao(coluna), coluna })
+    await axios.post(`/projetos/${id}/restaurar`)
     projetosArquivados.value = projetosArquivados.value.filter(x => x.id !== id)
     const s = new Set(selectedIds.value); s.delete(id); selectedIds.value = s
     emit('projeto-restaurado', id)
@@ -99,6 +100,8 @@ const restaurarProjeto = async (id) => {
   } catch (e) {
     console.error('Erro ao restaurar:', e)
     showToast('Erro ao restaurar projeto.', 'error')
+  } finally {
+    restoringId.value = null
   }
 }
 
@@ -106,18 +109,23 @@ const restaurarSelecionados = async () => {
   if (!totalSelecionados.value) return
   isRestoring.value = true
   const ids = [...selectedIds.value]
-  let ok = 0
   try {
-    for (const id of ids) {
-      const p = projetosArquivados.value.find(x => x.id === id)
-      const coluna = p?.coluna || 'estimativa_enviada'
-      await axios.patch(`/projetos/${id}`, { status: statusDeRestauracao(coluna), coluna })
-      projetosArquivados.value = projetosArquivados.value.filter(x => x.id !== id)
-      emit('projeto-restaurado', id)
-      ok++
-    }
+    const results = await Promise.allSettled(
+      ids.map(async id => {
+        await axios.post(`/projetos/${id}/restaurar`)
+        return id
+      })
+    )
+    const ok = results.filter(r => r.status === 'fulfilled').map(r => r.value)
+    const fail = results.filter(r => r.status === 'rejected').length
+    projetosArquivados.value = projetosArquivados.value.filter(x => !ok.includes(x.id))
+    ok.forEach(id => emit('projeto-restaurado', id))
     selectedIds.value = new Set()
-    showToast(`${ok} projeto(s) restaurado(s) com sucesso!`, 'success')
+    if (fail === 0) {
+      showToast(`${ok.length} projeto(s) restaurado(s) com sucesso!`, 'success')
+    } else {
+      showToast(`${ok.length} restaurado(s), ${fail} falhou. Tente novamente.`, 'error')
+    }
   } catch (e) {
     console.error('Erro ao restaurar em massa:', e)
     showToast('Ocorreu um erro durante a restauração.', 'error')
@@ -144,17 +152,22 @@ const fecharModalExclusao = () => {
 const confirmarExclusao = async () => {
   deleteModal.value.isDeleting = true
   const ids = [...idsParaExcluir.value]
-  let ok = 0
   try {
-    for (const id of ids) {
-      await axios.delete(`/projetos/${id}`)
-      projetosArquivados.value = projetosArquivados.value.filter(p => p.id !== id)
-      const s = new Set(selectedIds.value); s.delete(id); selectedIds.value = s
-      ok++
+    const results = await Promise.allSettled(ids.map(id => axios.delete(`/projetos/${id}`).then(() => id)))
+    const ok = results.filter(r => r.status === 'fulfilled').map(r => r.value)
+    const fail = results.filter(r => r.status === 'rejected').length
+    projetosArquivados.value = projetosArquivados.value.filter(p => !ok.includes(p.id))
+    const s = new Set(selectedIds.value)
+    ok.forEach(id => s.delete(id))
+    selectedIds.value = s
+    if (fail === 0) {
+      deleteModal.value.isDone = true
+      showToast(`${ok.length} projeto(s) excluído(s) permanentemente.`, 'success')
+      setTimeout(() => fecharModalExclusao(), 900)
+    } else {
+      showToast(`${ok.length} excluído(s), ${fail} falhou. Tente novamente.`, 'error')
+      deleteModal.value.isDeleting = false
     }
-    deleteModal.value.isDone = true
-    showToast(`${ok} projeto(s) excluído(s) permanentemente.`, 'success')
-    setTimeout(() => fecharModalExclusao(), 900)
   } catch (e) {
     console.error('Erro ao excluir:', e)
     showToast('Erro ao excluir projeto.', 'error')
@@ -227,102 +240,107 @@ const nomesParaExcluir = computed(() => {
     >
       <div
         v-if="isOpen"
-        class="fixed top-0 inset-x-0 bg-canvas z-[101] rounded-b-3xl max-h-[90vh] overflow-y-auto border-b border-hairline shadow-2xl"
+        class="fixed top-0 inset-x-0 bg-canvas z-[101] rounded-b-3xl max-h-[90vh] flex flex-col border-b border-hairline shadow-2xl"
       >
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <!-- ── Cabeçalho fixo (não rola) ─────────────────────────────────── -->
+        <div class="shrink-0 border-b border-hairline">
+          <div class="max-w-5xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8 pb-4">
 
-          <!-- Cabeçalho -->
-          <div class="flex items-center justify-between mb-6">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-surface border border-hairline flex items-center justify-center shrink-0">
-                <Archive class="w-5 h-5 text-ink-muted" stroke-width="1.5" />
-              </div>
-              <div>
-                <h2 class="text-xl sm:text-2xl font-bold text-ink leading-tight">Projetos Arquivados</h2>
-                <p class="text-xs text-ink-muted font-medium mt-0.5">
-                  {{ projetosArquivados.length }} projeto{{ projetosArquivados.length !== 1 ? 's' : '' }} arquivado{{ projetosArquivados.length !== 1 ? 's' : '' }}
-                </p>
-              </div>
-            </div>
-            <button @click="emit('close')" class="p-2 rounded-xl text-ink-muted hover:bg-surface-hover hover:text-ink transition-colors cursor-pointer">
-              <X class="w-6 h-6" stroke-width="1.5" />
-            </button>
-          </div>
-
-          <!-- Barra de pesquisa + Selecionar todos -->
-          <div class="mb-4 flex items-center gap-3">
-            <!-- Search -->
-            <div class="relative flex-1 max-w-2xl">
-              <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted w-4 h-4 pointer-events-none" stroke-width="1.5" />
-              <input
-                v-model="searchQuery"
-                type="text"
-                placeholder="Pesquisar por nome ou cliente..."
-                class="w-full pl-11 pr-4 py-2.5 bg-surface border border-hairline rounded-xl focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all text-sm text-ink placeholder:text-ink-muted"
-              />
-            </div>
-
-            <!-- Selecionar todos (só aparece quando há itens) -->
-            <button
-              v-if="projetosFiltrados.length > 0 && !isLoading"
-              @click="toggleSelectAll"
-              class="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-hairline bg-surface hover:bg-surface-hover text-ink-muted hover:text-ink transition-colors text-xs font-semibold shrink-0 cursor-pointer"
-            >
-              <component
-                :is="todosSelcionados ? CheckSquare : Square"
-                class="w-4 h-4"
-                :class="todosSelcionados ? 'text-brand-primary' : algunsSelecionados ? 'text-brand-primary opacity-60' : ''"
-                stroke-width="1.5"
-              />
-              {{ todosSelcionados ? 'Desmarcar todos' : 'Selecionar todos' }}
-            </button>
-          </div>
-
-          <!-- Barra de ações em massa (aparece ao selecionar) -->
-          <Transition
-            enter-active-class="transition-all duration-200 ease-out"
-            enter-from-class="opacity-0 -translate-y-2 scale-98"
-            enter-to-class="opacity-100 translate-y-0 scale-100"
-            leave-active-class="transition-all duration-150 ease-in"
-            leave-from-class="opacity-100 translate-y-0 scale-100"
-            leave-to-class="opacity-0 -translate-y-2 scale-98"
-          >
-            <div
-              v-if="totalSelecionados > 0"
-              class="mb-4 flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-surface border border-brand-primary/30 shadow-sm"
-            >
-              <div class="flex items-center gap-2">
-                <div class="w-5 h-5 rounded-full bg-brand-primary/15 flex items-center justify-center shrink-0">
-                  <span class="text-[10px] font-bold text-brand-primary">{{ totalSelecionados }}</span>
+            <!-- Título + fechar -->
+            <div class="flex items-center justify-between mb-5">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-surface border border-hairline flex items-center justify-center shrink-0">
+                  <Archive class="w-5 h-5 text-ink-muted" stroke-width="1.5" />
                 </div>
-                <span class="text-sm font-semibold text-ink">
-                  {{ totalSelecionados }} projeto{{ totalSelecionados > 1 ? 's' : '' }} selecionado{{ totalSelecionados > 1 ? 's' : '' }}
-                </span>
-                <button @click="limparSelecao" class="text-xs text-ink-muted hover:text-ink transition-colors underline underline-offset-2 cursor-pointer ml-1">
-                  Limpar
-                </button>
+                <div>
+                  <h2 class="text-xl sm:text-2xl font-bold text-ink leading-tight">Projetos Arquivados</h2>
+                  <p class="text-xs text-ink-muted font-medium mt-0.5">
+                    {{ projetosArquivados.length }} projeto{{ projetosArquivados.length !== 1 ? 's' : '' }} arquivado{{ projetosArquivados.length !== 1 ? 's' : '' }}
+                  </p>
+                </div>
               </div>
-
-              <div class="flex items-center gap-2">
-                <button
-                  @click="restaurarSelecionados"
-                  :disabled="isRestoring"
-                  class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-hairline bg-canvas hover:bg-surface-hover text-ink text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  <Loader2 v-if="isRestoring" class="w-3.5 h-3.5 animate-spin" stroke-width="1.5" />
-                  <ArchiveRestore v-else class="w-3.5 h-3.5" stroke-width="1.5" />
-                  Restaurar
-                </button>
-                <button
-                  @click="abrirModalExclusao([...selectedIds])"
-                  class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-semibold transition-colors cursor-pointer"
-                >
-                  <Trash2 class="w-3.5 h-3.5" stroke-width="1.5" />
-                  Excluir selecionados
-                </button>
-              </div>
+              <button @click="emit('close')" class="flex items-center gap-1.5 p-2 rounded-xl text-ink-muted hover:bg-surface-hover hover:text-ink transition-colors cursor-pointer group">
+                <kbd class="hidden sm:inline-block text-[10px] font-semibold font-mono px-1.5 py-0.5 rounded border border-hairline bg-canvas text-ink-muted group-hover:text-ink transition-colors leading-none">ESC</kbd>
+                <X class="w-5 h-5" stroke-width="1.5" />
+              </button>
             </div>
-          </Transition>
+
+            <!-- Barra de pesquisa + Selecionar todos -->
+            <div class="flex items-center gap-3">
+              <div class="relative flex-1 max-w-2xl">
+                <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted w-4 h-4 pointer-events-none" stroke-width="1.5" />
+                <input
+                  v-model="searchQuery"
+                  type="text"
+                  placeholder="Pesquisar por nome ou cliente..."
+                  class="w-full pl-11 pr-4 py-2.5 bg-surface border border-hairline rounded-xl focus:ring-1 focus:ring-brand-primary focus:border-brand-primary outline-none transition-all text-sm text-ink placeholder:text-ink-muted"
+                />
+              </div>
+              <button
+                v-if="projetosFiltrados.length > 0 && !isLoading"
+                @click="toggleSelectAll"
+                class="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-hairline bg-surface hover:bg-surface-hover text-ink-muted hover:text-ink transition-colors text-xs font-semibold shrink-0 cursor-pointer"
+              >
+                <component
+                  :is="todosSelecionados ? CheckSquare : algunsSelecionados ? Minus : Square"
+                  class="w-4 h-4"
+                  :class="todosSelecionados || algunsSelecionados ? 'text-brand-primary' : ''"
+                  stroke-width="1.5"
+                />
+                {{ todosSelecionados ? 'Desmarcar todos' : 'Selecionar todos' }}
+              </button>
+            </div>
+
+            <!-- Barra de ações em massa -->
+            <Transition
+              enter-active-class="transition-all duration-200 ease-out"
+              enter-from-class="opacity-0 -translate-y-2 scale-98"
+              enter-to-class="opacity-100 translate-y-0 scale-100"
+              leave-active-class="transition-all duration-150 ease-in"
+              leave-from-class="opacity-100 translate-y-0 scale-100"
+              leave-to-class="opacity-0 -translate-y-2 scale-98"
+            >
+              <div
+                v-if="totalSelecionados > 0"
+                class="mt-3 flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-surface border border-brand-primary/30 shadow-sm"
+              >
+                <div class="flex items-center gap-2">
+                  <div class="w-5 h-5 rounded-full bg-brand-primary/15 flex items-center justify-center shrink-0">
+                    <span class="text-[10px] font-bold text-brand-primary">{{ totalSelecionados }}</span>
+                  </div>
+                  <span class="text-sm font-semibold text-ink">
+                    {{ totalSelecionados }} projeto{{ totalSelecionados > 1 ? 's' : '' }} selecionado{{ totalSelecionados > 1 ? 's' : '' }}
+                  </span>
+                  <button @click="limparSelecao" class="text-xs text-ink-muted hover:text-ink transition-colors underline underline-offset-2 cursor-pointer ml-1">
+                    Limpar
+                  </button>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button
+                    @click="restaurarSelecionados"
+                    :disabled="isRestoring"
+                    class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-hairline bg-canvas hover:bg-surface-hover text-ink text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    <Loader2 v-if="isRestoring" class="w-3.5 h-3.5 animate-spin" stroke-width="1.5" />
+                    <ArchiveRestore v-else class="w-3.5 h-3.5" stroke-width="1.5" />
+                    Restaurar
+                  </button>
+                  <button
+                    @click="abrirModalExclusao([...selectedIds])"
+                    class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-semibold transition-colors cursor-pointer"
+                  >
+                    <Trash2 class="w-3.5 h-3.5" stroke-width="1.5" />
+                    Excluir selecionados
+                  </button>
+                </div>
+              </div>
+            </Transition>
+          </div>
+        </div>
+
+        <!-- ── Área scrollável ───────────────────────────────────────────── -->
+        <div class="overflow-y-auto flex-1">
+          <div class="max-w-5xl mx-auto px-4 sm:px-6 py-5">
 
           <!-- Conteúdo principal -->
           <div class="space-y-2">
@@ -371,7 +389,7 @@ const nomesParaExcluir = computed(() => {
                     : 'border-hairline bg-canvas hover:border-brand-primary/60 text-transparent'"
                   :aria-label="selectedIds.has(projeto.id) ? 'Desmarcar' : 'Selecionar'"
                 >
-                  <CheckCircle2 class="w-3 h-3" stroke-width="3" />
+                  <Check class="w-3 h-3" stroke-width="3" />
                 </button>
 
                 <!-- Info do projeto -->
@@ -394,9 +412,9 @@ const nomesParaExcluir = computed(() => {
                       >
                         {{ colunaBadge[projeto.coluna].label }}
                       </span>
-                      <span class="flex items-center gap-1 text-[10px] text-ink-muted font-medium">
+                      <span class="flex items-center gap-1 text-[10px] text-ink-muted font-medium" title="Data de arquivamento">
                         <Calendar class="w-3 h-3 shrink-0" stroke-width="1.5" />
-                        {{ formatDate(projeto.data || projeto.created_at) }}
+                        Arq. {{ formatDate(projeto.archived_at) }}
                       </span>
                     </div>
                   </div>
@@ -414,10 +432,12 @@ const nomesParaExcluir = computed(() => {
                   </button>
                   <button
                     @click="restaurarProjeto(projeto.id)"
+                    :disabled="restoringId === projeto.id"
                     title="Restaurar projeto"
-                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-hairline bg-canvas hover:bg-surface-hover text-ink text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap"
+                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-hairline bg-canvas hover:bg-surface-hover text-ink text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <ArchiveRestore class="w-3.5 h-3.5" stroke-width="1.5" />
+                    <Loader2 v-if="restoringId === projeto.id" class="w-3.5 h-3.5 animate-spin" stroke-width="1.5" />
+                    <ArchiveRestore v-else class="w-3.5 h-3.5" stroke-width="1.5" />
                     <span class="hidden sm:inline">Restaurar</span>
                   </button>
                   <button
@@ -432,6 +452,7 @@ const nomesParaExcluir = computed(() => {
               </div>
             </div>
 
+          </div>
           </div>
         </div>
       </div>

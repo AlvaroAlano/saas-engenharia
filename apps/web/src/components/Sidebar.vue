@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSidebar } from '../composables/useSidebar'
 import {
@@ -27,6 +27,19 @@ const route = useRoute()
 const { isSidebarOpen, toggleSidebar } = useSidebar()
 
 const isConfigsRoute = computed(() => route.path.startsWith('/configuracoes'))
+
+// Controla qual nav exibir de forma independente da rota
+const showSettingsNav = ref(isConfigsRoute.value)
+
+// Quando o sidebar abre, sincroniza com a rota atual
+watch(isSidebarOpen, (open) => {
+  if (open) showSettingsNav.value = isConfigsRoute.value
+})
+
+// Se o usuário navegar diretamente para uma rota de configs, garante que o sub-menu apareça
+watch(isConfigsRoute, (val) => {
+  if (val) showSettingsNav.value = true
+})
 
 const settingsNav = [
   { path: '/configuracoes/perfil',         label: 'Perfil',             icon: Fingerprint },
@@ -64,7 +77,7 @@ const settingsNav = [
       <div>
         <!-- Brand -->
         <div class="px-4 pt-1 mb-6 flex items-center justify-between">
-          <VerticeLogo class="h-[66px] text-ink" />
+          <VerticeLogo class="h-[66px] text-logo" />
           <button
             @click="isSidebarOpen = false"
             class="lg:hidden p-1.5 text-ink-muted hover:text-ink hover:bg-surface-hover rounded-md transition-all duration-300 hover:rotate-90 active:rotate-180 active:scale-95 flex items-center justify-center"
@@ -75,7 +88,7 @@ const settingsNav = [
 
         <Transition name="menu-slide" mode="out-in">
           <!-- Nav principal -->
-          <nav v-if="!isConfigsRoute" key="main" class="space-y-1 nav-container">
+          <nav v-if="!showSettingsNav" key="main" class="space-y-1 nav-container">
             <router-link to="/dashboard" @click="isSidebarOpen = false"
               :class="[route.path === '/dashboard' ? 'bg-brand-blue/[0.08] text-brand-blue font-semibold' : 'text-ink-muted hover:text-ink hover:bg-surface-hover', 'nav-item flex items-center gap-3 mx-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-200']">
               <Home class="w-[18px] h-[18px] text-current" stroke-width="1.5" />
@@ -100,24 +113,32 @@ const settingsNav = [
               <span class="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-surface-hover text-ink-muted">Em breve</span>
             </div>
 
-            <router-link to="/configuracoes" @click="isSidebarOpen = false"
-              class="group nav-item text-ink-muted hover:text-ink hover:bg-surface-hover flex items-center gap-3 mx-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-200">
+            <!-- Configurações: abre sub-menu sem fechar o sidebar -->
+            <router-link
+              to="/configuracoes"
+              @click.prevent="showSettingsNav = true"
+              class="group nav-item text-ink-muted hover:text-ink hover:bg-surface-hover flex items-center gap-3 mx-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-200"
+            >
               <Settings class="w-[18px] h-[18px] text-current" stroke-width="1.5" />
               <span>Configurações</span>
               <ChevronRight class="w-4 h-4 ml-auto text-ink-muted group-hover:text-ink transition-colors" stroke-width="1.5" />
             </router-link>
           </nav>
 
-          <!-- Nav de configurações (Substitui o principal) -->
+          <!-- Nav de configurações -->
           <nav v-else key="settings" class="space-y-1 nav-container">
-            <router-link to="/dashboard" @click="isSidebarOpen = false"
-              class="nav-item text-ink-muted hover:text-ink hover:bg-surface-hover flex items-center gap-3 mx-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-200 group">
+            <!-- Voltar ao nav principal sem fechar nem navegar -->
+            <button
+              @click="showSettingsNav = false"
+              class="w-full nav-item text-ink-muted hover:text-ink hover:bg-surface-hover flex items-center gap-3 mx-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-200 group cursor-pointer"
+            >
               <ChevronLeft class="w-[18px] h-[18px] text-current transition-transform group-hover:-translate-x-1" stroke-width="1.5" />
               <span>Configurações</span>
-            </router-link>
+            </button>
 
             <div class="mx-6 border-t border-hairline my-2"></div>
 
+            <!-- Sub-itens: navega E fecha o sidebar -->
             <router-link
               v-for="item in settingsNav"
               :key="item.path"
@@ -139,7 +160,7 @@ const settingsNav = [
 
       <!-- Rodapé -->
       <Transition name="fade" mode="out-in">
-        <div v-if="!isConfigsRoute" key="footer" class="mt-auto space-y-1 mb-6">
+        <div v-if="!showSettingsNav" key="footer" class="mt-auto space-y-1 mb-6">
           <div class="mx-4 border-t border-hairline my-2"></div>
 
           <router-link to="/admin" @click="isSidebarOpen = false"

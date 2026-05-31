@@ -427,23 +427,58 @@ async def criar_orcamento_legacy_compat(
 # --- ROTAS DE HISTÓRICO E NOTAS & PROJETOS ARQUIVADOS ---
 # =========================================================================
 
+_STATUS_RESTAURACAO = {
+    "contrato_pendente": "docs_validados",
+    "engenharia_caixa":  "em_analise_caixa",
+    "obra_liberada":     "liberada",
+}
+
 @router.get("/api/projetos-arquivados")
 async def listar_projetos_arquivados(supabase_client: Client = Depends(get_authenticated_supabase)):
-    """Retorna todos os projetos na lixeira/arquivados do tenant atual."""
-    res = supabase_client.table("projetos_clientes").select("*").eq("status", "ARQUIVADO").order("created_at", desc=True).execute()
+    """Retorna todos os projetos arquivados do tenant, ordenados pela data de arquivamento."""
+    res = supabase_client.table("projetos_clientes") \
+        .select("*") \
+        .eq("status", "ARQUIVADO") \
+        .order("archived_at", desc=True) \
+        .execute()
     projetos = res.data
     for p in projetos:
-        p["nome"] = p.get("titulo_projeto") or p.get("cliente_nome") or "Obra sem título"
+        p["nome"]    = p.get("titulo_projeto") or p.get("cliente_nome") or "Obra sem título"
         p["cliente"] = p.get("cliente_nome") or "Cliente não informado"
-        # Formata data simplificada para a gaveta
-        created = p.get("created_at", "")
-        p["data"] = "/".join(reversed(created.split("T")[0].split("-"))) if created else "Recém arquivado"
+        p["archived_at"] = p.get("archived_at") or p.get("created_at")
     return {"success": True, "data": projetos}
+
+@router.post("/api/projetos/{id}/restaurar")
+async def restaurar_projeto(id: str, supabase_client: Client = Depends(get_authenticated_supabase)):
+    """Restaura um projeto arquivado para a fase de funil em que estava."""
+    check = supabase_client.table("projetos_clientes") \
+        .select("id,coluna") \
+        .eq("id", id).eq("status", "ARQUIVADO") \
+        .execute()
+    if not check.data:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Projeto arquivado não encontrado.")
+    coluna = check.data[0].get("coluna") or "estimativa_enviada"
+    novo_status = _STATUS_RESTAURACAO.get(coluna, "aguardando_cliente")
+    res = supabase_client.table("projetos_clientes") \
+        .update({"status": novo_status, "coluna": coluna}) \
+        .eq("id", id) \
+        .execute()
+    if not res.data:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Falha ao restaurar projeto.")
+    supabase_client.table("projetos_historico").insert({
+        "projeto_id": id,
+        "acao": "Projeto Restaurado",
+        "detalhes": f"Restaurado da lixeira para a coluna '{coluna}' com status '{novo_status}'."
+    }).execute()
+    return {"success": True, "data": res.data[0]}
 
 @router.delete("/api/projetos/{id}")
 async def excluir_projeto_definitivamente(id: str, supabase_client: Client = Depends(get_authenticated_supabase)):
-    """Exclui permanentemente um projeto do banco de dados."""
-    res = supabase_client.table("projetos_clientes").delete().eq("id", id).execute()
+    """Exclui permanentemente um projeto do banco de dados. Restringe a projetos arquivados."""
+    check = supabase_client.table("projetos_clientes").select("id").eq("id", id).eq("status", "ARQUIVADO").execute()
+    if not check.data:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Apenas projetos arquivados podem ser excluídos permanentemente.")
+    supabase_client.table("projetos_clientes").delete().eq("id", id).execute()
     return {"success": True, "message": "Projeto excluído definitivamente."}
 
 @router.get("/api/projetos/{id}/historico")
