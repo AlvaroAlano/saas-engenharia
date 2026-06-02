@@ -1,6 +1,6 @@
 <script setup>
-import { ref, watch } from 'vue'
-import { ETAPAS_OBRA } from '../constants/etapas'
+import { ref, watch, onMounted } from 'vue'
+import { useFases } from '../composables/useFases'
 import { FilePlus, ChevronDown, Loader2, Check } from 'lucide-vue-next'
 import BaseModal from './modals/BaseModal.vue'
 
@@ -21,7 +21,8 @@ const form = ref({
 
 const unidades = ['UN', 'M²', 'M³', 'KG', 'MES', 'CJ', 'VB']
 
-const etapas = ETAPAS_OBRA
+const { fases: etapas, ensureFases } = useFases()
+onMounted(ensureFases)
 
 watch(() => props.isOpen, (newVal) => {
   if (newVal) {

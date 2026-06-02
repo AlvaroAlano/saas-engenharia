@@ -2,7 +2,7 @@
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import axios from 'axios'
 import { formatCurrency } from '../../utils/formatters'
-import { ETAPAS_OBRA } from '../../constants/etapas'
+import { useFases } from '../../composables/useFases'
 import {
   Network,
   Plus,
@@ -15,19 +15,21 @@ import {
   Check,
   ChevronDown,
   AlertTriangle,
-  HardHat,
-  Layers,
-  Building,
-  Zap,
-  Paintbrush
+  HardHat, Layers, Building, Zap, Paintbrush,
+  Wrench, Home, Settings2, LayoutGrid
 } from 'lucide-vue-next'
 
 const iconMap = {
-  engineering: HardHat,
-  foundation: Layers,
-  domain: Building,
+  engineering:   HardHat,
+  foundation:    Layers,
+  domain:        Building,
   electric_bolt: Zap,
-  format_paint: Paintbrush
+  format_paint:  Paintbrush,
+  wrench:        Wrench,
+  home:          Home,
+  package:       Package,
+  settings:      Settings2,
+  grid:          LayoutGrid,
 }
 
 const props = defineProps({
@@ -39,10 +41,13 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'refresh', 'add-manual-item', 'remove-item', 'update-quantity'])
 
+const { fases, ensureFases } = useFases()
+onMounted(ensureFases)
+
 // --- Agrupamento ---
 const itensPorEtapa = computed(() => {
   const map = {}
-  for (const e of ETAPAS_OBRA) {
+  for (const e of fases.value) {
     map[e.value] = props.items.filter(i => i.etapa_obra === e.value)
   }
   return map
@@ -52,8 +57,8 @@ const filteredItensPorEtapa = computed(() => {
   const q = searchQuery.value.toLowerCase().trim()
   if (!q) return itensPorEtapa.value
   const result = {}
-  for (const e of ETAPAS_OBRA) {
-    result[e.value] = itensPorEtapa.value[e.value].filter(i =>
+  for (const e of fases.value) {
+    result[e.value] = (itensPorEtapa.value[e.value] || []).filter(i =>
       i.descricao?.toLowerCase().includes(q) ||
       i.codigo_sinapi?.toLowerCase().includes(q)
     )
@@ -62,14 +67,19 @@ const filteredItensPorEtapa = computed(() => {
 })
 
 const etapasComItens = computed(() =>
-  ETAPAS_OBRA.filter(e => filteredItensPorEtapa.value[e.value].length > 0)
+  fases.value.filter(e => (filteredItensPorEtapa.value[e.value] || []).length > 0)
 )
 
 // --- Pesquisa ---
 const searchQuery = ref('')
 
 // --- Accordion (todas expandidas por padrão) ---
-const expandedEtapas = ref(new Set(ETAPAS_OBRA.map(e => e.value)))
+const expandedEtapas = ref(new Set(fases.value.map(e => e.value)))
+
+// Sincroniza expandedEtapas quando fases carregam ou mudam
+watch(fases, (f) => {
+  expandedEtapas.value = new Set(f.map(e => e.value))
+})
 
 const toggleEtapa = (val) => {
   const s = new Set(expandedEtapas.value)
@@ -80,12 +90,12 @@ const toggleEtapa = (val) => {
 // Auto-expande fases com resultados ao pesquisar
 watch(searchQuery, (q) => {
   if (!q.trim()) {
-    expandedEtapas.value = new Set(ETAPAS_OBRA.map(e => e.value))
+    expandedEtapas.value = new Set(fases.value.map(e => e.value))
     return
   }
   const lower = q.toLowerCase()
   const expanded = new Set()
-  for (const e of ETAPAS_OBRA) {
+  for (const e of fases.value) {
     const hasMatch = (itensPorEtapa.value[e.value] || []).some(i =>
       i.descricao?.toLowerCase().includes(lower) ||
       i.codigo_sinapi?.toLowerCase().includes(lower)
@@ -101,7 +111,7 @@ watch(() => props.isOpen, (val) => {
   if (val) {
     selectedIds.value = new Set()
     searchQuery.value = ''
-    expandedEtapas.value = new Set(ETAPAS_OBRA.map(e => e.value))
+    expandedEtapas.value = new Set(fases.value.map(e => e.value))
   }
 })
 
@@ -159,7 +169,7 @@ let debounceTimer   = null
 let isTabbing       = false
 
 const orderedItems = computed(() =>
-  ETAPAS_OBRA.flatMap(e => itensPorEtapa.value[e.value])
+  fases.value.flatMap(e => itensPorEtapa.value[e.value] || [])
 )
 
 const startEdit = (item) => {

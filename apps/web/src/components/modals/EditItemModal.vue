@@ -1,6 +1,6 @@
 <script setup>
-import { ref, watch, computed } from 'vue'
-import { ETAPAS_OBRA } from '../../constants/etapas'
+import { ref, watch, computed, onMounted } from 'vue'
+import { useFases } from '../../composables/useFases'
 import { ChevronDown, Loader2, Check } from 'lucide-vue-next'
 import BaseModal from './BaseModal.vue'
 
@@ -17,7 +17,8 @@ const quantidadeInput = ref(1)
 const bdiInput = ref(20) // BDI padrão em %
 const etapaObra = ref('servicos_preliminares')
 
-const etapas = ETAPAS_OBRA
+const { fases: etapas, ensureFases } = useFases()
+onMounted(ensureFases)
 
 // Sincroniza os dados locais com o itemData fornecido
 watch(() => props.isOpen, (newVal) => {

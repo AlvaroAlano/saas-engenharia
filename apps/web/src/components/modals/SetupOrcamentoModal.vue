@@ -21,6 +21,7 @@ const mesesDisponiveis = ref(['03/2026', '02/2026'])
 const isSaving = ref(false)
 const aplicarTemplate = ref(false)
 const showConfirm = ref(false)
+const templateOptions = ref([])
 
 // Resetar checkbox quando o modal abre
 watch(() => props.isOpen, (val) => { if (!val) aplicarTemplate.value = false })
@@ -118,11 +119,23 @@ const handleSubmit = async () => {
     await axios.patch(`/projetos/${props.project.id}`, payload)
 
     if (aplicarTemplate.value && form.value.padrao) {
+      // Busca templates disponíveis para o padrão escolhido
+      try {
+        const res = await axios.get('/configuracoes/templates', { params: { padrao_obra: form.value.padrao } })
+        templateOptions.value = [
+          ...(res.data.sistema  || []).filter(t => t.padrao_obra === form.value.padrao),
+          ...(res.data.customizado || []),
+        ]
+      } catch {
+        templateOptions.value = []
+      }
+
       if (props.cartItemsCount > 0) {
         showConfirm.value = true
         return  // execução continua em onConfirmarTemplate
       }
-      await _aplicarTemplate('mesclar')
+      const activeTemplate = templateOptions.value.find(t => t.is_active)
+      await _aplicarTemplate('mesclar', activeTemplate?.id ?? null)
     }
 
     emit('salvar', props.project.id)
@@ -134,9 +147,11 @@ const handleSubmit = async () => {
   }
 }
 
-const _aplicarTemplate = async (modo) => {
+const _aplicarTemplate = async (modo, templateId = null) => {
   try {
-    const res = await axios.post(`/projetos/${props.project.id}/aplicar-template-padrao`, { modo })
+    const payload = { modo }
+    if (templateId) payload.template_id = templateId
+    const res = await axios.post(`/projetos/${props.project.id}/aplicar-template-padrao`, payload)
     if (res.data?.sem_preco?.length) {
       console.warn(`[Template] ${res.data.sem_preco.length} código(s) sem preço no SINAPI:`, res.data.sem_preco)
     }
@@ -145,11 +160,11 @@ const _aplicarTemplate = async (modo) => {
   }
 }
 
-const onConfirmarTemplate = async (modo) => {
+const onConfirmarTemplate = async (modo, templateId = null) => {
   showConfirm.value = false
   isSaving.value = true
   try {
-    await _aplicarTemplate(modo)
+    await _aplicarTemplate(modo, templateId)
     emit('salvar', props.project.id)
   } finally {
     isSaving.value = false
@@ -315,7 +330,8 @@ const onCancelarTemplate = () => {
   <ConfirmarTemplateModal
     :is-open="showConfirm"
     :cart-items-count="cartItemsCount"
-    @confirmar="onConfirmarTemplate"
+    :templates="templateOptions"
+    @confirmar="(modo, tid) => onConfirmarTemplate(modo, tid)"
     @cancelar="onCancelarTemplate"
   />
 </template>

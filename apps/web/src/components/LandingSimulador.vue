@@ -4,7 +4,7 @@
     <header class="sticky top-0 z-50 w-full h-[56px] bg-surface/80 backdrop-blur-md border-b border-hairline transition-all duration-300 flex items-center">
       <div class="w-full max-w-[1280px] mx-auto px-6 flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <VerticeLogo class="h-[22px] text-ink" />
+          <VerticeLogo class="h-[22px] text-logo" />
           <span class="text-[10px] bg-canvas border border-hairline text-ink-muted px-2 py-0.5 rounded-full font-mono font-medium">B2C</span>
         </div>
         

@@ -479,7 +479,7 @@ onMounted(() => {
       >
         <div
           v-if="showPreview"
-          class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-start justify-center p-4 sm:p-8 overflow-y-auto"
+          class="fixed inset-0 z-[120] bg-black/50 backdrop-blur-sm flex items-start justify-center p-4 sm:p-8 overflow-y-auto"
           @click.self="showPreview = false"
         >
           <div class="bg-surface border border-hairline rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden my-4">
@@ -533,7 +533,7 @@ onMounted(() => {
       <Transition enter-active-class="transition-all duration-200 ease-out" enter-from-class="opacity-0 scale-95" enter-to-class="opacity-100 scale-100" leave-active-class="transition-all duration-150 ease-in" leave-from-class="opacity-100 scale-100" leave-to-class="opacity-0 scale-95">
         <div
           v-if="deleteModal.isOpen"
-          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          class="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
           @click.self="deleteModal.isOpen = false"
         >
           <div class="bg-surface rounded-2xl border border-hairline shadow-2xl w-full max-w-sm overflow-hidden">

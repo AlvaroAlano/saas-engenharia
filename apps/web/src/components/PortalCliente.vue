@@ -6,6 +6,7 @@ import { useToast } from '../composables/useToast'
 import { forceLightMode } from '../composables/useTheme'
 import { supabase } from '../supabase'
 import Caixometro from './Caixometro.vue'
+import VerticeLogo from './VerticeLogo.vue'
 import {
   IdCard,
   Building,
@@ -17,7 +18,6 @@ import {
   FileText,
   Home,
   File,
-  Layers,
   Lock,
   AlertTriangle,
   Eye,
@@ -317,10 +317,7 @@ const getDocIcon = (categoria) => {
       <!-- ============================================ -->
       <header class="bg-surface/80 backdrop-blur-lg border-b border-hairline/60 flex justify-between items-center w-full px-6 h-16 sticky top-0 z-40">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 bg-brand-primary/10 rounded-lg flex items-center justify-center border border-brand-primary/20">
-            <Layers class="w-4.5 h-4.5 text-brand-primary" stroke-width="1.5" />
-          </div>
-          <span class="text-lg font-bold tracking-tight text-ink">Portal do Cliente</span>
+          <VerticeLogo class="h-[28px] text-logo" />
         </div>
         <div class="flex items-center gap-1.5">
           <span class="w-2 h-2 bg-brand-primary rounded-full animate-pulse"></span>

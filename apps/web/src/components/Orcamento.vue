@@ -390,27 +390,52 @@ const showArvoreCustosModal = ref(false)
 
 // --- Aplicar template padrão (acionado pela ArvoreCustos) ---
 const showConfirmTemplate = ref(false)
-const isApplyingTemplate = ref(false)
+const isApplyingTemplate  = ref(false)
+const templateOptions     = ref([])   // templates disponíveis para o padrão do projeto atual
 
-const onSolicitarTemplate = () => {
-  if (cartItems.value.length > 0) {
-    showConfirmTemplate.value = true
-  } else {
-    executarAplicarTemplate('mesclar')
+const onSolicitarTemplate = async () => {
+  if (cartItems.value.length === 0) {
+    // Sem itens no carrinho: aplica direto com o template ativo (servidor resolve)
+    executarAplicarTemplate('mesclar', null)
+    return
+  }
+
+  // Abre o modal imediatamente e busca as opções em paralelo
+  templateOptions.value = []
+  showConfirmTemplate.value = true
+
+  try {
+    const padrao = currentProject.value?.padrao
+    if (padrao) {
+      const res = await axios.get('/configuracoes/templates', { params: { padrao_obra: padrao } })
+      templateOptions.value = [
+        ...(res.data.sistema  || []).filter(t => t.padrao_obra === padrao),
+        ...(res.data.customizado || []),
+      ]
+    }
+  } catch {
+    templateOptions.value = []
   }
 }
 
-const executarAplicarTemplate = async (modo) => {
+const executarAplicarTemplate = async (modo, templateId = null) => {
   showConfirmTemplate.value = false
   const projectId = route.params.id
   if (!projectId) return
   isApplyingTemplate.value = true
   try {
-    const res = await axios.post(`/projetos/${projectId}/aplicar-template-padrao`, { modo })
-    if (res.data?.sem_preco?.length) {
-      console.warn('[Template] Códigos sem preço no SINAPI:', res.data.sem_preco)
+    const payload = { modo }
+    if (templateId) payload.template_id = templateId
+    const res = await axios.post(`/projetos/${projectId}/aplicar-template-padrao`, payload)
+    const semPreco = res.data?.sem_preco ?? []
+    if (semPreco.length) {
+      showToast(
+        `${res.data.inserted} itens adicionados. ${semPreco.length} código(s) sem preço no SINAPI para este estado/mês: ${semPreco.join(', ')}.`,
+        'warning'
+      )
+    } else {
+      showToast(`${res.data.inserted} itens adicionados à árvore!`)
     }
-    showToast(`${res.data.inserted} itens adicionados à árvore!`)
     await fetchCart()
   } catch (e) {
     const detail = e.response?.data?.detail || 'Erro ao aplicar template.'
@@ -801,7 +826,8 @@ onUnmounted(() => {
     <ConfirmarTemplateModal
       :is-open="showConfirmTemplate"
       :cart-items-count="cartItems.length"
-      @confirmar="executarAplicarTemplate"
+      :templates="templateOptions"
+      @confirmar="(modo, tid) => executarAplicarTemplate(modo, tid)"
       @cancelar="showConfirmTemplate = false"
     />
 
@@ -827,7 +853,7 @@ onUnmounted(() => {
 
     <!-- ========== MODAL: GUARDAR COMO MODELO ========== -->
     <Teleport to="body">
-      <div v-if="showTemplateModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="showTemplateModal = false">
+      <div v-if="showTemplateModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[120] flex items-center justify-center p-4" @click.self="showTemplateModal = false">
         <div class="bg-surface rounded-2xl border border-hairline w-full max-w-md overflow-hidden shadow-sm animate-in zoom-in duration-200">
           <div class="flex items-center justify-between px-6 py-4 border-b border-hairline">
             <div class="flex items-center gap-2">
@@ -870,7 +896,7 @@ onUnmounted(() => {
 
     <!-- ========== MODAL: IMPORTAR MODELO ========== -->
     <Teleport to="body">
-      <div v-if="showImportTemplateModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="showImportTemplateModal = false">
+      <div v-if="showImportTemplateModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[120] flex items-center justify-center p-4" @click.self="showImportTemplateModal = false">
         <div class="bg-surface rounded-2xl border border-hairline w-full max-w-md overflow-hidden shadow-sm animate-in zoom-in duration-200">
           <div class="flex items-center justify-between px-6 py-4 border-b border-hairline">
             <div class="flex items-center gap-2">

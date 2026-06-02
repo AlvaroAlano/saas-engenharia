@@ -6,7 +6,7 @@
       <div class="w-full max-w-[1280px] mx-auto px-6 flex items-center justify-between">
         <!-- Left: Logo & Wordmark -->
         <div class="flex items-center gap-3">
-          <VerticeLogo class="h-[60px] text-ink" />
+          <VerticeLogo class="h-[60px] text-logo" />
           <span class="text-[10px] bg-canvas border border-hairline text-ink-muted px-2 py-0.5 rounded-full font-mono font-medium">v1.0</span>
         </div>
 
@@ -18,6 +18,7 @@
             <a href="#demo" class="hover:text-ink transition-colors duration-200">Simulador</a>
             <a href="#workflow" class="hover:text-ink transition-colors duration-200">Como Funciona</a>
             <a href="#pricing" class="hover:text-ink transition-colors duration-200">Preços</a>
+            <button @click="openClientModal = true" class="hover:text-ink transition-colors duration-200 cursor-pointer">Acessar Obra</button>
           </nav>
 
           <!-- Divider -->
@@ -28,13 +29,13 @@
             <!-- Theme Toggle Button -->
             <ThemeToggler />
 
-            <!-- Client Portal Access -->
-            <button 
-              @click="openClientModal = true" 
+            <!-- Encontrar Engenheiro -->
+            <router-link
+              to="/auth?tipo=cliente&redirect=/buscar"
               class="hidden md:inline-flex items-center justify-center bg-surface hover:bg-surface-hover text-ink border border-hairline rounded-md text-[13px] font-medium px-4 py-2 transition-all duration-200 cursor-pointer"
             >
-              Acesso Cliente
-            </button>
+              Encontrar Engenheiro
+            </router-link>
             
             <!-- Builder Access -->
             <router-link 
@@ -99,14 +100,16 @@
         <a href="#features" @click="mobileMenuOpen = false" class="text-ink-muted hover:text-ink py-2.5 min-h-[44px] flex items-center text-sm font-medium border-b border-hairline/60">Funcionalidades</a>
         <a href="#demo" @click="mobileMenuOpen = false" class="text-ink-muted hover:text-ink py-2.5 min-h-[44px] flex items-center text-sm font-medium border-b border-hairline/60">Simulador</a>
         <a href="#workflow" @click="mobileMenuOpen = false" class="text-ink-muted hover:text-ink py-2.5 min-h-[44px] flex items-center text-sm font-medium border-b border-hairline/60">Como Funciona</a>
-        <a href="#pricing" @click="mobileMenuOpen = false" class="text-ink-muted hover:text-ink py-2.5 min-h-[44px] flex items-center text-sm font-medium">Preços</a>
+        <a href="#pricing" @click="mobileMenuOpen = false" class="text-ink-muted hover:text-ink py-2.5 min-h-[44px] flex items-center text-sm font-medium border-b border-hairline/60">Preços</a>
+        <button @click="openClientModal = true; mobileMenuOpen = false" class="text-ink-muted hover:text-ink py-2.5 min-h-[44px] flex items-center text-sm font-medium w-full text-left cursor-pointer">Acessar Obra</button>
         <div class="h-[1px] bg-hairline my-1"></div>
-        <button 
-          @click="openClientModal = true; mobileMenuOpen = false" 
-          class="w-full text-center py-3 min-h-[44px] flex items-center justify-center bg-canvas border border-hairline text-ink hover:bg-surface-hover rounded-md text-sm font-medium cursor-pointer"
+        <router-link
+          to="/auth?tipo=cliente&redirect=/buscar"
+          @click="mobileMenuOpen = false"
+          class="w-full text-center py-3 min-h-[44px] flex items-center justify-center bg-canvas border border-hairline text-ink hover:bg-surface-hover rounded-md text-sm font-medium cursor-pointer block"
         >
-          Acesso Cliente
-        </button>
+          Encontrar Engenheiro
+        </router-link>
         <router-link 
           v-if="hasSession" 
           to="/dashboard" 
@@ -157,12 +160,15 @@
           </div>
 
           <!-- Right: CTA Buttons -->
-          <div class="flex flex-col sm:flex-row items-center gap-4 animate-blur-in-up delay-300 shrink-0">
-            <a href="#demo" class="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center bg-surface hover:bg-surface-hover dark:bg-transparent text-ink border border-hairline rounded-md text-[14px] font-medium px-6 py-3 transition-all duration-200 cursor-pointer">
-              Simular Custos
-            </a>
+          <div class="flex flex-col sm:flex-row items-center gap-3 animate-blur-in-up delay-300 shrink-0">
+            <router-link
+              to="/auth?tipo=cliente&redirect=/buscar"
+              class="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center bg-surface hover:bg-surface-hover dark:bg-transparent text-ink border border-hairline rounded-md text-[14px] font-medium px-6 py-3 transition-all duration-200 cursor-pointer"
+            >
+              Encontrar Engenheiro
+            </router-link>
             <router-link to="/auth" class="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center bg-brand-orange hover:bg-brand-orange-hover text-neutral-950 border border-transparent rounded-md text-[14px] font-bold px-6 py-3 transition-all duration-200 cursor-pointer focus:outline-none">
-              Começar Grátis
+              Sou Engenheiro
               <ArrowRight class="w-4 h-4 ml-2" stroke-width="2" />
             </router-link>
           </div>
@@ -1001,7 +1007,7 @@
       <div class="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12 items-start">
         <!-- Logo Column -->
         <div class="col-span-2 flex flex-col gap-4 justify-start items-start">
-          <VerticeLogo class="h-[80px] text-ink" />
+          <VerticeLogo class="h-[80px] text-logo" />
           <p class="text-xs text-ink-muted max-w-[240px] leading-[1.5]">
             Tecnologia focada em inteligência orçamentária e transparência de obras para construtoras e engenheiros B2B.
           </p>

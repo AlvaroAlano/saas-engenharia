@@ -6,6 +6,7 @@ import axios from 'axios'
 import { supabase } from '../supabase'
 import { forceLightMode } from '../composables/useTheme'
 import { useToast } from '../composables/useToast'
+import VerticeLogo from './VerticeLogo.vue'
 
 const { showToast } = useToast()
 import { 
@@ -413,9 +414,7 @@ const uploadFiles = async () => {
             </button>
             <span class="text-sm font-bold tracking-wide text-ink-muted uppercase">Passo {{ step }} de {{ isMatchmakingFlow ? 4 : 3 }}</span>
           </div>
-          <div class="w-8 h-8 rounded-full bg-canvas flex items-center justify-center text-ink-muted">
-            <Building class="w-4 h-4" stroke-width="1.5" />
-          </div>
+          <VerticeLogo class="h-[24px] text-logo" />
         </div>
       </div>
 

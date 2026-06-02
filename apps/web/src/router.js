@@ -19,6 +19,7 @@ const routes = [
   { path: '/orcamento/:id', component: Orcamento, meta: { requiresAuth: true } },
   { path: '/portal/:token', component: PortalCliente },
   { path: '/p/:slug', component: () => import('./components/VitrinePublica.vue') },
+  { path: '/buscar', component: () => import('./components/BuscarEngenheiros.vue'), meta: { requiresAuth: true } },
   { path: '/estimativa/:id', component: EstimativaWizard },
   { path: '/admin', component: AdminSync, meta: { requiresAuth: true } },
   {
@@ -46,7 +47,7 @@ router.beforeEach(async (to, from, next) => {
   if (to.matched.some(record => record.meta.requiresAuth)) {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
-      next('/auth')
+      next({ path: '/auth', query: { tipo: 'cliente', redirect: to.fullPath } })
     } else {
       next()
     }

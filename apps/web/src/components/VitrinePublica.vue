@@ -2,7 +2,9 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
-import { Building, Frown, User, MapPin, Image, Calculator, ChevronDown, Loader2, AlertTriangle, Handshake } from 'lucide-vue-next'
+import { Frown, User, MapPin, Image, Calculator, ChevronDown, Loader2, AlertTriangle, Handshake, Star } from 'lucide-vue-next'
+import VerticeLogo from './VerticeLogo.vue'
+import { ENGENHEIROS_MOCK } from '../data/mockEngenheiros'
 
 const route = useRoute()
 const router = useRouter()
@@ -45,8 +47,20 @@ const fetchEngenheiro = async () => {
       if (primeiraUF) form.uf = primeiraUF[1]
     }
   } catch (e) {
-    if (e.response?.status === 404) notFound.value = true
-    else console.error('Erro ao carregar vitrine:', e)
+    if (e.response?.status === 404) {
+      const mock = ENGENHEIROS_MOCK.find(m => m.slug === route.params.slug)
+      if (mock) {
+        engenheiro.value = mock
+        if (mock.cidades_atuacao?.length) {
+          const primeiraUF = mock.cidades_atuacao[0].match(/\b([A-Z]{2})\b/)
+          if (primeiraUF) form.uf = primeiraUF[1]
+        }
+      } else {
+        notFound.value = true
+      }
+    } else {
+      console.error('Erro ao carregar vitrine:', e)
+    }
   } finally {
     isLoading.value = false
   }
@@ -119,12 +133,7 @@ onMounted(fetchEngenheiro)
     <!-- Header -->
     <header class="sticky top-0 z-50 bg-surface/80 backdrop-blur-md border-b border-hairline h-14 flex items-center px-6">
       <div class="w-full max-w-4xl mx-auto flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <div class="w-7 h-7 bg-brand-primary/10 rounded-md border border-brand-primary/30 flex items-center justify-center">
-            <Building class="w-[18px] h-[18px] text-brand-primary" stroke-width="1.5" />
-          </div>
-          <span class="text-base font-semibold text-ink tracking-tight">Vértice</span>
-        </div>
+        <VerticeLogo class="h-[28px] text-logo" />
         <router-link to="/" class="text-xs text-ink-muted hover:text-ink transition-colors">
           Área do Construtor →
         </router-link>
@@ -199,6 +208,72 @@ onMounted(fetchEngenheiro)
           >
             <img :src="url" class="w-full h-full object-cover" />
           </button>
+        </div>
+      </section>
+
+      <!-- Avaliações -->
+      <section v-if="engenheiro.avaliacoes?.length">
+        <h2 class="text-xs font-bold text-ink-muted uppercase tracking-wider mb-4 flex items-center gap-1.5">
+          <Star class="w-3.5 h-3.5" stroke-width="1.5" />
+          Avaliações de Clientes
+        </h2>
+
+        <!-- Resumo de nota -->
+        <div class="flex items-center gap-4 bg-surface border border-hairline rounded-2xl px-6 py-5 mb-4">
+          <div class="text-center shrink-0">
+            <p class="text-4xl font-black text-ink">{{ engenheiro.rating?.toFixed(1) }}</p>
+            <div class="flex gap-0.5 justify-center mt-1">
+              <Star
+                v-for="i in 5"
+                :key="i"
+                class="w-3.5 h-3.5"
+                :class="i <= Math.round(engenheiro.rating || 0) ? 'text-yellow-400 fill-yellow-400' : 'text-hairline fill-hairline'"
+                stroke-width="0"
+              />
+            </div>
+            <p class="text-[11px] text-ink-muted mt-1">{{ engenheiro.total_reviews }} avaliações</p>
+          </div>
+          <div class="flex-1 space-y-1.5 min-w-0">
+            <div v-for="estrelas in [5,4,3,2,1]" :key="estrelas" class="flex items-center gap-2">
+              <span class="text-[11px] text-ink-muted w-3 shrink-0">{{ estrelas }}</span>
+              <Star class="w-3 h-3 text-yellow-400 fill-yellow-400 shrink-0" stroke-width="0" />
+              <div class="flex-1 h-1.5 bg-canvas rounded-full overflow-hidden">
+                <div
+                  class="h-full bg-yellow-400 rounded-full"
+                  :style="{ width: `${(engenheiro.avaliacoes.filter(a => a.nota === estrelas).length / engenheiro.avaliacoes.length) * 100}%` }"
+                ></div>
+              </div>
+              <span class="text-[11px] text-ink-muted w-3 shrink-0">{{ engenheiro.avaliacoes.filter(a => a.nota === estrelas).length }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lista de comentários -->
+        <div class="space-y-3">
+          <div
+            v-for="(av, i) in engenheiro.avaliacoes"
+            :key="i"
+            class="bg-surface border border-hairline rounded-2xl p-5"
+          >
+            <div class="flex items-start justify-between gap-3 mb-2">
+              <div>
+                <p class="text-sm font-semibold text-ink">{{ av.autor }}</p>
+                <div class="flex gap-0.5 mt-0.5">
+                  <Star
+                    v-for="j in 5"
+                    :key="j"
+                    class="w-3 h-3"
+                    :class="j <= av.nota ? 'text-yellow-400 fill-yellow-400' : 'text-hairline fill-hairline'"
+                    stroke-width="0"
+                  />
+                </div>
+              </div>
+              <span class="text-[11px] text-ink-muted shrink-0">
+                {{ new Date(av.data).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' }) }}
+              </span>
+            </div>
+            <p class="text-sm text-ink-muted leading-relaxed">{{ av.comentario }}</p>
+          </div>
         </div>
       </section>
 

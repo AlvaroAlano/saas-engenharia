@@ -1,32 +1,34 @@
 <script setup>
-import { computed, ref, nextTick } from 'vue'
+import { computed, ref, nextTick, onMounted } from 'vue'
 import { formatCurrency } from '../utils/formatters'
-import { ETAPAS_OBRA } from '../constants/etapas'
-import { 
-  Network, 
-  Loader2, 
-  Sparkles, 
-  Plus, 
-  Maximize2, 
-  Package, 
-  Download, 
-  ChevronDown, 
-  ListPlus, 
-  AlertTriangle, 
+import { useFases } from '../composables/useFases'
+import {
+  Network,
+  Loader2,
+  Sparkles,
+  Plus,
+  Maximize2,
+  Package,
+  Download,
+  ChevronDown,
+  ListPlus,
+  AlertTriangle,
   X,
-  HardHat,
-  Layers,
-  Building,
-  Zap,
-  Paintbrush
+  HardHat, Layers, Building, Zap, Paintbrush,
+  Wrench, Home, Settings2, LayoutGrid
 } from 'lucide-vue-next'
 
 const iconMap = {
-  engineering: HardHat,
-  foundation: Layers,
-  domain: Building,
+  engineering:   HardHat,
+  foundation:    Layers,
+  domain:        Building,
   electric_bolt: Zap,
-  format_paint: Paintbrush
+  format_paint:  Paintbrush,
+  wrench:        Wrench,
+  home:          Home,
+  package:       Package,
+  settings:      Settings2,
+  grid:          LayoutGrid,
 }
 
 const props = defineProps({
@@ -37,7 +39,8 @@ const props = defineProps({
 
 const emit = defineEmits(['remove-item', 'update-quantity', 'add-manual-item', 'import-template', 'aplicar-template-padrao', 'expandir'])
 
-const etapas = ETAPAS_OBRA
+const { fases: etapas, ensureFases } = useFases()
+onMounted(ensureFases)
 
 const expandedEtapas = ref(new Set())
 
@@ -51,14 +54,14 @@ const toggleEtapa = (etapa) => {
 
 const itensPorEtapa = computed(() => {
   const grouped = {}
-  for (const etapa of etapas) {
+  for (const etapa of etapas.value) {
     grouped[etapa.value] = props.items.filter(i => i.etapa_obra === etapa.value)
   }
   return grouped
 })
 
 const subtotalEtapa = (etapaKey) => {
-  return itensPorEtapa.value[etapaKey].reduce((sum, item) => {
+  return (itensPorEtapa.value[etapaKey] ?? []).reduce((sum, item) => {
     return sum + (item.quantidade * item.valor_unitario)
   }, 0)
 }
@@ -225,7 +228,7 @@ const debouncedUpdateQty = (item) => {
             />
             <span class="text-sm font-bold text-ink">{{ etapa.label }}</span>
             <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-300">
-              {{ itensPorEtapa[etapa.value].length }}
+              {{ (itensPorEtapa[etapa.value] ?? []).length }}
             </span>
           </div>
           <div class="flex items-center gap-3">

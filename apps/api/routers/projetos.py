@@ -244,6 +244,7 @@ async def remover_item_projeto(
 
 class AplicarTemplateRequest(BaseModel):
     modo: str = Field("mesclar", description="'substituir' apaga os itens atuais e insere o template; 'mesclar' insere apenas os códigos que ainda não estão na árvore")
+    template_id: Optional[str] = Field(None, description="ID do template a usar. Se None, usa o is_default do padrão do projeto (ou SISTEMA como fallback)")
 
 
 @router.post("/api/projetos/{projeto_id}/aplicar-template-padrao", status_code=status.HTTP_201_CREATED)
@@ -279,23 +280,49 @@ async def aplicar_template_padrao(
     sinapi_mes_ano = projeto.get("sinapi_mes_ano")
     sinapi_desonerado = projeto.get("sinapi_desonerado") or False
 
-    # Tenta CUSTOMIZADO do usuário, fallback para SISTEMA
-    template_res = (
-        supabase_client.table("templates_eap")
-        .select("id, template_eap_itens(*)")
-        .eq("padrao_obra", padrao)
-        .eq("tipo", "CUSTOMIZADO")
-        .eq("usuario_id", user_id)
-        .execute()
-    )
-    if not template_res.data:
+    # Resolução do template a usar:
+    # 1. template_id explícito no payload (escolha do usuário no Orçamento)
+    # 2. CUSTOMIZADO com is_default=true para o padrão
+    # 3. Qualquer CUSTOMIZADO do usuário para o padrão
+    # 4. SISTEMA como fallback imutável
+    if payload.template_id:
+        template_res = (
+            supabase_client.table("templates_eap")
+            .select("id, tipo, usuario_id, template_eap_itens(*)")
+            .eq("id", payload.template_id)
+            .execute()
+        )
+        if template_res.data:
+            t = template_res.data[0]
+            if t["tipo"] == "CUSTOMIZADO" and t["usuario_id"] != user_id:
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acesso negado ao template informado.")
+    else:
         template_res = (
             supabase_client.table("templates_eap")
             .select("id, template_eap_itens(*)")
             .eq("padrao_obra", padrao)
-            .eq("tipo", "SISTEMA")
+            .eq("tipo", "CUSTOMIZADO")
+            .eq("usuario_id", user_id)
+            .eq("is_default", True)
             .execute()
         )
+        if not template_res.data:
+            template_res = (
+                supabase_client.table("templates_eap")
+                .select("id, template_eap_itens(*)")
+                .eq("padrao_obra", padrao)
+                .eq("tipo", "CUSTOMIZADO")
+                .eq("usuario_id", user_id)
+                .execute()
+            )
+        if not template_res.data:
+            template_res = (
+                supabase_client.table("templates_eap")
+                .select("id, template_eap_itens(*)")
+                .eq("padrao_obra", padrao)
+                .eq("tipo", "SISTEMA")
+                .execute()
+            )
 
     if not template_res.data:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Nenhum template encontrado para o padrão '{padrao}'.")
@@ -334,16 +361,20 @@ async def aplicar_template_padrao(
     # --- modo: substituir ---
     if payload.modo == "substituir":
         supabase_client.table("orcamento_itens").delete().eq("projeto_id", projeto_id).execute()
-        codigos_ja_presentes: set = set()
+        pares_ja_presentes: set = set()
     # --- modo: mesclar (padrão) ---
     else:
         existentes_res = (
             supabase_client.table("orcamento_itens")
-            .select("codigo_sinapi")
+            .select("codigo_sinapi, etapa_obra")
             .eq("projeto_id", projeto_id)
             .execute()
         )
-        codigos_ja_presentes = {row["codigo_sinapi"] for row in (existentes_res.data or [])}
+        # Deduplicação por (código, fase) — o mesmo código pode existir em fases distintas
+        pares_ja_presentes = {
+            (row["codigo_sinapi"], row["etapa_obra"])
+            for row in (existentes_res.data or [])
+        }
 
     itens_para_inserir = [
         {
@@ -357,7 +388,7 @@ async def aplicar_template_padrao(
             "etapa_obra": t["fase_obra"],
         }
         for t in template_itens
-        if t["codigo_sinapi"] not in codigos_ja_presentes
+        if (t["codigo_sinapi"], t["fase_obra"]) not in pares_ja_presentes
     ]
 
     if itens_para_inserir:

@@ -1226,7 +1226,7 @@ const salvarNovaNota = async () => {
     </div>
 
     <!-- Contract Modal -->
-    <div v-if="isContractModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-sm" @click.stop>
+    <div v-if="isContractModalOpen" class="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/45 backdrop-blur-sm" @click.stop>
       <div 
         class="bg-surface rounded-md border border-hairline shadow-2xl w-full flex flex-col overflow-hidden transition-all"
         :class="pdfPreviewUrl ? 'max-w-4xl h-[90vh]' : 'max-w-md'"
